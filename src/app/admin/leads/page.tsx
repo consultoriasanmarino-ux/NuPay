@@ -50,6 +50,21 @@ export default function LeadsPage() {
         setLoading(false)
     }
 
+    const handleClearBase = async () => {
+        if (!confirm('⚠️ ATENÇÃO: Isso apagará TODOS os leads do banco de dados para sempre. Deseja continuar?')) return
+
+        setLoading(true)
+        const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000') // Deleta tudo
+
+        if (error) {
+            alert('Erro ao limpar base: ' + error.message)
+        } else {
+            alert('🚀 Base recalibrada com sucesso!')
+            fetchLeads()
+        }
+        setLoading(false)
+    }
+
     useEffect(() => {
         fetchLeads()
     }, [page, searchTerm])
@@ -64,9 +79,17 @@ export default function LeadsPage() {
 
                 <div className="flex gap-2">
                     <button
+                        onClick={handleClearBase}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-black uppercase hover:bg-destructive hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-destructive/5"
+                    >
+                        <AlertCircle className="w-4 h-4" />
+                        Limpar Toda a Base
+                    </button>
+                    <button
                         onClick={fetchLeads}
                         disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-xs font-black uppercase hover:bg-accent transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary border border-border text-xs font-black uppercase hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-50"
                     >
                         <RefreshCcw className={cn("w-4 h-4", loading && "animate-spin")} />
                         Atualizar Base
@@ -166,9 +189,13 @@ export default function LeadsPage() {
                                     <td className="px-6 py-5">
                                         <div className={cn(
                                             "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest",
-                                            lead.status === 'incompleto' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                            lead.status === 'incompleto' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" :
+                                                lead.status === 'consultado' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                                    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                                         )}>
-                                            {lead.status === 'incompleto' ? <Clock className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                                            {lead.status === 'incompleto' ? <Clock className="w-3 h-3" /> :
+                                                lead.status === 'consultado' ? <Search className="w-3 h-3" /> :
+                                                    <CheckCircle2 className="w-3 h-3" />}
                                             {lead.status}
                                         </div>
                                     </td>

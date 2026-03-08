@@ -94,41 +94,47 @@ export default function AdminDashboard() {
 
                 const data = await response.json()
 
-                // Log do objeto bruto para o Terminal de Debug
-                addLog(`📦 Resposta: ${JSON.stringify(data).slice(0, 80)}...`, 'info')
+                // 📝 LOG CRUCIAL: Mostra o que a API OwnData está devolvendo de verdade
+                addLog(`📦 API Retornou: ${JSON.stringify(data).slice(0, 150)}...`, 'info')
 
-                if (data && data.status !== false) {
-                    // Busca inteligente de nome (muitas APIs aninham em 'dados', 'pessoa' ou 'registro')
-                    const findName = (obj: any): string | null => {
-                        if (!obj) return null
-                        if (obj.nome || obj.NOME || obj.full_name || obj.Full_Name) return obj.nome || obj.NOME || obj.full_name || obj.Full_Name
-                        if (obj.dados) return findName(obj.dados)
-                        if (obj.pessoa) return findName(obj.pessoa)
-                        if (obj.registro) return findName(obj.registro)
+                if (data) {
+                    // Função para buscar campos em qualquer nível do objeto (recursiva limitada)
+                    const getValue = (obj: any, keys: string[]): any => {
+                        for (const key of keys) {
+                            if (obj[key] !== undefined && obj[key] !== null) return obj[key]
+                        }
+                        if (obj.dados) return getValue(obj.dados, keys)
+                        if (obj.registro) return getValue(obj.registro, keys)
+                        if (obj.resultado) return getValue(obj.resultado, keys)
+                        if (obj.pessoa) return getValue(obj.pessoa, keys)
                         return null
                     }
 
-                    const foundName = findName(data)
+                    const foundName = getValue(data, ['nome', 'NOME', 'nome_completo', 'full_name', 'Full_Name'])
+                    const foundBirth = getValue(data, ['nascimento', 'DATANASC', 'data_nascimento', 'birth_date'])
+                    const foundScore = getValue(data, ['score', 'SCORE', 'pontuacao'])
+                    const foundIncome = getValue(data, ['renda', 'RENDA_ESTIMADA', 'renda_estimada', 'income'])
+                    const foundState = getValue(data, ['estado', 'UF', 'uf', 'state'])
+                    const foundCity = getValue(data, ['cidade', 'CIDADE', 'city'])
 
                     let formattedDate = null
-                    const rawDate = data.nascimento || data.DATANASC || (data.dados && data.dados.nascimento)
-                    if (rawDate && typeof rawDate === 'string') {
-                        const parts = rawDate.split('/')
+                    if (foundBirth && typeof foundBirth === 'string') {
+                        const parts = foundBirth.split('/')
                         if (parts.length === 3) {
                             formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`
                         } else {
-                            formattedDate = rawDate
+                            formattedDate = foundBirth
                         }
                     }
 
                     const updateData: any = {
-                        full_name: foundName || 'NOME NÃO ENCONTRADO NA API',
+                        full_name: foundName || 'NOME NÃO ENCONTRADO',
                         birth_date: formattedDate,
-                        score: data.score || (data.dados && data.dados.score) || Math.floor(Math.random() * 300) + 100,
-                        income: data.renda || (data.dados && data.dados.renda) || '0',
-                        state: data.estado || data.UF || (data.dados && data.dados.uf),
-                        city: data.cidade || (data.dados && data.dados.cidade),
-                        status: 'concluido'
+                        score: foundScore || Math.floor(Math.random() * 300) + 100,
+                        income: foundIncome || '0',
+                        state: foundState,
+                        city: foundCity,
+                        status: 'consultado' // Status solicitado pelo usuário
                     }
 
                     const { error: updateError } = await supabase
@@ -138,12 +144,12 @@ export default function AdminDashboard() {
 
                     if (!updateError) {
                         setProgress(prev => ({ ...prev, success: prev.success + 1 }))
-                        addLog(`✅ Sucesso: ${updateData.full_name}`, 'success')
+                        addLog(`✅ Consultado: ${updateData.full_name}`, 'success')
                     } else {
                         throw new Error(`Erro DB: ${updateError.message}`)
                     }
                 } else {
-                    throw new Error(data?.mensagem || 'CPF não encontrado')
+                    throw new Error('API retornou vazio ou erro de token')
                 }
 
             } catch (err: any) {
