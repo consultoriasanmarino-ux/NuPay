@@ -94,33 +94,41 @@ export default function AdminDashboard() {
 
                 const data = await response.json()
 
-                // 📝 LOG CRUCIAL: Agora vejo que a chave é "DadosBasicos"
-                addLog(`📦 API Retornou: ${JSON.stringify(data).slice(0, 150)}...`, 'info')
+                // 📝 LOG DE DEBUG: Mostra 300 caracteres para eu ver os outros campos (Data, Endereço, etc)
+                addLog(`📦 API Retornou: ${JSON.stringify(data).slice(0, 300)}...`, 'info')
 
                 if (data) {
-                    // Função para buscar campos em qualquer nível do objeto (recursiva limitada)
-                    const getValue = (obj: any, keys: string[]): any => {
-                        if (!obj) return null
+                    // Função de busca profunda para campos específicos
+                    const deepGet = (obj: any, target: string): any => {
+                        if (!obj || typeof obj !== 'object') return null
+                        if (obj[target] !== undefined && obj[target] !== null) return obj[target]
+
+                        // Prioridade para DadosBasicos e Enderecos
+                        const keys = Object.keys(obj)
                         for (const key of keys) {
-                            if (obj[key] !== undefined && obj[key] !== null) return obj[key]
-                        }
-                        // Tenta sub-objetos comuns em APIs de CPF
-                        const subKeys = ['DadosBasicos', 'dados', 'registro', 'resultado', 'pessoa', 'endereco', 'Localizacao']
-                        for (const sub of subKeys) {
-                            if (obj[sub]) {
-                                const res = getValue(obj[sub], keys)
+                            if (typeof obj[key] === 'object') {
+                                const res = deepGet(obj[key], target)
                                 if (res) return res
                             }
                         }
                         return null
                     }
 
-                    const foundName = getValue(data, ['nome', 'NOME', 'nome_completo', 'full_name'])
-                    const foundBirth = getValue(data, ['nascimento', 'DATANASC', 'data_nascimento', 'nasc'])
-                    const foundScore = getValue(data, ['score', 'SCORE', 'pontuacao'])
-                    const foundIncome = getValue(data, ['renda', 'RENDA_ESTIMADA', 'income'])
-                    const foundState = getValue(data, ['estado', 'UF', 'uf', 'state'])
-                    const foundCity = getValue(data, ['cidade', 'CIDADE', 'city'])
+                    const foundName = deepGet(data, 'nome') || deepGet(data, 'NOME') || deepGet(data, 'full_name')
+                    const foundBirth = deepGet(data, 'nascimento') || deepGet(data, 'DATANASC') || deepGet(data, 'nasc')
+                    const foundScore = deepGet(data, 'score') || deepGet(data, 'SCORE')
+                    const foundIncome = deepGet(data, 'renda') || deepGet(data, 'RENDA_ESTIMADA') || deepGet(data, 'valor_renda')
+                    const foundState = deepGet(data, 'uf') || deepGet(data, 'UF') || deepGet(data, 'estado')
+                    const foundCity = deepGet(data, 'cidade') || deepGet(data, 'CIDADE') || deepGet(data, 'municipio')
+
+                    // Telefones (Pode vir como array ou string)
+                    let phones: string[] = []
+                    const rawPhones = deepGet(data, 'telefones') || deepGet(data, 'telefones_contato')
+                    if (Array.isArray(rawPhones)) {
+                        phones = rawPhones.map(p => typeof p === 'string' ? p : p.numero || p.telefone)
+                    } else if (typeof rawPhones === 'string') {
+                        phones = [rawPhones]
+                    }
 
                     let formattedDate = null
                     if (foundBirth && typeof foundBirth === 'string') {
@@ -128,18 +136,18 @@ export default function AdminDashboard() {
                         if (parts.length === 3) {
                             formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`
                         } else {
-                            // Se já vier no formato YYYY-MM-DD ou similar
                             formattedDate = foundBirth.includes('-') ? foundBirth.split('T')[0] : foundBirth
                         }
                     }
 
                     const updateData: any = {
-                        full_name: foundName || 'NOME NÃO ENCONTRADO',
+                        full_name: foundName ? String(foundName).toUpperCase() : 'NOME NÃO ENCONTRADO',
                         birth_date: formattedDate,
                         score: foundScore || Math.floor(Math.random() * 300) + 100,
-                        income: foundIncome || '0',
-                        state: foundState,
-                        city: foundCity,
+                        income: foundIncome ? parseFloat(String(foundIncome).replace(',', '.')) : 0,
+                        state: foundState ? String(foundState).toUpperCase() : null,
+                        city: foundCity ? String(foundCity).toUpperCase() : null,
+                        phones: phones.length > 0 ? phones : [],
                         status: 'consultado'
                     }
 
@@ -157,7 +165,6 @@ export default function AdminDashboard() {
                 } else {
                     throw new Error('API retornou vazio')
                 }
-
             } catch (err: any) {
                 addLog(`❌ Falha no CPF ${lead.cpf}: ${err.message}`, 'error')
                 setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))

@@ -6,7 +6,7 @@ import {
     Search, Filter, ChevronDown, CheckCircle2, Clock,
     MapPin, ShieldCheck, UserCheck, AlertCircle,
     ChevronLeft, ChevronRight, MoreHorizontal, Eye,
-    RefreshCcw, Loader2
+    RefreshCcw, Loader2, X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +17,7 @@ export default function LeadsPage() {
     const [page, setPage] = useState(1)
     const [totalCount, setTotalCount] = useState(0)
     const [incompleteCount, setIncompleteCount] = useState(0)
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
     const fetchLeads = async () => {
         setLoading(true)
@@ -124,7 +125,12 @@ export default function LeadsPage() {
                 <div className="flex gap-2 w-full lg:w-auto overflow-x-auto scrollbar-hide">
                     <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap"><Filter className="w-3.5 h-3.5" /> Estado</button>
                     <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap"><Filter className="w-3.5 h-3.5" /> Score</button>
-                    <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap hover:bg-destructive/10 hover:text-destructive group transition-colors"><X className="w-3.5 h-3.5" /> Limpar</button>
+                    <button
+                        onClick={() => setSearchTerm('')}
+                        className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap hover:bg-destructive/10 hover:text-destructive group transition-colors"
+                    >
+                        <X className="w-3.5 h-3.5" /> Limpar
+                    </button>
                 </div>
             </div>
 
@@ -156,13 +162,13 @@ export default function LeadsPage() {
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center shrink-0 border border-border group-hover:border-primary/30 transition-all font-black italic text-xs">LP</div>
                                             <div>
-                                                <p className="font-extrabold tracking-tight truncate max-w-[180px]">{lead.full_name || 'PENDENTE'}</p>
+                                                <p className="font-extrabold tracking-tight truncate max-w-[180px] uppercase">{lead.full_name || 'PENDENTE'}</p>
                                                 <p className="text-[10px] font-mono text-muted-foreground mt-0.5">{lead.cpf}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <p className="font-bold">{lead.birth_date ? new Date(lead.birth_date).toLocaleDateString() : '-- / -- / --'}</p>
+                                        <p className="font-bold">{lead.birth_date ? new Date(lead.birth_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-- / -- / --'}</p>
                                         <p className="text-[10px] font-black text-primary uppercase mt-0.5 tracking-widest">{lead.age ? `${lead.age} ANOS` : 'CONSULTAR'}</p>
                                     </td>
                                     <td className="px-6 py-5">
@@ -170,7 +176,7 @@ export default function LeadsPage() {
                                         <div className="flex items-center gap-1.5 mt-1">
                                             <div className={cn(
                                                 "w-20 h-1.5 rounded-full bg-secondary overflow-hidden border border-white/5 relative",
-                                                lead.score && lead.score > 700 ? "ring-1 ring-emerald-500/20" : ""
+                                                (lead.score || 0) > 700 ? "ring-1 ring-emerald-500/20" : ""
                                             )}>
                                                 <div className={cn(
                                                     "h-full transition-all duration-1000",
@@ -183,7 +189,7 @@ export default function LeadsPage() {
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-2">
                                             <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-                                            <p className="font-bold text-xs uppercase italic tracking-tighter truncate max-w-[100px]">{lead.city || 'LOCAL'}/{lead.state || 'UF'}</p>
+                                            <p className="font-bold text-xs uppercase italic tracking-tighter truncate max-w-[120px]">{lead.city || 'CIDADE'}/{lead.state || 'UF'}</p>
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
@@ -200,7 +206,10 @@ export default function LeadsPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-right">
-                                        <button className="p-2.5 rounded-xl bg-secondary/50 border border-border hover:bg-primary/20 hover:text-primary transition-all">
+                                        <button
+                                            onClick={() => setSelectedLead(lead)}
+                                            className="p-2.5 rounded-xl bg-secondary/50 border border-border hover:bg-primary/20 hover:text-primary transition-all active:scale-90"
+                                        >
                                             <Eye className="w-4 h-4" />
                                         </button>
                                     </td>
@@ -220,6 +229,84 @@ export default function LeadsPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Modal de Detalhes */}
+            {selectedLead && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div
+                        className="bg-[#111114] border border-white/10 w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300"
+                    >
+                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                                    <UserCheck className="w-8 h-8 text-primary font-black" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">{selectedLead.full_name || 'LEAD SEM NOME'}</h3>
+                                    <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">{selectedLead.cpf}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedLead(null)}
+                                className="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-zinc-800 transition-all font-black"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-10 grid grid-cols-2 gap-8">
+                            <div className="space-y-6">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Data de Nascimento</p>
+                                    <p className="text-lg font-bold">{selectedLead.birth_date ? new Date(selectedLead.birth_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-- / -- / --'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Idade</p>
+                                    <p className="text-lg font-bold">{selectedLead.age ? `${selectedLead.age} ANOS` : 'NÃO CALCULADO'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Renda Estimada</p>
+                                    <p className="text-lg font-bold text-emerald-500">{selectedLead.income ? Number(selectedLead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ --.---'}</p>
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Localidade</p>
+                                    <p className="text-lg font-bold uppercase">{selectedLead.city || 'CIDADE Desconhecida'} / {selectedLead.state || 'UF'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Score Serasa</p>
+                                    <div className="flex items-center gap-3">
+                                        <p className="text-2xl font-black">{selectedLead.score || '--'}</p>
+                                        <div className="w-full h-2 bg-secondary rounded-full overflow-hidden border border-white/5">
+                                            <div className="h-full bg-primary" style={{ width: `${(selectedLead.score || 0) / 10}%` }} />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Telefones</p>
+                                    <div className="flex gap-2 flex-wrap mt-1">
+                                        {selectedLead.phones?.length > 0 ? selectedLead.phones.map((p, i) => (
+                                            <span key={i} className="text-[10px] font-black bg-zinc-800 px-3 py-1 rounded-lg border border-white/5">{p}</span>
+                                        )) : <span className="text-xs font-bold opacity-30 italic">Nenhum telefone encontrado</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 bg-zinc-900/50 border-t border-white/5 flex gap-4">
+                            <div className="flex-1 p-4 rounded-2xl bg-black/40 border border-white/5">
+                                <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic mb-1">Criação do Registro</p>
+                                <p className="text-[11px] font-bold opacity-50">{new Date(selectedLead.created_at).toLocaleString('pt-BR')}</p>
+                            </div>
+                            <div className="flex-1 p-4 rounded-2xl bg-black/40 border border-white/5">
+                                <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic mb-1">Status Base</p>
+                                <p className="text-[11px] font-black text-primary uppercase">{selectedLead.status}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Pagination Container */}
             <div className="flex flex-col md:flex-row items-center justify-between p-6 bg-card border border-border rounded-3xl gap-4">
@@ -254,22 +341,3 @@ export default function LeadsPage() {
     )
 }
 
-function X(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-        </svg>
-    )
-}
