@@ -36,7 +36,7 @@ export default function AdminLayout({
         }
 
         const token = localStorage.getItem('nupay_admin_token')
-        if (token !== 'true') {
+        if (token !== 'authenticated_admin_master') {
             router.push('/admin/login')
         } else {
             setAuthorized(true)
