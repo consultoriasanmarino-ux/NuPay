@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, FileType, CheckCircle2, AlertCircle, FileText, X, Loader2 } from 'lucide-react'
+import { Upload, FileType, CheckCircle2, AlertCircle, FileText, X, Loader2, UserCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 
 export default function ImportPage() {
     const [dragActive, setDragActive] = useState(false)
-    const [mode, setMode] = useState<'cpf' | 'bot'>('bot')
+    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [results, setResults] = useState<{ success: number, ignored: number } | null>(null)
+    const [results, setResults] = useState<{ success: number, ignored: number, updated?: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleDrag = (e: React.DragEvent) => {
@@ -48,6 +48,7 @@ export default function ImportPage() {
     const parseFileContent = (content: string) => {
         const lines = content.split('\n');
         const leads: any[] = [];
+        const govMatches: { cpf: string, lastTwo: string }[] = [];
         const seenCpfs = new Set();
 
         lines.forEach(line => {
@@ -61,10 +62,16 @@ export default function ImportPage() {
                     cpf = cpfMatch[1].trim();
                     fullName = nameMatch ? nameMatch[1].trim() : 'NOME_AUSENTE';
                 }
-            } else {
+            } else if (mode === 'cpf') {
                 const cpfMatch = line.match(/\d{11}/);
                 if (cpfMatch) {
                     cpf = cpfMatch[0];
+                }
+            } else if (mode === 'gov') {
+                // Formato: 12345678901-88
+                const match = line.match(/(\d{11})-(\d{2})/);
+                if (match) {
+                    govMatches.push({ cpf: match[1], lastTwo: match[2] });
                 }
             }
 
@@ -78,7 +85,7 @@ export default function ImportPage() {
             }
         });
 
-        return leads;
+        return { leads, govMatches };
     }
 
     const handleUpload = async () => {
@@ -87,9 +94,48 @@ export default function ImportPage() {
 
         try {
             const text = await selectedFile.text();
-            const leadsToAdd = parseFileContent(text);
+            const { leads, govMatches } = parseFileContent(text);
 
-            if (leadsToAdd.length === 0) {
+            if (mode === 'gov') {
+                if (govMatches.length === 0) {
+                    alert("Nenhum registro no formato CPF-XX encontrado.");
+                    setUploading(false);
+                    return;
+                }
+
+                let updatedCount = 0;
+                for (const item of govMatches) {
+                    // Busca o lead pelo CPF
+                    const { data: leadData } = await supabase
+                        .from('leads')
+                        .select('id, phones')
+                        .eq('cpf', item.cpf)
+                        .single();
+
+                    if (leadData) {
+                        const phones = leadData.phones || [];
+                        // Tenta encontrar o telefone que termina com os 2 dígitos
+                        const govPhone = phones.find((p: string) => {
+                            const clean = p.replace(/\D/g, '');
+                            return clean.endsWith(item.lastTwo);
+                        });
+
+                        if (govPhone) {
+                            await supabase
+                                .from('leads')
+                                .update({ num_gov: govPhone })
+                                .eq('id', leadData.id);
+                            updatedCount++;
+                        }
+                    }
+                }
+                setResults({ success: 0, ignored: govMatches.length - updatedCount, updated: updatedCount });
+                setSelectedFile(null);
+                setUploading(false);
+                return;
+            }
+
+            if (leads.length === 0) {
                 alert("Nenhum lead válido encontrado no arquivo.");
                 setUploading(false);
                 return;
@@ -98,14 +144,14 @@ export default function ImportPage() {
             // INTEGRACAO REAL COM SUPABASE
             const { data, error } = await supabase
                 .from('leads')
-                .upsert(leadsToAdd, { onConflict: 'cpf' })
+                .upsert(leads, { onConflict: 'cpf' })
                 .select();
 
             if (error) {
                 console.error('Erro Supabase:', error);
                 alert(`Erro ao salvar no banco: ${error.message}`);
             } else {
-                setResults({ success: data?.length || 0, ignored: leadsToAdd.length - (data?.length || 0) });
+                setResults({ success: data?.length || 0, ignored: leads.length - (data?.length || 0) });
                 setSelectedFile(null);
             }
 
@@ -127,12 +173,14 @@ export default function ImportPage() {
                 {results && (
                     <div className="bg-emerald-500/10 border border-emerald-500/20 px-6 py-3 rounded-2xl animate-in zoom-in">
                         <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest leading-none mb-1">Carga Finalizada</p>
-                        <p className="text-lg font-black text-white italic">+{results.success} Leads no Banco</p>
+                        <p className="text-lg font-black text-white italic">
+                            {results.updated !== undefined ? `🚀 ${results.updated} Núms GOV Vinculados` : `+${results.success} Leads no Banco`}
+                        </p>
                     </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <button onClick={() => setMode('cpf')} className={cn("p-6 rounded-3xl border-2 transition-all text-left", mode === 'cpf' ? "bg-primary/10 border-primary shadow-xl" : "bg-card border-border")}>
                     <FileType className="w-10 h-10 mb-4" />
                     <h3 className="font-black uppercase italic tracking-tighter">Modo 1: Lista CPF</h3>
@@ -140,6 +188,11 @@ export default function ImportPage() {
                 <button onClick={() => setMode('bot')} className={cn("p-6 rounded-3xl border-2 transition-all text-left", mode === 'bot' ? "bg-primary/10 border-primary shadow-xl" : "bg-card border-border")}>
                     <Upload className="w-10 h-10 mb-4" />
                     <h3 className="font-black uppercase italic tracking-tighter">Modo 2: Extrator Bot</h3>
+                </button>
+                <button onClick={() => setMode('gov')} className={cn("p-6 rounded-3xl border-2 transition-all text-left group", mode === 'gov' ? "bg-primary/10 border-primary shadow-xl" : "bg-card border-border")}>
+                    <UserCheck className={cn("w-10 h-10 mb-4", mode === 'gov' ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                    <h3 className="font-black uppercase italic tracking-tighter">Importar Núms GOV</h3>
+                    <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">Formato: CPF-XX</p>
                 </button>
             </div>
 

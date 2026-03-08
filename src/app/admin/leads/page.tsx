@@ -18,13 +18,17 @@ export default function LeadsPage() {
     const [totalCount, setTotalCount] = useState(0)
     const [incompleteCount, setIncompleteCount] = useState(0)
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+    const [filters, setFilters] = useState({
+        income: '', // 'greater', 'less'
+        score: '',
+        age: ''
+    })
 
     const fetchLeads = async () => {
         setLoading(true)
         const start = (page - 1) * 50
         const end = start + 49
 
-        // Query para os leads atuais (paginados)
         let query = supabase
             .from('leads')
             .select('*', { count: 'exact' })
@@ -35,9 +39,18 @@ export default function LeadsPage() {
             query = query.or(`cpf.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
         }
 
+        // Novos Filtros
+        if (filters.income === 'greater') query = query.gte('income', 5000)
+        if (filters.income === 'less') query = query.lte('income', 4999)
+
+        if (filters.score === 'greater') query = query.gte('score', 700)
+        if (filters.score === 'less') query = query.lte('score', 699)
+
+        if (filters.age === 'greater') query = query.gte('age', 40)
+        if (filters.age === 'less') query = query.lte('age', 39)
+
         const { data, error, count } = await query
 
-        // Query para o total de incompletos
         const { count: incCount } = await supabase
             .from('leads')
             .select('*', { count: 'exact', head: true })
@@ -55,7 +68,7 @@ export default function LeadsPage() {
         if (!confirm('⚠️ ATENÇÃO: Isso apagará TODOS os leads do banco de dados para sempre. Deseja continuar?')) return
 
         setLoading(true)
-        const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000') // Deleta tudo
+        const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000')
 
         if (error) {
             alert('Erro ao limpar base: ' + error.message)
@@ -68,7 +81,7 @@ export default function LeadsPage() {
 
     useEffect(() => {
         fetchLeads()
-    }, [page, searchTerm])
+    }, [page, searchTerm, filters])
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -122,12 +135,55 @@ export default function LeadsPage() {
                         className="w-full bg-card border border-border rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                     />
                 </div>
-                <div className="flex gap-2 w-full lg:w-auto overflow-x-auto scrollbar-hide">
-                    <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap"><Filter className="w-3.5 h-3.5" /> Estado</button>
-                    <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap"><Filter className="w-3.5 h-3.5" /> Score</button>
+                <div className="flex gap-3 w-full lg:w-auto overflow-x-auto scrollbar-hide py-1">
+                    {/* Renda */}
+                    <div className="flex items-center gap-2 bg-secondary border border-border h-12 px-4 rounded-2xl shrink-0">
+                        <span className="text-[9px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-widest">Renda:</span>
+                        <select
+                            value={filters.income}
+                            onChange={(e) => setFilters(f => ({ ...f, income: e.target.value }))}
+                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer"
+                        >
+                            <option value="">Todos</option>
+                            <option value="greater">Maior Renda</option>
+                            <option value="less">Menor Renda</option>
+                        </select>
+                    </div>
+
+                    {/* Score */}
+                    <div className="flex items-center gap-2 bg-secondary border border-border h-12 px-4 rounded-2xl shrink-0">
+                        <span className="text-[9px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-widest">Score:</span>
+                        <select
+                            value={filters.score}
+                            onChange={(e) => setFilters(f => ({ ...f, score: e.target.value }))}
+                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer"
+                        >
+                            <option value="">Todos</option>
+                            <option value="greater">Score Alto</option>
+                            <option value="less">Score Baixo</option>
+                        </select>
+                    </div>
+
+                    {/* Idade */}
+                    <div className="flex items-center gap-2 bg-secondary border border-border h-12 px-4 rounded-2xl shrink-0">
+                        <span className="text-[9px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-widest">Idade:</span>
+                        <select
+                            value={filters.age}
+                            onChange={(e) => setFilters(f => ({ ...f, age: e.target.value }))}
+                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer"
+                        >
+                            <option value="">Todos</option>
+                            <option value="greater">Mais de 40</option>
+                            <option value="less">Menos de 40</option>
+                        </select>
+                    </div>
+
                     <button
-                        onClick={() => setSearchTerm('')}
-                        className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-secondary border border-border text-xs font-black uppercase whitespace-nowrap hover:bg-destructive/10 hover:text-destructive group transition-colors"
+                        onClick={() => {
+                            setSearchTerm('')
+                            setFilters({ income: '', score: '', age: '' })
+                        }}
+                        className="flex items-center gap-2 px-6 h-12 rounded-2xl bg-secondary border border-border text-[10px] font-black uppercase whitespace-nowrap hover:bg-destructive/10 hover:text-destructive group transition-colors"
                     >
                         <X className="w-3.5 h-3.5" /> Limpar
                     </button>
@@ -163,7 +219,12 @@ export default function LeadsPage() {
                                             <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center shrink-0 border border-border group-hover:border-primary/30 transition-all font-black italic text-xs">LP</div>
                                             <div>
                                                 <p className="font-extrabold tracking-tight truncate max-w-[180px] uppercase">{lead.full_name || 'PENDENTE'}</p>
-                                                <p className="text-[10px] font-mono text-muted-foreground mt-0.5">{lead.cpf}</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <p className="text-[10px] font-mono text-muted-foreground">{lead.cpf}</p>
+                                                    {lead.num_gov && (
+                                                        <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/20 italic tracking-tighter">GOV</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -287,10 +348,21 @@ export default function LeadsPage() {
                                     <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Telefones</p>
                                     <div className="flex gap-2 flex-wrap mt-1">
                                         {selectedLead.phones?.length > 0 ? selectedLead.phones.map((p, i) => (
-                                            <span key={i} className="text-[10px] font-black bg-zinc-800 px-3 py-1 rounded-lg border border-white/5">{p}</span>
+                                            <span key={i} className={cn(
+                                                "text-[10px] font-black px-3 py-1 rounded-lg border",
+                                                p === selectedLead.num_gov ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-zinc-800 border-white/5"
+                                            )}>
+                                                {p} {p === selectedLead.num_gov && "⭐"}
+                                            </span>
                                         )) : <span className="text-xs font-bold opacity-30 italic">Nenhum telefone encontrado</span>}
                                     </div>
                                 </div>
+                                {selectedLead.num_gov && (
+                                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 mt-4 animate-in slide-in-from-top-2">
+                                        <p className="text-[9px] font-black uppercase text-emerald-500 tracking-[0.2em] mb-1 italic">Número GOV Detectado</p>
+                                        <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.num_gov}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
