@@ -14,6 +14,7 @@ import {
     ChevronDown,
     Bell,
     Database,
+    Settings,
     Loader2
 } from 'lucide-react'
 import Link from 'next/link'
@@ -63,6 +64,7 @@ export default function AdminLayout({
         { label: 'Importação', icon: Upload, href: '/admin/import' },
         { label: 'Aba Fichas', icon: UserSquare2, href: '/admin/fichas' },
         { label: 'Ligadores', icon: Users, href: '/admin/ligadores' },
+        { label: 'Configurações', icon: Settings, href: '/admin/settings' },
     ]
 
     return (

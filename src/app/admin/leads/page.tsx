@@ -16,12 +16,14 @@ export default function LeadsPage() {
     const [searchTerm, setSearchTerm] = useState('')
     const [page, setPage] = useState(1)
     const [totalCount, setTotalCount] = useState(0)
+    const [incompleteCount, setIncompleteCount] = useState(0)
 
     const fetchLeads = async () => {
         setLoading(true)
         const start = (page - 1) * 50
         const end = start + 49
 
+        // Query para os leads atuais (paginados)
         let query = supabase
             .from('leads')
             .select('*', { count: 'exact' })
@@ -34,9 +36,16 @@ export default function LeadsPage() {
 
         const { data, error, count } = await query
 
+        // Query para o total de incompletos
+        const { count: incCount } = await supabase
+            .from('leads')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'incompleto')
+
         if (!error && data) {
             setLeads(data as Lead[])
             setTotalCount(count || 0)
+            setIncompleteCount(incCount || 0)
         }
         setLoading(false)
     }
@@ -73,7 +82,7 @@ export default function LeadsPage() {
                 </div>
                 <div className="bg-card border border-border p-4 rounded-2xl flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-yellow-500">Incompletos</span>
-                    <span className="text-lg font-black">{leads.filter(l => l.status === 'incompleto').length}</span>
+                    <span className="text-lg font-black">{incompleteCount}</span>
                 </div>
             </div>
 
