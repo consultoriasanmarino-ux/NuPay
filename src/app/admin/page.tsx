@@ -94,26 +94,31 @@ export default function AdminDashboard() {
 
                 const data = await response.json()
 
-                // 📝 LOG CRUCIAL: Mostra o que a API OwnData está devolvendo de verdade
+                // 📝 LOG CRUCIAL: Agora vejo que a chave é "DadosBasicos"
                 addLog(`📦 API Retornou: ${JSON.stringify(data).slice(0, 150)}...`, 'info')
 
                 if (data) {
                     // Função para buscar campos em qualquer nível do objeto (recursiva limitada)
                     const getValue = (obj: any, keys: string[]): any => {
+                        if (!obj) return null
                         for (const key of keys) {
                             if (obj[key] !== undefined && obj[key] !== null) return obj[key]
                         }
-                        if (obj.dados) return getValue(obj.dados, keys)
-                        if (obj.registro) return getValue(obj.registro, keys)
-                        if (obj.resultado) return getValue(obj.resultado, keys)
-                        if (obj.pessoa) return getValue(obj.pessoa, keys)
+                        // Tenta sub-objetos comuns em APIs de CPF
+                        const subKeys = ['DadosBasicos', 'dados', 'registro', 'resultado', 'pessoa', 'endereco', 'Localizacao']
+                        for (const sub of subKeys) {
+                            if (obj[sub]) {
+                                const res = getValue(obj[sub], keys)
+                                if (res) return res
+                            }
+                        }
                         return null
                     }
 
-                    const foundName = getValue(data, ['nome', 'NOME', 'nome_completo', 'full_name', 'Full_Name'])
-                    const foundBirth = getValue(data, ['nascimento', 'DATANASC', 'data_nascimento', 'birth_date'])
+                    const foundName = getValue(data, ['nome', 'NOME', 'nome_completo', 'full_name'])
+                    const foundBirth = getValue(data, ['nascimento', 'DATANASC', 'data_nascimento', 'nasc'])
                     const foundScore = getValue(data, ['score', 'SCORE', 'pontuacao'])
-                    const foundIncome = getValue(data, ['renda', 'RENDA_ESTIMADA', 'renda_estimada', 'income'])
+                    const foundIncome = getValue(data, ['renda', 'RENDA_ESTIMADA', 'income'])
                     const foundState = getValue(data, ['estado', 'UF', 'uf', 'state'])
                     const foundCity = getValue(data, ['cidade', 'CIDADE', 'city'])
 
@@ -123,7 +128,8 @@ export default function AdminDashboard() {
                         if (parts.length === 3) {
                             formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`
                         } else {
-                            formattedDate = foundBirth
+                            // Se já vier no formato YYYY-MM-DD ou similar
+                            formattedDate = foundBirth.includes('-') ? foundBirth.split('T')[0] : foundBirth
                         }
                     }
 
@@ -134,7 +140,7 @@ export default function AdminDashboard() {
                         income: foundIncome || '0',
                         state: foundState,
                         city: foundCity,
-                        status: 'consultado' // Status solicitado pelo usuário
+                        status: 'consultado'
                     }
 
                     const { error: updateError } = await supabase
@@ -149,7 +155,7 @@ export default function AdminDashboard() {
                         throw new Error(`Erro DB: ${updateError.message}`)
                     }
                 } else {
-                    throw new Error('API retornou vazio ou erro de token')
+                    throw new Error('API retornou vazio')
                 }
 
             } catch (err: any) {
