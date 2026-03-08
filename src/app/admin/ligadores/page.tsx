@@ -38,49 +38,76 @@ export default function LigadoresPage() {
         e.preventDefault()
         setSaving(true)
 
-        // 1. Criar o usuário no Supabase Auth
-        // Usamos o padrão username@axon.pay para contornar a necessidade de e-mail real
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: `${formData.username.trim()}@axon.pay`,
-            password: formData.password,
-            options: {
-                data: {
-                    full_name: formData.full_name,
-                    username: formData.username.trim()
+        try {
+            // 1. Criar o usuário no Supabase Auth
+            const userEmail = `${formData.username.trim()}@axon.pay`
+
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: userEmail,
+                password: formData.password,
+                options: {
+                    data: {
+                        full_name: formData.full_name,
+                        username: formData.username.trim()
+                    }
                 }
+            })
+
+            let userId = authData.user?.id
+
+            // Caso o usuário já exista no Auth (de uma tentativa anterior que falhou no Profile)
+            if (authError && authError.message.includes('already registered')) {
+                // Como não podemos pegar o ID de um usuário existente pelo front-end por segurança,
+                // pediremos para usar outro username ou tentaremos prosseguir se o ID veio no erro (raro)
+                alert('Este username já está em uso em nossa central de autenticação. Por favor, escolha outro.')
+                setSaving(false)
+                return
             }
-        })
 
-        if (authError) {
-            alert('Erro na Autenticação: ' + authError.message)
-            setSaving(false)
-            return
-        }
+            if (authError) throw authError
+            if (!userId) throw new Error('Não foi possível obter o ID do usuário.')
 
-        if (!authData.user) {
-            alert('Erro: Não foi possível gerar o ID de usuário.')
-            setSaving(false)
-            return
-        }
+            // ⚠️ AGUARDAR 1 SEGUNDO: Essencial para o Supabase propagar o ID para as tabelas públicas
+            await new Promise(resolve => setTimeout(resolve, 1500))
 
-        // 2. Criar o perfil vinculado ao ID do Auth
-        const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([{
-                id: authData.user.id,
-                full_name: formData.full_name,
-                username: formData.username.trim().toLowerCase(),
-                role: formData.role
-            }])
+            // 2. Criar o perfil vinculado ao ID do Auth
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([{
+                    id: userId,
+                    full_name: formData.full_name.toUpperCase(),
+                    username: formData.username.trim().toLowerCase(),
+                    role: formData.role
+                }])
 
-        if (profileError) {
-            alert('Erro ao criar perfil: ' + profileError.message)
-        } else {
+            if (profileError) {
+                // Se ainda der erro de FK, tentamos mais uma vez após 2 segundos
+                console.log('Tentativa 1 falhou, tentando novamente em 2s...')
+                await new Promise(resolve => setTimeout(resolve, 2000))
+
+                const { error: retryError } = await supabase
+                    .from('profiles')
+                    .insert([{
+                        id: userId,
+                        full_name: formData.full_name.toUpperCase(),
+                        username: formData.username.trim().toLowerCase(),
+                        role: formData.role
+                    }])
+
+                if (retryError) throw retryError
+            }
+
             setIsModalOpen(false)
             setFormData({ full_name: '', username: '', password: '', role: 'ligador' })
             fetchLigadores()
+            alert('🚀 Operador cadastrado com sucesso!')
+
+        } catch (error: any) {
+            console.error('Erro no cadastro:', error)
+            alert('Erro no Processo: ' + (error.message || 'Erro desconhecido'))
+        } finally {
+            setSaving(false)
         }
-        setSaving(false)
     }
 
     const handleDelete = async (id: string) => {
