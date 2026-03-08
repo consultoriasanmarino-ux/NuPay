@@ -113,6 +113,23 @@ export default function LeadsPage() {
         setLoading(false)
     }
 
+    const handleFixStatus = async () => {
+        setLoading(true)
+        const { error, count } = await supabase
+            .from('leads')
+            .update({ status: 'concluido' })
+            .not('num_gov', 'is', null)
+            .neq('status', 'concluido')
+
+        if (error) {
+            alert('Erro ao normalizar: ' + error.message)
+        } else {
+            alert('🛠️ Status normalizado com sucesso!')
+            fetchLeads()
+        }
+        setLoading(false)
+    }
+
     useEffect(() => {
         fetchLeads()
     }, [page, searchTerm, filters])
@@ -125,7 +142,15 @@ export default function LeadsPage() {
                     <p className="text-muted-foreground font-medium italic">Visualize e controle o status de toda a sua base.</p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={handleFixStatus}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-black uppercase hover:bg-orange-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-orange-500/5"
+                    >
+                        <ShieldCheck className="w-4 h-4" />
+                        Normalizar Status
+                    </button>
                     <button
                         onClick={handleExportMissingGov}
                         disabled={loading}
