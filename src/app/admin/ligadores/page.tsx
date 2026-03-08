@@ -38,19 +38,43 @@ export default function LigadoresPage() {
         e.preventDefault()
         setSaving(true)
 
-        // Nota: No mundo real, criaríamos no Auth. Mas como estamos num MVP Admin,
-        // vamos simular inserindo no profiles. Em uma versão final, isso chamaria uma Edge Function.
-        const { error } = await supabase
+        // 1. Criar o usuário no Supabase Auth
+        // Usamos o padrão username@axon.pay para contornar a necessidade de e-mail real
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: `${formData.username.trim()}@axon.pay`,
+            password: formData.password,
+            options: {
+                data: {
+                    full_name: formData.full_name,
+                    username: formData.username.trim()
+                }
+            }
+        })
+
+        if (authError) {
+            alert('Erro na Autenticação: ' + authError.message)
+            setSaving(false)
+            return
+        }
+
+        if (!authData.user) {
+            alert('Erro: Não foi possível gerar o ID de usuário.')
+            setSaving(false)
+            return
+        }
+
+        // 2. Criar o perfil vinculado ao ID do Auth
+        const { error: profileError } = await supabase
             .from('profiles')
             .insert([{
-                id: crypto.randomUUID(), // Mock ID para perfis manuais (idealmente do auth)
+                id: authData.user.id,
                 full_name: formData.full_name,
-                username: formData.username,
+                username: formData.username.trim().toLowerCase(),
                 role: formData.role
             }])
 
-        if (error) {
-            alert('Erro ao cadastrar: ' + error.message)
+        if (profileError) {
+            alert('Erro ao criar perfil: ' + profileError.message)
         } else {
             setIsModalOpen(false)
             setFormData({ full_name: '', username: '', password: '', role: 'ligador' })
