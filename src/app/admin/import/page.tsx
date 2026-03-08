@@ -123,7 +123,7 @@ export default function ImportPage() {
                         if (govPhone) {
                             await supabase
                                 .from('leads')
-                                .update({ num_gov: govPhone })
+                                .update({ num_gov: govPhone, status: 'concluido' })
                                 .eq('id', leadData.id);
                             updatedCount++;
                         }
@@ -174,7 +174,7 @@ export default function ImportPage() {
                     <div className="bg-emerald-500/10 border border-emerald-500/20 px-6 py-3 rounded-2xl animate-in zoom-in">
                         <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest leading-none mb-1">Carga Finalizada</p>
                         <p className="text-lg font-black text-white italic">
-                            {results.updated !== undefined ? `🚀 ${results.updated} Núms GOV Vinculados` : `+${results.success} Leads no Banco`}
+                            {results.updated !== undefined ? `🚀 ${results.updated} Leads Concluídos` : `+${results.success} Leads no Banco`}
                         </p>
                     </div>
                 )}

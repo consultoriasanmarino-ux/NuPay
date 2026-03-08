@@ -24,6 +24,16 @@ export default function LeadsPage() {
         age: ''
     })
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'incompleto': return 'Pendente'
+            case 'consultado': return 'Consultado'
+            case 'concluido': return 'Concluído'
+            case 'atribuido': return 'Atribuído'
+            default: return status.toUpperCase()
+        }
+    }
+
     const fetchLeads = async () => {
         setLoading(true)
         const start = (page - 1) * 50
@@ -295,7 +305,7 @@ export default function LeadsPage() {
                                             {lead.status === 'incompleto' ? <Clock className="w-3 h-3" /> :
                                                 lead.status === 'consultado' ? <Search className="w-3 h-3" /> :
                                                     <CheckCircle2 className="w-3 h-3" />}
-                                            {lead.status}
+                                            {getStatusLabel(lead.status)}
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-right">
@@ -405,7 +415,7 @@ export default function LeadsPage() {
                             </div>
                             <div className="flex-1 p-4 rounded-2xl bg-black/40 border border-white/5">
                                 <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic mb-1">Status Base</p>
-                                <p className="text-[11px] font-black text-primary uppercase">{selectedLead.status}</p>
+                                <p className="text-[11px] font-black text-primary uppercase">{getStatusLabel(selectedLead.status)}</p>
                             </div>
                         </div>
                     </div>
