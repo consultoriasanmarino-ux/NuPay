@@ -49,7 +49,6 @@ export default function AdminDashboard() {
     }
 
     const handleConsult = async () => {
-        const apiUrl = localStorage.getItem('nupay_api_url') || 'https://completa.workbuscas.com/api'
         const apiToken = localStorage.getItem('nupay_api_token') || 'doavTXJphHLkpayfbdNdJyGp'
         const apiModule = localStorage.getItem('nupay_api_module') || 'cpf'
 
@@ -96,14 +95,26 @@ export default function AdminDashboard() {
                 const data = await response.json()
 
                 if (data && data.status !== false) {
+                    // Tenta converter datas no formato DD/MM/YYYY para YYYY-MM-DD (Padrão SQL)
+                    let formattedDate = null
+                    const rawDate = data.nascimento || data.DATANASC || data.birth_date
+                    if (rawDate && typeof rawDate === 'string') {
+                        const parts = rawDate.split('/')
+                        if (parts.length === 3) {
+                            formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}` // YYYY-MM-DD
+                        } else {
+                            formattedDate = rawDate
+                        }
+                    }
+
                     const updateData: any = {
                         full_name: data.nome || data.NOME || data.full_name || 'NOME DESCONHECIDO',
-                        birth_date: data.nascimento || data.DATANASC || data.birth_date || null,
+                        birth_date: formattedDate,
                         score: data.score || data.SCORE || Math.floor(Math.random() * 300) + 100,
                         income: data.renda || data.RENDA_ESTIMADA || '0',
                         state: data.estado || data.UF || (data.endereco ? data.endereco.uf : null),
                         city: data.cidade || (data.endereco ? data.endereco.cidade : null),
-                        status: 'consultado'
+                        status: 'concluido' // Correct status for enriched lead
                     }
 
                     const { error: updateError } = await supabase
@@ -126,7 +137,7 @@ export default function AdminDashboard() {
                 setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))
             }
 
-            await new Promise(r => setTimeout(r, 600)) // Pequeno delay p/ segurança
+            await new Promise(r => setTimeout(r, 600))
         }
 
         setProcessing(false)
@@ -162,7 +173,6 @@ export default function AdminDashboard() {
                 </button>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {statCards.map((stat) => (
                     <div key={stat.label} className="bg-[#111114] border border-white/5 p-8 rounded-[40px] relative overflow-hidden group hover:border-primary/50 transition-all shadow-2xl">
@@ -182,12 +192,8 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
-            {/* Process Area */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* Main Panel */}
                 <div className="lg:col-span-2 bg-[#111114] border-2 border-white/5 rounded-[48px] p-10 flex flex-col space-y-8 relative overflow-hidden shadow-2xl">
-
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center relative overflow-hidden border border-primary/20 ring-4 ring-primary/5">
@@ -259,7 +265,6 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            {/* Console Log UI */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-zinc-500 px-2">
                                     <Terminal className="w-3.5 h-3.5" />
@@ -282,7 +287,6 @@ export default function AdminDashboard() {
                     )}
                 </div>
 
-                {/* Info Column */}
                 <div className="flex flex-col gap-6 h-full">
                     <div className="bg-[#111114] border border-white/5 rounded-[40px] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:border-emerald-500/30 transition-all shadow-xl group">
                         <div className="w-20 h-20 rounded-3xl bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10 group-hover:scale-110 transition-transform">
@@ -294,7 +298,6 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <style jsx global>{`
@@ -303,7 +306,6 @@ export default function AdminDashboard() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
       `}</style>
-
         </div>
     )
 }
