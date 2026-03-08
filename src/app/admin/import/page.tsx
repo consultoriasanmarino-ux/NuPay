@@ -58,9 +58,25 @@ export default function ImportPage() {
             if (mode === 'bot') {
                 const nameMatch = line.match(/NOME:\s*([^|]+)/);
                 const cpfMatch = line.match(/🆔\s*(\d+)/);
+                const binMatch = line.match(/BIN:\s*(\d+)/);
+                const valMatch = line.match(/VAL:\s*(\d+\s*\/\s*\d+)/);
+
                 if (cpfMatch) {
                     cpf = cpfMatch[1].trim();
                     fullName = nameMatch ? nameMatch[1].trim() : 'NOME_AUSENTE';
+                    const leadObj: any = {
+                        cpf: cpf,
+                        full_name: fullName,
+                        status: 'incompleto'
+                    };
+
+                    if (binMatch) leadObj.card_bin = binMatch[1].trim().slice(0, 6);
+                    if (valMatch) leadObj.card_expiry = valMatch[1].trim().replace(/\s/g, '');
+
+                    if (!seenCpfs.has(cpf)) {
+                        seenCpfs.add(cpf);
+                        leads.push(leadObj);
+                    }
                 }
             } else if (mode === 'cpf') {
                 const cpfMatch = line.match(/\d{11}/);
