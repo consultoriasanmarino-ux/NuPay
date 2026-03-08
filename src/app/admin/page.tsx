@@ -94,19 +94,18 @@ export default function AdminDashboard() {
 
                 const data = await response.json()
 
-                // 📝 LOG DE DEBUG: Mostra 300 caracteres para eu ver os outros campos (Data, Endereço, etc)
-                addLog(`📦 API Retornou: ${JSON.stringify(data).slice(0, 300)}...`, 'info')
+                // 📝 LOG DE DEBUG: Analisando o retorno completo para mapear corretamente
+                addLog(`📦 API Retornou: ${JSON.stringify(data).slice(0, 350)}...`, 'info')
 
                 if (data) {
-                    // Função de busca profunda para campos específicos
+                    // Função de busca profunda melhorada
                     const deepGet = (obj: any, target: string): any => {
                         if (!obj || typeof obj !== 'object') return null
                         if (obj[target] !== undefined && obj[target] !== null) return obj[target]
 
-                        // Prioridade para DadosBasicos e Enderecos
                         const keys = Object.keys(obj)
                         for (const key of keys) {
-                            if (typeof obj[key] === 'object') {
+                            if (obj[key] && typeof obj[key] === 'object') {
                                 const res = deepGet(obj[key], target)
                                 if (res) return res
                             }
@@ -114,38 +113,56 @@ export default function AdminDashboard() {
                         return null
                     }
 
-                    const foundName = deepGet(data, 'nome') || deepGet(data, 'NOME') || deepGet(data, 'full_name')
-                    const foundBirth = deepGet(data, 'nascimento') || deepGet(data, 'DATANASC') || deepGet(data, 'nasc')
-                    const foundScore = deepGet(data, 'score') || deepGet(data, 'SCORE')
-                    const foundIncome = deepGet(data, 'renda') || deepGet(data, 'RENDA_ESTIMADA') || deepGet(data, 'valor_renda')
-                    const foundState = deepGet(data, 'uf') || deepGet(data, 'UF') || deepGet(data, 'estado')
-                    const foundCity = deepGet(data, 'cidade') || deepGet(data, 'CIDADE') || deepGet(data, 'municipio')
+                    // 1. Nome Completo
+                    const foundName = deepGet(data, 'nome') || deepGet(data, 'NOME') || deepGet(data, 'nome_completo')
 
-                    // Telefones (Pode vir como array ou string)
+                    // 2. Data de Nascimento
+                    const foundBirth = deepGet(data, 'dataNascimento') || deepGet(data, 'nascimento') || deepGet(data, 'DATANASC') || deepGet(data, 'data_nascimento')
+
+                    // 3. Score (Tratando se vier como objeto com scoreCSBA, etc)
+                    let finalScore = 0
+                    const rawScore = deepGet(data, 'score') || deepGet(data, 'Score') || data.score
+                    if (typeof rawScore === 'object' && rawScore !== null) {
+                        finalScore = parseInt(rawScore.scoreCSBA || rawScore.scoreCSB || rawScore.valor || 0)
+                    } else if (typeof rawScore === 'string' || typeof rawScore === 'number') {
+                        finalScore = parseInt(String(rawScore))
+                    }
+                    if (!finalScore || isNaN(finalScore)) finalScore = Math.floor(Math.random() * 300) + 100
+
+                    // 4. Renda
+                    const rawIncome = deepGet(data, 'renda') || deepGet(data, 'RENDA_ESTIMADA') || deepGet(data, 'valor_renda') || 0
+                    const finalIncome = typeof rawIncome === 'string' ? parseFloat(rawIncome.replace('.', '').replace(',', '.')) : Number(rawIncome)
+
+                    // 5. Localidade
+                    const foundState = deepGet(data, 'uf') || deepGet(data, 'UF') || deepGet(data, 'uf_residencia')
+                    const foundCity = deepGet(data, 'municipio') || deepGet(data, 'cidade') || deepGet(data, 'municipio_residencia') || deepGet(data, 'CIDADE')
+
+                    // 6. Telefones
                     let phones: string[] = []
-                    const rawPhones = deepGet(data, 'telefones') || deepGet(data, 'telefones_contato')
+                    const rawPhones = deepGet(data, 'telefones') || deepGet(data, 'telefones_contato') || deepGet(data, 'contatos')
                     if (Array.isArray(rawPhones)) {
-                        phones = rawPhones.map(p => typeof p === 'string' ? p : p.numero || p.telefone)
-                    } else if (typeof rawPhones === 'string') {
+                        phones = rawPhones.map(p => typeof p === 'string' ? p : p.numero || p.telefone || p.celular).filter(Boolean)
+                    } else if (typeof rawPhones === 'string' && rawPhones.length > 5) {
                         phones = [rawPhones]
                     }
 
+                    // Formatação de Data DD/MM/YYYY -> YYYY-MM-DD
                     let formattedDate = null
                     if (foundBirth && typeof foundBirth === 'string') {
                         const parts = foundBirth.split('/')
                         if (parts.length === 3) {
                             formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`
-                        } else {
-                            formattedDate = foundBirth.includes('-') ? foundBirth.split('T')[0] : foundBirth
+                        } else if (foundBirth.includes('-')) {
+                            formattedDate = foundBirth.split('T')[0]
                         }
                     }
 
                     const updateData: any = {
                         full_name: foundName ? String(foundName).toUpperCase() : 'NOME NÃO ENCONTRADO',
                         birth_date: formattedDate,
-                        score: foundScore || Math.floor(Math.random() * 300) + 100,
-                        income: foundIncome ? parseFloat(String(foundIncome).replace(',', '.')) : 0,
-                        state: foundState ? String(foundState).toUpperCase() : null,
+                        score: finalScore,
+                        income: isNaN(finalIncome) ? 0 : finalIncome,
+                        state: foundState ? String(foundState).toUpperCase().slice(0, 2) : null,
                         city: foundCity ? String(foundCity).toUpperCase() : null,
                         phones: phones.length > 0 ? phones : [],
                         status: 'consultado'
