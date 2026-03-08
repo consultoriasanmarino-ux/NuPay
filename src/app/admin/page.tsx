@@ -72,30 +72,27 @@ export default function AdminDashboard() {
         setProgress({ current: 0, total: leads.length, success: 0, failed: 0 })
 
         for (let i = 0; i < leads.length; i++) {
-            // Loop de pausa
             while (isPausedRef.current) {
                 await new Promise(r => setTimeout(r, 1000))
             }
 
             const lead = leads[i]
             setProgress(prev => ({ ...prev, current: i + 1 }))
-            addLog(`Consultando ${lead.cpf} (${lead.full_name})...`, 'info')
+            addLog(`Consultando ${lead.cpf}...`, 'info')
 
             try {
-                // Tentativa de fetch com tratamento de erro de CORS
-                const controller = new AbortController()
-                const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-                const response = await fetch(`${apiUrl}?token=${apiToken}&modulo=${apiModule}&consulta=${lead.cpf}`, {
-                    method: 'GET',
-                    mode: 'cors', // Forçar CORS
-                    signal: controller.signal
-                }).catch(err => {
-                    if (err.name === 'AbortError') throw new Error('Timeout (10s)')
-                    throw new Error('Erro de Conexão ou CORS (Bloqueio do Navegador)')
+                const response = await fetch('/api/enrich', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: apiToken,
+                        modulo: apiModule,
+                        consulta: lead.cpf
+                    })
                 })
 
-                clearTimeout(timeoutId)
+                if (!response.ok) throw new Error(`HTTP ${response.status} no Proxy`)
+
                 const data = await response.json()
 
                 if (data && data.status !== false) {
@@ -116,12 +113,12 @@ export default function AdminDashboard() {
 
                     if (!updateError) {
                         setProgress(prev => ({ ...prev, success: prev.success + 1 }))
-                        addLog(`✅ Sucesso: ${data.nome || lead.cpf}`, 'success')
+                        addLog(`✅ Sucesso: ${updateData.full_name}`, 'success')
                     } else {
-                        throw new Error(`Erro Supabase: ${updateError.message}`)
+                        throw new Error(`Erro DB: ${updateError.message}`)
                     }
                 } else {
-                    throw new Error(data?.mensagem || 'CPF não encontrado na base OwnData')
+                    throw new Error(data?.mensagem || 'CPF não encontrado')
                 }
 
             } catch (err: any) {
@@ -129,8 +126,7 @@ export default function AdminDashboard() {
                 setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))
             }
 
-            // Delay p/ evitar rate limit
-            await new Promise(r => setTimeout(r, 400))
+            await new Promise(r => setTimeout(r, 600)) // Pequeno delay p/ segurança
         }
 
         setProcessing(false)
@@ -294,18 +290,8 @@ export default function AdminDashboard() {
                         </div>
                         <div className="space-y-1">
                             <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Status Conexão</h3>
-                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-6 py-2 rounded-full border border-emerald-500/10">OWN-DATA : ONLINE</p>
+                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-6 py-2 rounded-full border border-emerald-500/10">OWN-DATA : ATIVO</p>
                         </div>
-                    </div>
-
-                    <div className="bg-destructive/5 border border-destructive/10 rounded-[40px] p-8 flex flex-col space-y-4 shadow-xl">
-                        <div className="flex items-center gap-3 text-destructive">
-                            <XCircle className="w-5 h-5" />
-                            <span className="text-xs font-black uppercase italic">Aviso de CORS</span>
-                        </div>
-                        <p className="text-[10px] text-zinc-50/50 font-bold leading-loose italic">
-                            Se as falhas continuarem com "Erro de Conexão", instale a extensão <span className="text-white underline underline-offset-4">"Allow CORS"</span> no seu Chrome. Algumas APIs barram requisições diretas de domínios diferentes.
-                        </p>
                     </div>
                 </div>
 
