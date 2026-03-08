@@ -6,7 +6,7 @@ import {
     Search, Filter, ChevronDown, CheckCircle2, Clock,
     MapPin, ShieldCheck, UserCheck, AlertCircle,
     ChevronLeft, ChevronRight, MoreHorizontal, Eye,
-    RefreshCcw, Loader2, X
+    RefreshCcw, Loader2, X, Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -64,6 +64,30 @@ export default function LeadsPage() {
         setLoading(false)
     }
 
+    const handleExportMissingGov = async () => {
+        setLoading(true)
+        const { data, error } = await supabase
+            .from('leads')
+            .select('cpf')
+            .is('num_gov', null)
+
+        if (error) {
+            alert('Erro ao exportar: ' + error.message)
+        } else if (data && data.length > 0) {
+            const cpfs = data.map(l => l.cpf).join('\n')
+            const blob = new Blob([cpfs], { type: 'text/plain' })
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `cpfs_sem_gov_${new Date().toISOString().split('T')[0]}.txt`
+            a.click()
+            window.URL.revokeObjectURL(url)
+        } else {
+            alert('Nenhum CPF pendente de Número GOV encontrado.')
+        }
+        setLoading(false)
+    }
+
     const handleClearBase = async () => {
         if (!confirm('⚠️ ATENÇÃO: Isso apagará TODOS os leads do banco de dados para sempre. Deseja continuar?')) return
 
@@ -92,6 +116,14 @@ export default function LeadsPage() {
                 </div>
 
                 <div className="flex gap-2">
+                    <button
+                        onClick={handleExportMissingGov}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase hover:bg-primary hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/5"
+                    >
+                        <Download className="w-4 h-4" />
+                        Exportar Sem GOV
+                    </button>
                     <button
                         onClick={handleClearBase}
                         disabled={loading}
