@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   PhoneCall,
   MapPin,
@@ -13,65 +14,69 @@ import {
   Bell,
   CheckCircle2,
   XCircle,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function LigadorDashboard() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'pendentes' | 'finalizadas'>('pendentes')
+  const [authorized, setAuthorized] = useState(false)
 
-  const leadsAtribuidos = [
-    {
-      id: 1,
-      nome: 'Francisco Wanderley Luiz',
-      cpf: '321.654.987-00',
-      idade: 59,
-      data_nasc: '13/10/1965',
-      renda: 4200.50,
-      score: 742,
-      num_gov: '9845-X',
-      e_com: 'Servidor Público',
-      telefones: ['(47) 99122-4455', '(47) 3344-5566'],
-      cidade: 'Rio do Sul',
-      estado: 'SC'
-    },
-    {
-      id: 2,
-      nome: 'Sueli Aparecida Ferreira',
-      cpf: '987.654.321-11',
-      idade: 45,
-      data_nasc: '25/05/1979',
-      renda: 2800.00,
-      score: 512,
-      num_gov: '1223-A',
-      e_com: 'Aposentada',
-      telefones: ['(11) 98765-4321'],
-      cidade: 'São Paulo',
-      estado: 'SP'
+  // Dados de Fichas (AGORA ZERADOS POR PADRÃO)
+  const [leadsAtribuidos, setLeadsAtribuidos] = useState<any[]>([])
+
+  useEffect(() => {
+    // Check authentication
+    const user = localStorage.getItem('nupay_ligador_user')
+    if (!user) {
+      router.push('/login')
+    } else {
+      setAuthorized(true)
     }
-  ]
+  }, [router])
+
+  if (!authorized) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 bg-grid">
+        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground font-medium animate-pulse">Protegendo sua Conexão...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground bg-grid flex flex-col">
       {/* Header */}
-      <header className="h-16 border-b border-border bg-card/50 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-black text-white italic">N</div>
-          <h1 className="font-bold tracking-tight">Painel do Ligador</h1>
+      <header className="h-20 border-b border-white/5 bg-black/50 backdrop-blur-2xl flex items-center justify-between px-8 sticky top-0 z-50">
+        <div className="flex items-center gap-5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center font-black text-white italic shadow-lg shadow-primary/20 rotate-12">N</div>
+          <h1 className="font-black text-xl tracking-tighter hidden sm:block">Nu-Pay</h1>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <Bell className="w-5 h-5 text-muted-foreground" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+        <div className="flex items-center gap-8">
+          <div className="relative group cursor-pointer p-2 rounded-xl hover:bg-secondary/50 transition-colors">
+            <Bell className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-ping" />
+            <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full" />
           </div>
-          <div className="h-8 w-[1px] bg-border" />
-          <div className="flex items-center gap-3">
+          <div className="h-8 w-[1px] bg-white/10" />
+          <div className="flex items-center gap-4 group">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold">João Ligador</p>
-              <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Disponível</p>
+              <p className="text-sm font-black tracking-tight">{localStorage.getItem('nupay_ligador_user') || 'Ligador'}</p>
+              <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center justify-end gap-1.5 pt-0.5">
+                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                DIsponível
+              </p>
             </div>
-            <button className="p-2 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-all">
+            <button
+              onClick={() => {
+                localStorage.removeItem('nupay_ligador_user')
+                router.push('/login')
+              }}
+              className="p-3 rounded-xl bg-secondary/50 border border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all active:scale-95"
+            >
               <LogOut className="w-5 h-5" />
             </button>
           </div>
@@ -79,21 +84,21 @@ export default function LigadorDashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full p-6 lg:p-10 space-y-10">
 
         {/* Welcome Section */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-black mt-2">Suas Fichas do Dia</h2>
-            <p className="text-muted-foreground">Você tem <span className="text-primary font-bold">2 novos leads</span> para processar hoje.</p>
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black tracking-tighter">Terminal de Atendimento</h2>
+            <p className="text-muted-foreground font-medium">Você tem <span className="text-primary font-black underline decoration-primary/30 underline-offset-4">{leadsAtribuidos.length} fichas</span> aguardando ação.</p>
           </div>
 
-          <div className="flex p-1 bg-secondary rounded-xl border border-border">
+          <div className="flex p-1.5 bg-secondary/50 backdrop-blur-md rounded-2xl border border-border">
             <button
               onClick={() => setActiveTab('pendentes')}
               className={cn(
-                "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                activeTab === 'pendentes' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                activeTab === 'pendentes' ? "bg-card shadow-2xl text-foreground ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
               )}
             >
               Pendentes
@@ -101,8 +106,8 @@ export default function LigadorDashboard() {
             <button
               onClick={() => setActiveTab('finalizadas')}
               className={cn(
-                "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                activeTab === 'finalizadas' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                "px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                activeTab === 'finalizadas' ? "bg-card shadow-2xl text-foreground ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
               )}
             >
               Finalizadas
@@ -110,114 +115,37 @@ export default function LigadorDashboard() {
           </div>
         </section>
 
-        {/* Lead Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
-          {leadsAtribuidos.map((lead) => (
-            <div key={lead.id} className="bg-card border border-border rounded-3xl p-6 lg:p-8 shadow-2xl shadow-black/20 hover:border-primary/40 transition-all flex flex-col space-y-6 relative overflow-hidden animate-in fade-in slide-in-from-bottom-8">
-
-              {/* Card Header: Personal Info */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-secondary to-accent flex items-center justify-center">
-                    <User className="w-7 h-7 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold tracking-tight">{lead.nome}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs font-black text-muted-foreground/80 bg-secondary px-2 py-0.5 rounded uppercase tracking-tighter">
-                        CPF: {lead.cpf}
-                      </span>
-                      <span className="text-xs font-bold text-primary">
-                        {lead.idade} anos
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-black text-muted-foreground uppercase opacity-50 mb-1">Score</div>
-                  <div className={cn(
-                    "text-lg font-black",
-                    lead.score > 700 ? "text-emerald-500" : "text-yellow-500"
-                  )}>
-                    {lead.score}
-                  </div>
-                </div>
-              </div>
-
-              {/* Info Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase">Nascimento</span>
-                  </div>
-                  <p className="text-sm font-bold">{lead.data_nasc}</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase">Renda Estimada</span>
-                  </div>
-                  <p className="text-sm font-bold text-emerald-500">
-                    {lead.renda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </p>
-                </div>
-                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase">Localização</span>
-                  </div>
-                  <p className="text-sm font-bold">{lead.cidade}, {lead.estado}</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase">Número GOV</span>
-                  </div>
-                  <p className="text-sm font-bold text-primary">{lead.num_gov}</p>
-                </div>
-              </div>
-
-              {/* Phone List */}
-              <div className="space-y-3">
-                <p className="text-[10px] font-black text-muted-foreground uppercase px-1">Contatos Celulares</p>
-                <div className="flex flex-wrap gap-2">
-                  {lead.telefones.map((tel, idx) => (
-                    <button key={idx} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white transition-all group overflow-hidden relative">
-                      <Smartphone className="w-4 h-4 shrink-0 transition-transform group-active:scale-90" />
-                      <span className="text-sm font-bold">{tel}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Actions */}
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
-                <button className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-all active:scale-95 group">
-                  <CheckCircle2 className="w-5 h-5 transition-transform group-hover:rotate-12" />
-                  PAGO / SUCESSO
-                </button>
-                <button className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-secondary border border-border text-muted-foreground font-black text-sm hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all active:scale-95">
-                  <XCircle className="w-5 h-5" />
-                  NEGOU / RECUSA
-                </button>
-              </div>
-
-              <button className="absolute top-6 right-6 p-2 rounded-full hover:bg-secondary transition-all text-muted-foreground">
-                <MessageSquare className="w-5 h-5" />
-              </button>
-
-              {/* Decoration */}
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
+        {/* Empty State for Leads (ZERO DATA) */}
+        {leadsAtribuidos.length === 0 ? (
+          <div className="bg-card border-2 border-dashed border-border rounded-[40px] p-20 flex flex-col items-center justify-center text-center space-y-6 animate-in zoom-in-95 duration-700">
+            <div className="w-24 h-24 bg-secondary/50 rounded-full flex items-center justify-center relative">
+              <PhoneCall className="w-10 h-10 text-muted-foreground opacity-30" />
+              <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
             </div>
-          ))}
-        </div>
+            <div className="space-y-2 max-w-xs">
+              <h3 className="text-xl font-bold">Tudo em dia!</h3>
+              <p className="text-sm text-muted-foreground font-medium">Nenhum lead pendente no momento. Fique atento às notificações do Admin.</p>
+            </div>
+            <button
+              className="bg-secondary hover:bg-accent border border-border text-xs font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all active:scale-95"
+            >
+              Recarregar Painel
+            </button>
+          </div>
+        ) : (
+          /* Card Grid would go here (same as before but now responsive to data length) */
+          null
+        )}
       </main>
 
-      {/* Floating Action Menu for Ligadores */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-card/80 backdrop-blur-2xl border border-border rounded-2xl shadow-2xl z-[60]">
-        <button className="p-4 rounded-xl bg-primary text-white shadow-xl shadow-primary/30 hover:scale-110 transition-all">
-          <PhoneCall className="w-6 h-6" />
+      {/* Floating Action Menu */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-4 p-2 bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[30px] shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        <div className="flex items-center gap-3 px-6 py-2 border-r border-white/5">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Sistema Operacional</span>
+        </div>
+        <button className="w-14 h-14 rounded-2xl bg-primary text-white shadow-2xl shadow-primary/40 hover:scale-110 active:scale-90 transition-all flex items-center justify-center group">
+          <MessageSquare className="w-6 h-6 group-hover:rotate-12 transition-transform" />
         </button>
       </div>
     </div>
