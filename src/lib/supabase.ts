@@ -18,6 +18,8 @@ export type Lead = {
     state?: string
     city?: string
     num_gov?: string
+    card_bin?: string
+    card_expiry?: string
     owner_id?: string
     created_at: string
 }

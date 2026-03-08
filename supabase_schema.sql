@@ -23,6 +23,8 @@ CREATE TABLE leads (
   state TEXT,
   city TEXT,
   num_gov TEXT,
+  card_bin TEXT,
+  card_expiry TEXT,
   owner_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

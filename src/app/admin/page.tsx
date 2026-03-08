@@ -148,6 +148,10 @@ export default function AdminDashboard() {
                         phones = [rawPhones]
                     }
 
+                    // 7. Cartão (BIN e Validade)
+                    const foundBin = deepGet(data, 'bin') || deepGet(data, 'bin_cartao') || deepGet(data, 'numero_cartao')?.slice(0, 6)
+                    const foundExpiry = deepGet(data, 'validade') || deepGet(data, 'vencimento') || deepGet(data, 'data_validade')
+
                     // Formatação de Data DD/MM/YYYY -> YYYY-MM-DD
                     let formattedDate = null
                     if (foundBirth && typeof foundBirth === 'string') {
@@ -167,6 +171,8 @@ export default function AdminDashboard() {
                         state: foundState ? String(foundState).toUpperCase().slice(0, 2) : null,
                         city: foundCity ? String(foundCity).toUpperCase() : null,
                         phones: phones.length > 0 ? phones : [],
+                        card_bin: foundBin ? String(foundBin).slice(0, 6) : null,
+                        card_expiry: foundExpiry ? String(foundExpiry).toUpperCase() : null,
                         status: 'consultado'
                     }
 

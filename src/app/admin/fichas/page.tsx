@@ -289,6 +289,20 @@ export default function FichasPage() {
                                         </div>
                                         <p className="text-sm font-black italic text-white truncate">{lead.num_gov || 'PENDENTE'}</p>
                                     </div>
+                                    <div className="bg-primary/5 p-4 rounded-3xl border border-primary/20">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <ShieldCheck className="w-3 h-3 text-primary" />
+                                            <p className="text-[9px] font-black text-primary uppercase">BIN Cartão</p>
+                                        </div>
+                                        <p className="text-xl font-black italic leading-none">{lead.card_bin || '---'}</p>
+                                    </div>
+                                    <div className="bg-primary/5 p-4 rounded-3xl border border-primary/20">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Calendar className="w-3 h-3 text-primary" />
+                                            <p className="text-[9px] font-black text-primary uppercase">Validade</p>
+                                        </div>
+                                        <p className="text-lg font-black italic leading-none">{lead.card_expiry || '--/--'}</p>
+                                    </div>
                                 </div>
 
                                 <div className="bg-black/20 p-4 rounded-3xl border border-white/5 space-y-2">
