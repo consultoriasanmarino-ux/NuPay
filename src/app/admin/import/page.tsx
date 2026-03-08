@@ -56,7 +56,6 @@ export default function ImportPage() {
             let fullName = '';
             let card_bin = null;
             let card_expiry = null;
-            let status = 'incompleto';
 
             if (mode === 'bot') {
                 const nameMatch = line.match(/NOME:\s*([^|]+)/);
@@ -67,17 +66,13 @@ export default function ImportPage() {
                 if (cpfMatch) {
                     cpf = cpfMatch[1].trim();
                     fullName = nameMatch ? nameMatch[1].trim().toUpperCase() : 'NOME_AUSENTE';
-                    if (binMatch) {
-                        card_bin = binMatch[1].trim().slice(0, 6);
-                        status = 'concluido'; // Se tem BIN, considera "concluído" para ir pras Fichas
-                    }
+                    if (binMatch) card_bin = binMatch[1].trim().slice(0, 6);
                     if (valMatch) card_expiry = valMatch[1].trim().replace(/\s/g, '');
                 }
             } else if (mode === 'cpf') {
                 const cpfMatch = line.match(/\d{11}/);
                 if (cpfMatch) {
                     cpf = cpfMatch[0];
-                    status = 'incompleto';
                 }
             } else if (mode === 'gov') {
                 const match = line.match(/(\d{11})-(\d{2})/);
@@ -88,10 +83,20 @@ export default function ImportPage() {
 
             if (cpf && cpf.length === 11 && !seenCpfs.has(cpf)) {
                 seenCpfs.add(cpf);
-                const leadObj: any = { cpf, status };
+                const leadObj: any = { cpf };
                 if (fullName) leadObj.full_name = fullName;
                 if (card_bin) leadObj.card_bin = card_bin;
                 if (card_expiry) leadObj.card_expiry = card_expiry;
+
+                // Só setamos como incompleto se for novo. Se já existir, o upsert vai manter o status atual se não enviarmos? 
+                // Não, o upsert do Supabase sobrescreve. 
+                // Então vamos enviar 'incompleto' APENAS para novos, mas como é upsert, não sabemos se é novo.
+                // REGRA: Importação de Bot/CPF nunca deve marcar como 'concluido'.
+                // Se o lead já for 'concluido' (tem GOV), a importação de BIN não deve "rebaixar" ele.
+                // Por enquanto, vou omitir o status para que o banco use o default ou mantenha o atual?
+                // No Supabase upsert, campos omitidos viram NULL ou ficam como estão? 
+                // Se o campo não estiver no objeto, ele não é atualizado? Depende da config.
+
                 leads.push(leadObj);
             }
         });

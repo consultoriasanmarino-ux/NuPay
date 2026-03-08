@@ -115,16 +115,24 @@ export default function LeadsPage() {
 
     const handleFixStatus = async () => {
         setLoading(true)
-        const { error, count } = await supabase
+
+        // 1. Reverter quem é concluído mas não tem GOV para incompleto
+        const { error: err1 } = await supabase
+            .from('leads')
+            .update({ status: 'incompleto' })
+            .eq('status', 'concluido')
+            .is('num_gov', null)
+
+        // 2. Garantir que quem TEM GOV seja concluído
+        const { error: err2 } = await supabase
             .from('leads')
             .update({ status: 'concluido' })
             .not('num_gov', 'is', null)
-            .neq('status', 'concluido')
 
-        if (error) {
-            alert('Erro ao normalizar: ' + error.message)
+        if (err1 || err2) {
+            alert('Erro ao normalizar: ' + (err1?.message || err2?.message))
         } else {
-            alert('🛠️ Status normalizado com sucesso!')
+            alert('🛠️ Status normalizados! Somente leads com Número GOV estão como Concluídos.')
             fetchLeads()
         }
         setLoading(false)
