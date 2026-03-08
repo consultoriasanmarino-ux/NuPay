@@ -49,6 +49,8 @@ export default function AdminDashboard() {
     }
 
     const handleConsult = async () => {
+        if (processing) return
+
         const apiToken = localStorage.getItem('nupay_api_token') || 'doavTXJphHLkpayfbdNdJyGp'
         const apiModule = localStorage.getItem('nupay_api_module') || 'cpf'
 
