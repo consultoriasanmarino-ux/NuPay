@@ -94,27 +94,41 @@ export default function AdminDashboard() {
 
                 const data = await response.json()
 
+                // Log do objeto bruto para o Terminal de Debug
+                addLog(`📦 Resposta: ${JSON.stringify(data).slice(0, 80)}...`, 'info')
+
                 if (data && data.status !== false) {
-                    // Tenta converter datas no formato DD/MM/YYYY para YYYY-MM-DD (Padrão SQL)
+                    // Busca inteligente de nome (muitas APIs aninham em 'dados', 'pessoa' ou 'registro')
+                    const findName = (obj: any): string | null => {
+                        if (!obj) return null
+                        if (obj.nome || obj.NOME || obj.full_name || obj.Full_Name) return obj.nome || obj.NOME || obj.full_name || obj.Full_Name
+                        if (obj.dados) return findName(obj.dados)
+                        if (obj.pessoa) return findName(obj.pessoa)
+                        if (obj.registro) return findName(obj.registro)
+                        return null
+                    }
+
+                    const foundName = findName(data)
+
                     let formattedDate = null
-                    const rawDate = data.nascimento || data.DATANASC || data.birth_date
+                    const rawDate = data.nascimento || data.DATANASC || (data.dados && data.dados.nascimento)
                     if (rawDate && typeof rawDate === 'string') {
                         const parts = rawDate.split('/')
                         if (parts.length === 3) {
-                            formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}` // YYYY-MM-DD
+                            formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`
                         } else {
                             formattedDate = rawDate
                         }
                     }
 
                     const updateData: any = {
-                        full_name: data.nome || data.NOME || data.full_name || 'NOME DESCONHECIDO',
+                        full_name: foundName || 'NOME NÃO ENCONTRADO NA API',
                         birth_date: formattedDate,
-                        score: data.score || data.SCORE || Math.floor(Math.random() * 300) + 100,
-                        income: data.renda || data.RENDA_ESTIMADA || '0',
-                        state: data.estado || data.UF || (data.endereco ? data.endereco.uf : null),
-                        city: data.cidade || (data.endereco ? data.endereco.cidade : null),
-                        status: 'concluido' // Correct status for enriched lead
+                        score: data.score || (data.dados && data.dados.score) || Math.floor(Math.random() * 300) + 100,
+                        income: data.renda || (data.dados && data.dados.renda) || '0',
+                        state: data.estado || data.UF || (data.dados && data.dados.uf),
+                        city: data.cidade || (data.dados && data.dados.cidade),
+                        status: 'concluido'
                     }
 
                     const { error: updateError } = await supabase
