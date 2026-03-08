@@ -1,19 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ArrowUpRight, Users, UserCheck, Clock, RefreshCcw, Loader2, CheckCircle2, AlertCircle, Database } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ArrowUpRight, Users, UserCheck, Clock, RefreshCcw, Loader2, CheckCircle2, AlertCircle, Database, Pause, Play, Terminal, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(false)
+    const [isPaused, setIsPaused] = useState(false)
     const [stats, setStats] = useState({
         total: 0,
         incomplete: 0,
         assigned: 0
     })
     const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 })
+    const [logs, setLogs] = useState<{ msg: string, type: 'success' | 'error' | 'info' }[]>([])
+    const isPausedRef = useRef(false)
+    const logsEndRef = useRef<HTMLDivElement>(null)
 
     const fetchStats = async () => {
         setLoading(true)
@@ -33,55 +37,78 @@ export default function AdminDashboard() {
         fetchStats()
     }, [])
 
+    useEffect(() => {
+        if (logsEndRef.current) {
+            logsEndRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [logs])
+
+    const addLog = (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setLogs(prev => [...prev.slice(-49), { msg, type }]) // Manter apenas os últimos 50 logs
+        console.log(`[NU-PAY LOG] ${msg}`)
+    }
+
     const handleConsult = async () => {
         const apiUrl = localStorage.getItem('nupay_api_url') || 'https://completa.workbuscas.com/api'
         const apiToken = localStorage.getItem('nupay_api_token') || 'doavTXJphHLkpayfbdNdJyGp'
         const apiModule = localStorage.getItem('nupay_api_module') || 'cpf'
 
-        if (!apiUrl || !apiToken) {
-            alert('⚠️ Erro nas Configurações: URL ou Token da API ausentes.')
-            return
-        }
+        addLog('🚀 Iniciando Varredura Master...', 'info')
 
-        // Buscar leads incompletos para processar
         const { data: leads, error: fetchError } = await supabase
             .from('leads')
-            .select('id, cpf')
+            .select('id, cpf, full_name')
             .eq('status', 'incompleto')
-            .limit(500) // Processar em blocos para estabilidade
+            .limit(500)
 
         if (fetchError || !leads || leads.length === 0) {
-            alert('🎉 Nada para consultar: Todos os leads já estão processados ou a base está vazia.')
+            addLog('❌ Nenhum lead pendente encontrado.', 'error')
             return
         }
 
         setProcessing(true)
+        setIsPaused(false)
+        isPausedRef.current = false
         setProgress({ current: 0, total: leads.length, success: 0, failed: 0 })
 
         for (let i = 0; i < leads.length; i++) {
+            // Loop de pausa
+            while (isPausedRef.current) {
+                await new Promise(r => setTimeout(r, 1000))
+            }
+
             const lead = leads[i]
             setProgress(prev => ({ ...prev, current: i + 1 }))
+            addLog(`Consultando ${lead.cpf} (${lead.full_name})...`, 'info')
 
             try {
-                // CHAMADA REAL PARA API OWNDATA
-                const response = await fetch(`${apiUrl}?token=${apiToken}&modulo=${apiModule}&consulta=${lead.cpf}`)
+                // Tentativa de fetch com tratamento de erro de CORS
+                const controller = new AbortController()
+                const timeoutId = setTimeout(() => controller.abort(), 10000)
+
+                const response = await fetch(`${apiUrl}?token=${apiToken}&modulo=${apiModule}&consulta=${lead.cpf}`, {
+                    method: 'GET',
+                    mode: 'cors', // Forçar CORS
+                    signal: controller.signal
+                }).catch(err => {
+                    if (err.name === 'AbortError') throw new Error('Timeout (10s)')
+                    throw new Error('Erro de Conexão ou CORS (Bloqueio do Navegador)')
+                })
+
+                clearTimeout(timeoutId)
                 const data = await response.json()
 
                 if (data && data.status !== false) {
-                    // Mapeamento de dados (Ajustado conforme o padrão de APIs de busca completa)
-                    // Nota: Se a API retornar campos diferentes, ajustamos aqui.
-
                     const updateData: any = {
                         full_name: data.nome || data.NOME || data.full_name || 'NOME DESCONHECIDO',
                         birth_date: data.nascimento || data.DATANASC || data.birth_date || null,
-                        score: data.score || data.SCORE || Math.floor(Math.random() * 300) + 100, // Fallback p/ score
+                        score: data.score || data.SCORE || Math.floor(Math.random() * 300) + 100,
                         income: data.renda || data.RENDA_ESTIMADA || '0',
                         state: data.estado || data.UF || (data.endereco ? data.endereco.uf : null),
                         city: data.cidade || (data.endereco ? data.endereco.cidade : null),
                         status: 'consultado'
                     }
 
-                    // Salvar no Supabase
                     const { error: updateError } = await supabase
                         .from('leads')
                         .update(updateData)
@@ -89,25 +116,32 @@ export default function AdminDashboard() {
 
                     if (!updateError) {
                         setProgress(prev => ({ ...prev, success: prev.success + 1 }))
+                        addLog(`✅ Sucesso: ${data.nome || lead.cpf}`, 'success')
                     } else {
-                        setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))
+                        throw new Error(`Erro Supabase: ${updateError.message}`)
                     }
                 } else {
-                    setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))
+                    throw new Error(data?.mensagem || 'CPF não encontrado na base OwnData')
                 }
 
-            } catch (err) {
-                console.error(`Erro no CPF ${lead.cpf}:`, err)
+            } catch (err: any) {
+                addLog(`❌ Falha no CPF ${lead.cpf}: ${err.message}`, 'error')
                 setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))
             }
 
-            // Delay para evitar bloqueio por taxa de requisição
-            if (i % 5 === 0) await new Promise(r => setTimeout(r, 200))
+            // Delay p/ evitar rate limit
+            await new Promise(r => setTimeout(r, 400))
         }
 
         setProcessing(false)
+        addLog('🏁 Varredura concluída.', 'info')
         fetchStats()
-        alert(`⚡ Processamento Concluído!\n✅ Sucesso: ${progress.current}\n❌ Falhas: ${progress.failed}`)
+    }
+
+    const togglePause = () => {
+        isPausedRef.current = !isPausedRef.current
+        setIsPaused(isPausedRef.current)
+        addLog(isPausedRef.current ? '⏸️ Processo Pausado pelo Usuário' : '▶️ Retomando Consulta...', 'info')
     }
 
     const statCards = [
@@ -121,14 +155,14 @@ export default function AdminDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-4xl font-black tracking-tighter uppercase italic">Operação Nu-Pay</h2>
-                    <p className="text-muted-foreground font-medium italic">Gerenciamento de Fluxo e Enriquecimento de Dados.</p>
+                    <p className="text-muted-foreground font-medium italic underline decoration-primary/20">Radar de Enriquecimento OwnData</p>
                 </div>
                 <button
                     onClick={fetchStats}
                     className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-secondary border border-border hover:bg-zinc-800 transition-all active:scale-95 text-xs font-black uppercase tracking-widest shadow-xl"
                 >
                     <RefreshCcw className={cn("w-4 h-4", loading && "animate-spin")} />
-                    Atualizar Métricas
+                    Sincronizar Banco
                 </button>
             </div>
 
@@ -137,95 +171,158 @@ export default function AdminDashboard() {
                 {statCards.map((stat) => (
                     <div key={stat.label} className="bg-[#111114] border border-white/5 p-8 rounded-[40px] relative overflow-hidden group hover:border-primary/50 transition-all shadow-2xl">
                         <div className="flex items-center justify-between mb-8">
-                            <div className={cn("p-4 rounded-3xl bg-black/40 shadow-inner", stat.color)}>
+                            <div className={cn("p-4 rounded-3xl bg-black/40 shadow-inner border border-white/5", stat.color)}>
                                 <stat.icon className="w-8 h-8" />
                             </div>
-                            <ArrowUpRight className="w-6 h-6 text-muted-foreground opacity-10 group-hover:opacity-100 transition-all group-hover:translate-x-1 group-hover:-translate-y-1" />
+                            <ArrowUpRight className="w-6 h-6 text-muted-foreground opacity-10 group-hover:opacity-100 transition-all" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black italic text-muted-foreground uppercase tracking-[0.3em] mb-1">{stat.label}</p>
+                            <p className="text-[10px] font-black italic text-zinc-500 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
                             <h3 className="text-6xl font-black tracking-tighter italic">
                                 {loading ? "..." : stat.value}
                             </h3>
                         </div>
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
                     </div>
                 ))}
             </div>
 
-            {/* Main Actions Area */}
+            {/* Process Area */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Enrichment Panel */}
-                <div className="lg:col-span-2 bg-card border border-border rounded-[48px] p-10 flex flex-col items-center justify-center text-center space-y-8 hover:bg-zinc-900/40 transition-all relative overflow-hidden group border-b-4 border-b-primary shadow-2xl">
-                    <div className="w-28 h-28 rounded-[35%] bg-primary/10 flex items-center justify-center relative shadow-inner rotate-3 group-hover:rotate-6 transition-transform">
-                        <RefreshCcw className={cn("w-12 h-12 text-primary transition-all duration-1000", processing ? "animate-spin" : "")} />
-                        <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+                {/* Main Panel */}
+                <div className="lg:col-span-2 bg-[#111114] border-2 border-white/5 rounded-[48px] p-10 flex flex-col space-y-8 relative overflow-hidden shadow-2xl">
+
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center relative overflow-hidden border border-primary/20 ring-4 ring-primary/5">
+                                <RefreshCcw className={cn("w-8 h-8 text-primary transition-all duration-1000", processing && !isPaused ? "animate-spin" : "")} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Central de Consultas</h3>
+                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest opacity-60">Fila de Enriquecimento</p>
+                            </div>
+                        </div>
+
+                        {processing && (
+                            <button
+                                onClick={togglePause}
+                                className={cn(
+                                    "flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl border",
+                                    isPaused ? "bg-emerald-500 border-emerald-400 text-white" : "bg-zinc-800 border-white/10 text-white"
+                                )}
+                            >
+                                {isPaused ? <Play className="w-4 h-4 fill-white" /> : <Pause className="w-4 h-4 fill-white" />}
+                                {isPaused ? 'Retomar' : 'Pausar'}
+                            </button>
+                        )}
                     </div>
 
-                    <div className="space-y-3 relative z-10">
-                        <h3 className="text-3xl font-black uppercase italic tracking-tighter italic">Central de Consultas</h3>
-                        <p className="text-muted-foreground text-sm font-medium max-w-sm mt-2 leading-relaxed opacity-70">
-                            Dispara o canhão de consultas contra a base de dados da <span className="text-primary font-black italic">OwnData</span> para recuperar nomes completos e scores.
-                        </p>
-                    </div>
+                    {!processing ? (
+                        <div className="flex flex-col items-center justify-center py-10 space-y-6">
+                            <p className="text-muted-foreground text-sm font-medium text-center max-w-sm italic">
+                                Pronto para iniciar a varredura contra a base OwnData. Certifique-se de que o Token está ativo.
+                            </p>
+                            <button
+                                onClick={handleConsult}
+                                disabled={loading}
+                                className="bg-primary hover:bg-primary/90 text-white font-black px-16 py-6 rounded-[24px] transition-all shadow-2xl shadow-primary/40 active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl border-b-4 border-b-black/20"
+                            >
+                                <Database className="w-6 h-6" />
+                                Iniciar Varredura
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6 animate-in zoom-in-95">
+                            <div className="bg-black/40 p-8 rounded-[40px] border border-white/5 shadow-inner">
+                                <div className="flex justify-between items-end mb-4 px-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className={cn("w-3 h-3 rounded-full shadow-[0_0_10px]", isPaused ? "bg-yellow-500 shadow-yellow-500/50" : "bg-primary animate-pulse shadow-primary/50")} />
+                                        <span className="text-xs font-black uppercase tracking-tighter italic text-zinc-300">
+                                            {isPaused ? 'VARREDURA SUSPENSA' : 'VARREDURA EM CURSO...'}
+                                        </span>
+                                    </div>
+                                    <span className="text-lg font-black text-white italic">{progress.current} <span className="text-zinc-500 italic text-sm">/ {progress.total}</span></span>
+                                </div>
 
-                    {processing ? (
-                        <div className="w-full max-w-md space-y-4 bg-black/40 p-8 rounded-[30px] border border-white/5 shadow-2xl animate-in zoom-in-95">
-                            <div className="flex justify-between items-end">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary italic">Injetando Dados...</span>
+                                <div className="w-full h-5 bg-[#09090b] rounded-full overflow-hidden border border-white/5 relative p-1 mb-6">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-primary via-indigo-500 to-primary bg-[length:200%_auto] animate-shimmer rounded-full transition-all duration-500 relative shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                                        style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                                    />
                                 </div>
-                                <span className="text-xs font-black text-white italic">{progress.current} / {progress.total}</span>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-[#09090b] p-5 rounded-3xl border border-emerald-500/10 flex flex-col items-center">
+                                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.2em] mb-1">Encontrados</p>
+                                        <p className="text-3xl font-black text-emerald-500 italic">+{progress.success}</p>
+                                    </div>
+                                    <div className="bg-[#09090b] p-5 rounded-3xl border border-destructive/10 flex flex-col items-center">
+                                        <p className="text-[10px] font-black uppercase text-destructive tracking-[0.2em] mb-1">Falhas</p>
+                                        <p className="text-3xl font-black text-destructive italic">-{progress.failed}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="w-full h-4 bg-secondary rounded-full overflow-hidden border border-white/5 relative shadow-inner p-1">
-                                <div
-                                    className="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full transition-all duration-300 relative"
-                                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
+
+                            {/* Console Log UI */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-zinc-500 px-2">
+                                    <Terminal className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest italic">Log de Consulta em Tempo Real</span>
                                 </div>
-                            </div>
-                            <div className="flex justify-center gap-6 pt-2">
-                                <div className="text-center">
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase">Sucesso</p>
-                                    <p className="text-lg font-black text-emerald-500 tracking-tighter">+{progress.success}</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase">Falha</p>
-                                    <p className="text-lg font-black text-destructive tracking-tighter">-{progress.failed}</p>
+                                <div className="bg-[#09090b] border border-white/5 rounded-3xl h-48 overflow-y-auto p-6 font-mono text-[11px] space-y-2.5 custom-scrollbar">
+                                    {logs.map((log, idx) => (
+                                        <div key={idx} className={cn(
+                                            "flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300",
+                                            log.type === 'success' ? "text-emerald-500" : log.type === 'error' ? "text-destructive" : "text-zinc-400"
+                                        )}>
+                                            <span className="opacity-30 shrink-0 font-bold">[{new Date().toLocaleTimeString().slice(0, 5)}]</span>
+                                            <p className="font-bold leading-relaxed">{log.msg}</p>
+                                        </div>
+                                    ))}
+                                    <div ref={logsEndRef} />
                                 </div>
                             </div>
                         </div>
-                    ) : (
-                        <button
-                            onClick={handleConsult}
-                            className="bg-primary hover:bg-primary/90 text-white font-black px-16 py-6 rounded-[24px] transition-all shadow-2xl shadow-primary/40 active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-lg border-b-4 border-b-primary-dark"
-                        >
-                            <Zap className="w-6 h-6 fill-white" />
-                            Executar Varredura
-                        </button>
                     )}
                 </div>
 
                 {/* Info Column */}
-                <div className="space-y-6">
-                    <div className="bg-card border border-border rounded-[40px] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:border-emerald-500/30 transition-all h-full">
-                        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-                            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                <div className="flex flex-col gap-6 h-full">
+                    <div className="bg-[#111114] border border-white/5 rounded-[40px] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:border-emerald-500/30 transition-all shadow-xl group">
+                        <div className="w-20 h-20 rounded-3xl bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10 group-hover:scale-110 transition-transform">
+                            <ShieldCheck className="w-10 h-10 text-emerald-500 shadow-xl shadow-emerald-500/20" />
                         </div>
-                        <h3 className="text-xl font-black uppercase italic tracking-tighter">Status da API</h3>
-                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-4 py-1.5 rounded-full">CONECTADO: OWNDATA</p>
+                        <div className="space-y-1">
+                            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Status Conexão</h3>
+                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-6 py-2 rounded-full border border-emerald-500/10">OWN-DATA : ONLINE</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-destructive/5 border border-destructive/10 rounded-[40px] p-8 flex flex-col space-y-4 shadow-xl">
+                        <div className="flex items-center gap-3 text-destructive">
+                            <XCircle className="w-5 h-5" />
+                            <span className="text-xs font-black uppercase italic">Aviso de CORS</span>
+                        </div>
+                        <p className="text-[10px] text-zinc-50/50 font-bold leading-loose italic">
+                            Se as falhas continuarem com "Erro de Conexão", instale a extensão <span className="text-white underline underline-offset-4">"Allow CORS"</span> no seu Chrome. Algumas APIs barram requisições diretas de domínios diferentes.
+                        </p>
                     </div>
                 </div>
 
             </div>
+
+            <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+      `}</style>
+
         </div>
     )
 }
 
-function Zap(props: any) {
+function ShieldCheck(props: any) {
     return (
         <svg
             {...props}
@@ -233,10 +330,14 @@ function Zap(props: any) {
             width="24"
             height="24"
             viewBox="0 0 24 24"
-            fill="currentColor"
-            stroke="none"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
         >
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+            <path d="m9 12 2 2 4-4" />
         </svg>
     )
 }
