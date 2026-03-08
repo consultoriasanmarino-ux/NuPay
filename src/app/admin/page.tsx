@@ -2,9 +2,9 @@ import { ArrowUpRight, Users, UserCheck, Clock, RefreshCcw } from 'lucide-react'
 
 export default function AdminDashboard() {
     const stats = [
-        { label: 'Total de Leads', value: '12,482', icon: Users, color: 'text-blue-500' },
-        { label: 'Leads Incompletos', value: '4,103', icon: Clock, color: 'text-yellow-500' },
-        { label: 'Leads Atribuídos', value: '8,379', icon: UserCheck, color: 'text-emerald-500' },
+        { label: 'Total de Leads', value: '0', icon: Users, color: 'text-blue-500' },
+        { label: 'Leads Incompletos', value: '0', icon: Clock, color: 'text-yellow-500' },
+        { label: 'Leads Atribuídos', value: '0', icon: UserCheck, color: 'text-emerald-500' },
     ]
 
     return (
@@ -49,22 +49,9 @@ export default function AdminDashboard() {
                     </button>
                 </div>
 
-                <div className="bg-card border border-border rounded-2xl p-8">
-                    <h3 className="text-xl font-bold mb-6">Atividade Recente</h3>
-                    <div className="space-y-6">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="flex items-center gap-4">
-                                <div className="w-2 h-2 rounded-full bg-primary" />
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium">Lote de leads importado</p>
-                                    <p className="text-xs text-muted-foreground">Há 15 minutos via TXT Upload</p>
-                                </div>
-                                <div className="text-[10px] uppercase font-bold text-muted-foreground bg-secondary px-2 py-1 rounded">
-                                    +1.200
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="bg-card border border-border rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                    <h3 className="text-xl font-bold mb-2">Atividade Recente</h3>
+                    <p className="text-muted-foreground text-sm">Nenhuma atividade registrada ainda.</p>
                 </div>
             </div>
         </div>
