@@ -2,22 +2,45 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Key, ArrowRight, Wallet, ShieldCheck } from 'lucide-react'
+import { User, Key, ArrowRight, Wallet, ShieldCheck, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export default function LigadorLoginPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
-    const [error, setError] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [loginError, setLoginError] = useState('')
     const router = useRouter()
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Simulated validation against what would be in Supabase
-        if (username && password) {
-            localStorage.setItem('nupay_ligador_user', username)
-            router.push('/')
-        } else {
-            setError(true)
+        if (!username || !password) {
+            setLoginError('Preencha todos os campos')
+            return
+        }
+
+        setLoading(true)
+        setLoginError('')
+
+        const email = `${username.trim().toLowerCase()}@axon.pay`
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            })
+
+            if (error) {
+                setLoginError('Usuário ou senha inválidos')
+            } else if (data.user) {
+                localStorage.setItem('nupay_ligador_id', data.user.id)
+                localStorage.setItem('nupay_ligador_user', username.trim())
+                router.push('/')
+            }
+        } catch (err) {
+            setLoginError('Ocorreu um erro ao tentar entrar.')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -67,12 +90,23 @@ export default function LigadorLoginPage() {
                             </div>
                         </div>
 
+                        {loginError && (
+                            <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl text-destructive text-[10px] font-black uppercase tracking-widest text-center animate-in shake-1 duration-300">
+                                {loginError}
+                            </div>
+                        )}
+
                         <button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 group/btn"
+                            disabled={loading}
+                            className="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 group/btn disabled:opacity-50"
                         >
-                            Entrar no Painel
-                            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                <>
+                                    Entrar no Painel
+                                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                </>
+                            )}
                         </button>
                     </form>
 
