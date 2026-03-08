@@ -53,7 +53,10 @@ export default function ImportPage() {
 
         lines.forEach(line => {
             let cpf = '';
-            let fullName = 'NOME_AUSENTE';
+            let fullName = '';
+            let card_bin = null;
+            let card_expiry = null;
+            let status = 'incompleto';
 
             if (mode === 'bot') {
                 const nameMatch = line.match(/NOME:\s*([^|]+)/);
@@ -63,28 +66,20 @@ export default function ImportPage() {
 
                 if (cpfMatch) {
                     cpf = cpfMatch[1].trim();
-                    fullName = nameMatch ? nameMatch[1].trim() : 'NOME_AUSENTE';
-                    const leadObj: any = {
-                        cpf: cpf,
-                        full_name: fullName,
-                        status: 'incompleto'
-                    };
-
-                    if (binMatch) leadObj.card_bin = binMatch[1].trim().slice(0, 6);
-                    if (valMatch) leadObj.card_expiry = valMatch[1].trim().replace(/\s/g, '');
-
-                    if (!seenCpfs.has(cpf)) {
-                        seenCpfs.add(cpf);
-                        leads.push(leadObj);
+                    fullName = nameMatch ? nameMatch[1].trim().toUpperCase() : 'NOME_AUSENTE';
+                    if (binMatch) {
+                        card_bin = binMatch[1].trim().slice(0, 6);
+                        status = 'concluido'; // Se tem BIN, considera "concluído" para ir pras Fichas
                     }
+                    if (valMatch) card_expiry = valMatch[1].trim().replace(/\s/g, '');
                 }
             } else if (mode === 'cpf') {
                 const cpfMatch = line.match(/\d{11}/);
                 if (cpfMatch) {
                     cpf = cpfMatch[0];
+                    status = 'incompleto';
                 }
             } else if (mode === 'gov') {
-                // Formato: 12345678901-88
                 const match = line.match(/(\d{11})-(\d{2})/);
                 if (match) {
                     govMatches.push({ cpf: match[1], lastTwo: match[2] });
@@ -93,11 +88,11 @@ export default function ImportPage() {
 
             if (cpf && cpf.length === 11 && !seenCpfs.has(cpf)) {
                 seenCpfs.add(cpf);
-                leads.push({
-                    cpf: cpf,
-                    full_name: fullName,
-                    status: 'incompleto'
-                });
+                const leadObj: any = { cpf, status };
+                if (fullName) leadObj.full_name = fullName;
+                if (card_bin) leadObj.card_bin = card_bin;
+                if (card_expiry) leadObj.card_expiry = card_expiry;
+                leads.push(leadObj);
             }
         });
 
