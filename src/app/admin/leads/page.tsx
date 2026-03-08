@@ -426,24 +426,22 @@ export default function LeadsPage() {
                                 </div>
                                 {selectedLead.num_gov && (
                                     <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 mt-4 animate-in slide-in-from-top-2">
-                                        <p className="text-[9px] font-black uppercase text-emerald-500 tracking-[0.2em] mb-1 italic">Número GOV Detectado</p>
+                                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.2em] mb-1 italic">Número GOV Detectado</p>
                                         <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.num_gov}</p>
                                     </div>
                                 )}
-                                {(selectedLead.card_bin || selectedLead.card_expiry) && (
-                                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 mt-4 animate-in slide-in-from-top-2">
-                                        <div className="flex gap-8">
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase text-primary tracking-[0.2em] mb-1 italic">BIN Cartão</p>
-                                                <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.card_bin || '---'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase text-primary tracking-[0.2em] mb-1 italic">Validade</p>
-                                                <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.card_expiry || '--/--'}</p>
-                                            </div>
+                                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 mt-4 animate-in slide-in-from-top-2">
+                                    <div className="flex gap-8">
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-1 italic">BIN Cartão</p>
+                                            <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.card_bin || '---'}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-1 italic">Vencimento</p>
+                                            <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.card_expiry || '--/--'}</p>
                                         </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
 
