@@ -109,17 +109,33 @@ export default function LeadsPage() {
     }
 
     const handleFixStatus = async () => {
+        if (!confirm('⚠️ NORMALIZE: This will fix statuses for unassigned leads only. Assigned leads will NOT be affected. Proceed?')) return
         setLoading(true)
-        const { error: err1 } = await supabase.from('leads').update({ status: 'incompleto' }).eq('status', 'concluido').is('num_gov', null)
-        const { error: err2 } = await supabase.from('leads').update({ status: 'concluido' }).not('num_gov', 'is', null)
+
+        // Fix: leads 'concluido' without num_gov should be 'incompleto' (only unassigned ones)
+        const { error: err1 } = await supabase
+            .from('leads')
+            .update({ status: 'incompleto' })
+            .eq('status', 'concluido')
+            .is('num_gov', null)
+            .is('owner_id', null)
+
+        // Fix: leads with num_gov that are still 'incompleto' or 'consultado' should be 'concluido' (only unassigned ones)
+        const { error: err2 } = await supabase
+            .from('leads')
+            .update({ status: 'concluido' })
+            .not('num_gov', 'is', null)
+            .is('owner_id', null)
+            .in('status', ['incompleto', 'consultado'])
 
         if (err1 || err2) alert('ERROR: ' + (err1?.message || err2?.message))
         else {
-            alert('🛠️ SIGNAL NORMALIZATION COMPLETE.')
+            alert('🛠️ SIGNAL NORMALIZATION COMPLETE. Assigned leads were NOT affected.')
             fetchLeads()
         }
         setLoading(false)
     }
+
 
     useEffect(() => {
         fetchLeads()
