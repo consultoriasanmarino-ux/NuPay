@@ -124,7 +124,7 @@ export default function UnassignPage() {
             setLeads([])
             setLigadores(prev => prev.map(l => l.id === selectedLigador.id ? { ...l, leadCount: 0 } : l))
         }
-        setProcessing(processing => false)
+        setProcessing(false)
     }
 
     useEffect(() => {
@@ -312,7 +312,7 @@ export default function UnassignPage() {
                                             </button>
                                         </div>
                                     </div>
-                                outcome: ))
+                                ))
                             )}
                         </div>
                     )}
