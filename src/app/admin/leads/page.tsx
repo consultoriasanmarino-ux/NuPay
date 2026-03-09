@@ -6,7 +6,8 @@ import {
     Search, Filter, ChevronDown, CheckCircle2, Clock,
     MapPin, ShieldCheck, UserCheck, AlertCircle,
     ChevronLeft, ChevronRight, MoreHorizontal, Eye,
-    RefreshCcw, Loader2, X, Download
+    RefreshCcw, Loader2, X, Download, Trash2, Database,
+    Smartphone, Zap, CreditCard, LayoutGrid
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -26,10 +27,10 @@ export default function LeadsPage() {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'incompleto': return 'Pendente'
-            case 'consultado': return 'Consultado'
-            case 'concluido': return 'Concluído'
-            case 'atribuido': return 'Atribuído'
+            case 'incompleto': return 'PENDING'
+            case 'consultado': return 'ENRICHED'
+            case 'concluido': return 'VALIDATED'
+            case 'atribuido': return 'ASSIGNED'
             default: return status.toUpperCase()
         }
     }
@@ -49,13 +50,10 @@ export default function LeadsPage() {
             query = query.or(`cpf.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
         }
 
-        // Novos Filtros
         if (filters.income === 'greater') query = query.gte('income', 5000)
         if (filters.income === 'less') query = query.lte('income', 4999)
-
         if (filters.score === 'greater') query = query.gte('score', 700)
         if (filters.score === 'less') query = query.lte('score', 699)
-
         if (filters.age === 'greater') query = query.gte('age', 40)
         if (filters.age === 'less') query = query.lte('age', 39)
 
@@ -82,7 +80,7 @@ export default function LeadsPage() {
             .is('num_gov', null)
 
         if (error) {
-            alert('Erro ao exportar: ' + error.message)
+            alert('PROTOCOL FAILURE: ' + error.message)
         } else if (data && data.length > 0) {
             const cpfs = data.map(l => l.cpf).join('\n')
             const blob = new Blob([cpfs], { type: 'text/plain' })
@@ -93,21 +91,18 @@ export default function LeadsPage() {
             a.click()
             window.URL.revokeObjectURL(url)
         } else {
-            alert('Nenhum CPF pendente de Número GOV encontrado.')
+            alert('RADAR SCAN: NO CPF MISSING GOV DATA DETECTED.')
         }
         setLoading(false)
     }
 
     const handleClearBase = async () => {
-        if (!confirm('⚠️ ATENÇÃO: Isso apagará TODOS os leads do banco de dados para sempre. Deseja continuar?')) return
-
+        if (!confirm('⚠️ SYSTEM WARNING: THIS WILL ELIMINATE ALL SIGNALS IN THE DATABASE. PROCEED?')) return
         setLoading(true)
         const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-
-        if (error) {
-            alert('Erro ao limpar base: ' + error.message)
-        } else {
-            alert('🚀 Base recalibrada com sucesso!')
+        if (error) alert('FLUSH FAILED: ' + error.message)
+        else {
+            alert('🚀 DATABASE FLUSHED AND RECALIBRATED.')
             fetchLeads()
         }
         setLoading(false)
@@ -115,24 +110,12 @@ export default function LeadsPage() {
 
     const handleFixStatus = async () => {
         setLoading(true)
+        const { error: err1 } = await supabase.from('leads').update({ status: 'incompleto' }).eq('status', 'concluido').is('num_gov', null)
+        const { error: err2 } = await supabase.from('leads').update({ status: 'concluido' }).not('num_gov', 'is', null)
 
-        // 1. Reverter quem é concluído mas não tem GOV para incompleto
-        const { error: err1 } = await supabase
-            .from('leads')
-            .update({ status: 'incompleto' })
-            .eq('status', 'concluido')
-            .is('num_gov', null)
-
-        // 2. Garantir que quem TEM GOV seja concluído
-        const { error: err2 } = await supabase
-            .from('leads')
-            .update({ status: 'concluido' })
-            .not('num_gov', 'is', null)
-
-        if (err1 || err2) {
-            alert('Erro ao normalizar: ' + (err1?.message || err2?.message))
-        } else {
-            alert('🛠️ Status normalizados! Somente leads com Número GOV estão como Concluídos.')
+        if (err1 || err2) alert('ERROR: ' + (err1?.message || err2?.message))
+        else {
+            alert('🛠️ SIGNAL NORMALIZATION COMPLETE.')
             fetchLeads()
         }
         setLoading(false)
@@ -143,220 +126,213 @@ export default function LeadsPage() {
     }, [page, searchTerm, filters])
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <h2 className="text-3xl font-black tracking-tighter uppercase italic">Gerenciamento de Leads</h2>
-                    <p className="text-muted-foreground font-medium italic">Visualize e controle o status de toda a sua base.</p>
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
+            {/* Header Bento Section */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
+                            <LayoutGrid className="w-8 h-8 text-primary shadow-glow" />
+                        </div>
+                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Signal Management</h2>
+                    </div>
+                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
+                        <Activity className="w-4 h-4 text-primary" />
+                        Real-Time Control of Injected Lead Database
+                    </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-4">
                     <button
                         onClick={handleFixStatus}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-black uppercase hover:bg-orange-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-orange-500/5"
+                        className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all active:scale-95 shadow-2xl"
                     >
                         <ShieldCheck className="w-4 h-4" />
-                        Normalizar Status
+                        Normalize Signals
                     </button>
                     <button
                         onClick={handleExportMissingGov}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase hover:bg-primary hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/5"
+                        className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all active:scale-95 shadow-2xl italic"
                     >
                         <Download className="w-4 h-4" />
-                        Exportar Sem GOV
+                        Signals Filtered
                     </button>
                     <button
                         onClick={handleClearBase}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-black uppercase hover:bg-destructive hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-destructive/5"
+                        className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-[0.2em] hover:bg-destructive hover:text-white transition-all active:scale-95 shadow-2xl italic"
                     >
-                        <AlertCircle className="w-4 h-4" />
-                        Limpar Toda a Base
+                        <Trash2 className="w-4 h-4" />
+                        Flush Database
                     </button>
                     <button
                         onClick={fetchLeads}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary border border-border text-xs font-black uppercase hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95"
                     >
-                        <RefreshCcw className={cn("w-4 h-4", loading && "animate-spin")} />
-                        Atualizar Base
+                        <RefreshCcw className={cn("w-4 h-4 transition-transform duration-700", loading && "animate-spin")} />
+                        Refresh
                     </button>
                 </div>
             </div>
 
-            {/* Stats Mini Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-card border border-border p-4 rounded-2xl flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground">Total</span>
-                    <span className="text-lg font-black">{totalCount}</span>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="glass p-8 rounded-[40px] flex items-center justify-between group hover:border-primary/20 transition-all">
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic">Total Sinais</span>
+                        <p className="text-4xl font-black italic tracking-tighter leading-none">{totalCount.toLocaleString()}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity">
+                        <Database className="w-6 h-6" />
+                    </div>
                 </div>
-                <div className="bg-card border border-border p-4 rounded-2xl flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-yellow-500">Incompletos</span>
-                    <span className="text-lg font-black">{incompleteCount}</span>
+                <div className="glass p-8 rounded-[40px] flex items-center justify-between group hover:border-amber-500/20 transition-all">
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase text-amber-500 tracking-[0.3em] italic">Pending IQ</span>
+                        <p className="text-4xl font-black italic tracking-tighter leading-none">{incompleteCount.toLocaleString()}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/5 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity text-amber-500">
+                        <Clock className="w-6 h-6" />
+                    </div>
                 </div>
             </div>
 
-            {/* Filters & Search */}
-            <div className="flex flex-col lg:flex-row gap-4 items-center">
+            {/* Control Bar - Filters */}
+            <div className="flex flex-col lg:flex-row gap-6 items-center">
                 <div className="relative flex-1 group w-full">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-colors" />
                     <input
                         type="text"
-                        placeholder="Pesquisar por Nome ou CPF..."
+                        placeholder="SCAN BY NAME OR IDENTIFIER..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-card border border-border rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                        className="w-full bg-secondary/30 border border-white/5 rounded-[28px] py-5 pl-14 pr-8 text-[11px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/20 transition-all"
                     />
                 </div>
-                <div className="flex gap-3 w-full lg:w-auto overflow-x-auto scrollbar-hide py-1">
-                    {/* Renda */}
-                    <div className="flex items-center gap-2 bg-secondary border border-border h-12 px-4 rounded-2xl shrink-0">
-                        <span className="text-[9px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-widest">Renda:</span>
-                        <select
-                            value={filters.income}
-                            onChange={(e) => setFilters(f => ({ ...f, income: e.target.value }))}
-                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer"
-                        >
-                            <option value="">Todos</option>
-                            <option value="greater">Maior Renda</option>
-                            <option value="less">Menor Renda</option>
-                        </select>
-                    </div>
 
-                    {/* Score */}
-                    <div className="flex items-center gap-2 bg-secondary border border-border h-12 px-4 rounded-2xl shrink-0">
-                        <span className="text-[9px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-widest">Score:</span>
-                        <select
-                            value={filters.score}
-                            onChange={(e) => setFilters(f => ({ ...f, score: e.target.value }))}
-                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer"
-                        >
-                            <option value="">Todos</option>
-                            <option value="greater">Score Alto</option>
-                            <option value="less">Score Baixo</option>
-                        </select>
-                    </div>
-
-                    {/* Idade */}
-                    <div className="flex items-center gap-2 bg-secondary border border-border h-12 px-4 rounded-2xl shrink-0">
-                        <span className="text-[9px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-widest">Idade:</span>
-                        <select
-                            value={filters.age}
-                            onChange={(e) => setFilters(f => ({ ...f, age: e.target.value }))}
-                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer"
-                        >
-                            <option value="">Todos</option>
-                            <option value="greater">Mais de 40</option>
-                            <option value="less">Menos de 40</option>
-                        </select>
-                    </div>
+                <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar">
+                    {[
+                        { label: 'Income', key: 'income', options: [{ v: 'greater', l: 'Top Range' }, { v: 'less', l: 'Mid Range' }] },
+                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Elite Signal' }, { v: 'less', l: 'Low Signal' }] },
+                        { label: 'Age', key: 'age', options: [{ v: 'greater', l: 'Senior' }, { v: 'less', l: 'Junior' }] }
+                    ].map((f) => (
+                        <div key={f.key} className="flex items-center gap-4 bg-secondary/20 border border-white/5 h-14 px-6 rounded-[24px] shrink-0">
+                            <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">{f.label}:</span>
+                            <select
+                                value={(filters as any)[f.key]}
+                                onChange={(e) => setFilters(prev => ({ ...prev, [f.key]: e.target.value }))}
+                                className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-white min-w-[100px]"
+                            >
+                                <option value="" className="bg-[#0c0c0e]">ALL SIGNALS</option>
+                                {f.options.map(opt => (
+                                    <option key={opt.v} value={opt.v} className="bg-[#0c0c0e]">{opt.l}</option>
+                                ))}
+                            </select>
+                        </div>
+                    ))}
 
                     <button
                         onClick={() => {
                             setSearchTerm('')
                             setFilters({ income: '', score: '', age: '' })
                         }}
-                        className="flex items-center gap-2 px-6 h-12 rounded-2xl bg-secondary border border-border text-[10px] font-black uppercase whitespace-nowrap hover:bg-destructive/10 hover:text-destructive group transition-colors"
+                        className="flex items-center gap-3 px-8 h-14 rounded-[24px] bg-secondary/40 border border-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive transition-all"
                     >
-                        <X className="w-3.5 h-3.5" /> Limpar
+                        <X className="w-4 h-4" /> Reset
                     </button>
                 </div>
             </div>
 
-            {/* Table Container */}
-            <div className="bg-card border border-border rounded-[32px] overflow-hidden shadow-2xl relative">
+            {/* Glassmorphism Table Container */}
+            <div className="glass rounded-[56px] overflow-hidden shadow-2xl relative border-white/5">
                 {loading && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-8 text-center animate-in fade-in">
-                        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                        <p className="text-sm font-black uppercase tracking-widest animate-pulse">Consultando Banco...</p>
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-20 flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-500">
+                        <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Connecting to Signal Chain...</p>
                     </div>
                 )}
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse">
-                        <thead className="bg-[#111114] border-b border-white/5">
+                <div className="overflow-x-auto scroll-smooth">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-secondary/40 border-b border-white/5">
                             <tr>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">Lead / CPF</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">Nascimento / Idade</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">Renda / Score</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">Localidade</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">Status Base</th>
-                                <th className="px-6 py-5 text-right text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">Ações</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Signal Identity</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Sync Metrics</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Radar Location</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none text-center">Protocol Status</th>
+                                <th className="px-10 py-8 text-right text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {leads.length > 0 ? leads.map((lead) => (
-                                <tr key={lead.id} className="hover:bg-primary/5 group transition-colors">
-                                    <td className="px-6 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center shrink-0 border border-border group-hover:border-primary/30 transition-all font-black italic text-xs">LP</div>
-                                            <div>
-                                                <p className="font-extrabold tracking-tight truncate max-w-[180px] uppercase">{lead.full_name || 'PENDENTE'}</p>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <p className="text-[10px] font-mono text-muted-foreground">{lead.cpf}</p>
+                                <tr key={lead.id} className="hover:bg-primary/[0.03] group transition-all duration-300 cursor-pointer" onClick={() => setSelectedLead(lead)}>
+                                    <td className="px-10 py-10">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-[20px] bg-secondary/50 border border-white/5 flex items-center justify-center group-hover:scale-110 group-hover:border-primary/20 transition-all font-black text-xs text-zinc-700">SIG</div>
+                                            <div className="space-y-2">
+                                                <p className="text-lg font-black tracking-tighter truncate max-w-[240px] uppercase italic text-zinc-100 leading-none group-hover:text-primary transition-colors">{lead.full_name || 'PENDING SIGNAL'}</p>
+                                                <div className="flex items-center gap-3">
+                                                    <p className="text-[10px] font-black text-zinc-600 tracking-[0.1em]">CPF IDENT: {lead.cpf}</p>
                                                     {lead.num_gov && (
-                                                        <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/20 italic tracking-tighter">GOV</span>
+                                                        <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-full border border-emerald-500/20 italic tracking-widest">GOV-VALID</span>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
-                                        <p className="font-bold">{lead.birth_date ? new Date(lead.birth_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-- / -- / --'}</p>
-                                        <p className="text-[10px] font-black text-primary uppercase mt-0.5 tracking-widest">{lead.age ? `${lead.age} ANOS` : 'CONSULTAR'}</p>
-                                    </td>
-                                    <td className="px-6 py-5">
-                                        <p className="font-bold text-emerald-500 tracking-tighter">{lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ --.---'}</p>
-                                        <div className="flex items-center gap-1.5 mt-1">
-                                            <div className={cn(
-                                                "w-20 h-1.5 rounded-full bg-secondary overflow-hidden border border-white/5 relative",
-                                                (lead.score || 0) > 700 ? "ring-1 ring-emerald-500/20" : ""
-                                            )}>
-                                                <div className={cn(
-                                                    "h-full transition-all duration-1000",
-                                                    lead.score ? (lead.score > 700 ? "bg-emerald-500" : "bg-yellow-500") : "bg-muted w-0"
-                                                )} style={{ width: lead.score ? `${(lead.score / 1000) * 100}%` : '0%' }} />
+                                    <td className="px-10 py-10">
+                                        <div className="space-y-4">
+                                            <p className="text-xl font-black text-emerald-500 tracking-tighter leading-none italic uppercase">{lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '---'}</p>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-24 h-1.5 rounded-full bg-secondary overflow-hidden border border-white/5 relative">
+                                                    <div className={cn(
+                                                        "h-full transition-all duration-1000",
+                                                        (lead.score || 0) > 700 ? "bg-emerald-500 shadow-glow" : (lead.score || 0) > 400 ? "bg-amber-500" : "bg-destructive"
+                                                    )} style={{ width: lead.score ? `${(lead.score / 1000) * 100}%` : '0%' }} />
+                                                </div>
+                                                <span className="text-[11px] font-black italic opacity-60">SCORE {lead.score || '--'}</span>
                                             </div>
-                                            <span className="text-[10px] font-black">{lead.score || '--'}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-                                            <p className="font-bold text-xs uppercase italic tracking-tighter truncate max-w-[120px]">{lead.city || 'CIDADE'}/{lead.state || 'UF'}</p>
+                                    <td className="px-10 py-10">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                                                <MapPin className="w-3.5 h-3.5 text-zinc-600" />
+                                                <p className="font-black text-[11px] uppercase italic tracking-tighter text-zinc-400 leading-none truncate max-w-[150px]">{lead.city || 'RADAR MISSING'}</p>
+                                            </div>
+                                            <p className="text-[9px] font-black text-zinc-700 tracking-[0.3em] uppercase pl-5">Region: {lead.state || 'UF'}</p>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-10 py-10 text-center">
                                         <div className={cn(
-                                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest",
-                                            lead.status === 'incompleto' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" :
-                                                lead.status === 'consultado' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
-                                                    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                            "inline-flex items-center gap-3 px-6 py-2.5 rounded-full border text-[9px] font-black uppercase tracking-[0.3em] italic leading-none",
+                                            lead.status === 'incompleto' ? "bg-amber-500/5 text-amber-500 border-amber-500/10" :
+                                                lead.status === 'consultado' ? "bg-primary/5 text-primary border-primary/10" :
+                                                    "bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
                                         )}>
-                                            {lead.status === 'incompleto' ? <Clock className="w-3 h-3" /> :
-                                                lead.status === 'consultado' ? <Search className="w-3 h-3" /> :
-                                                    <CheckCircle2 className="w-3 h-3" />}
+                                            <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                lead.status === 'incompleto' ? "bg-amber-500" :
+                                                    lead.status === 'consultado' ? "bg-primary" : "bg-emerald-500"
+                                            )} />
                                             {getStatusLabel(lead.status)}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 text-right">
+                                    <td className="px-10 py-10 text-right">
                                         <button
-                                            onClick={() => setSelectedLead(lead)}
-                                            className="p-2.5 rounded-xl bg-secondary/50 border border-border hover:bg-primary/20 hover:text-primary transition-all active:scale-90"
+                                            className="p-4 rounded-2xl bg-secondary/50 border border-white/5 hover:bg-primary hover:text-white transition-all active:scale-95 shadow-2xl group/action"
                                         >
-                                            <Eye className="w-4 h-4" />
+                                            <Eye className="w-5 h-5 group-hover/action:scale-110 transition-transform" />
                                         </button>
                                     </td>
                                 </tr>
                             )) : !loading && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-20 text-center space-y-4">
-                                        <AlertCircle className="w-12 h-12 text-muted-foreground/20 mx-auto" />
-                                        <div>
-                                            <p className="text-xl font-black uppercase tracking-tighter opacity-20 italic">Nenhum Registro no Radar</p>
-                                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-2">Sua base de leads está limpa.</p>
+                                    <td colSpan={5} className="px-10 py-40 text-center space-y-6">
+                                        <div className="w-24 h-24 bg-secondary/20 rounded-[40px] border border-dashed border-white/10 flex items-center justify-center mx-auto mb-6">
+                                            <AlertCircle className="w-12 h-12 text-zinc-800" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <p className="text-3xl font-black uppercase italic tracking-tighter opacity-10">Radar Signal Zero</p>
+                                            <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">Start injection protocol to populate database.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -366,137 +342,140 @@ export default function LeadsPage() {
                 </div>
             </div>
 
-            {/* Modal de Detalhes */}
-            {selectedLead && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div
-                        className="bg-[#111114] border border-white/10 w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300"
+            {/* Pagination Controls - Bento Bar */}
+            <div className="flex flex-col md:flex-row items-center justify-between p-8 glass rounded-[40px] gap-8 border-white/5">
+                <div className="space-y-1">
+                    <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 italic leading-none">Active Signal Chain Intensity</p>
+                    <p className="text-lg font-black italic tracking-tighter text-white uppercase">{totalCount.toLocaleString()} DISCOVERED SIGNALS</p>
+                </div>
+
+                <div className="flex items-center gap-6">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setPage(p => Math.max(1, p - 1)); }}
+                        disabled={page === 1 || loading}
+                        className="p-4 rounded-[20px] border border-white/5 bg-secondary text-zinc-500 hover:text-white hover:bg-zinc-800 disabled:opacity-20 transition-all active:scale-95 shadow-2xl group"
                     >
-                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                                    <UserCheck className="w-8 h-8 text-primary font-black" />
+                        <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </button>
+
+                    <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-[24px] border border-white/5 shadow-inner">
+                        <span className="text-[10px] font-black bg-primary text-white px-6 py-3 rounded-[20px] italic shadow-glow">PAGE 0{page}</span>
+                        <div className="w-px h-6 bg-white/5 mx-2" />
+                        <span className="text-[10px] font-black text-zinc-600 px-6 py-3 italic">OF 0{Math.ceil(totalCount / 50) || 1}</span>
+                    </div>
+
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setPage(p => p + 1); }}
+                        disabled={page * 50 >= totalCount || loading}
+                        className="p-4 rounded-[20px] border border-white/5 bg-secondary text-zinc-500 hover:text-white hover:bg-zinc-800 disabled:opacity-20 transition-all active:scale-95 shadow-2xl group"
+                    >
+                        <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </div>
+            </div>
+
+            {/* AI-Native Detail Modal */}
+            {selectedLead && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 lg:p-12 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-500">
+                    <div className="glass w-full max-w-4xl rounded-[64px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 max-h-[95vh] flex flex-col border-white/10">
+                        <div className="px-12 py-12 border-b border-white/5 flex justify-between items-start bg-secondary/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+                            <div className="flex items-center gap-10 relative z-10">
+                                <div className="w-28 h-28 rounded-[40px] bg-gradient-to-br from-primary/20 to-indigo-600/20 flex items-center justify-center border border-primary/30 shadow-2xl">
+                                    <UserCheck className="w-16 h-16 text-primary" />
                                 </div>
-                                <div>
-                                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">{selectedLead.full_name || 'LEAD SEM NOME'}</h3>
-                                    <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">{selectedLead.cpf}</p>
+                                <div className="space-y-2">
+                                    <h3 className="text-5xl font-black uppercase italic tracking-tighter leading-none">{selectedLead.full_name || 'LEAD SEM NOME'}</h3>
+                                    <p className="text-sm text-zinc-500 font-black uppercase tracking-[0.4em] italic leading-none">Document ID: <span className="text-white">{selectedLead.cpf}</span></p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setSelectedLead(null)}
-                                className="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-zinc-800 transition-all font-black"
+                                className="w-16 h-16 rounded-[28px] bg-secondary hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all font-black text-zinc-500 shadow-2xl flex items-center justify-center relative z-10"
                             >
-                                <X className="w-6 h-6" />
+                                <X className="w-8 h-8" />
                             </button>
                         </div>
 
-                        <div className="p-10 grid grid-cols-2 gap-8">
-                            <div className="space-y-6">
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Data de Nascimento</p>
-                                    <p className="text-lg font-bold">{selectedLead.birth_date ? new Date(selectedLead.birth_date + 'T00:00:00').toLocaleDateString('pt-BR') : '-- / -- / --'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Idade</p>
-                                    <p className="text-lg font-bold">{selectedLead.age ? `${selectedLead.age} ANOS` : 'NÃO CALCULADO'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Renda Estimada</p>
-                                    <p className="text-lg font-bold text-emerald-500">{selectedLead.income ? Number(selectedLead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ --.---'}</p>
-                                </div>
-                            </div>
-                            <div className="space-y-6">
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Localidade</p>
-                                    <p className="text-lg font-bold uppercase">{selectedLead.city || 'CIDADE Desconhecida'} / {selectedLead.state || 'UF'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Score Serasa</p>
-                                    <div className="flex items-center gap-3">
-                                        <p className="text-2xl font-black">{selectedLead.score || '--'}</p>
-                                        <div className="w-full h-2 bg-secondary rounded-full overflow-hidden border border-white/5">
-                                            <div className="h-full bg-primary" style={{ width: `${(selectedLead.score || 0) / 10}%` }} />
+                        <div className="p-12 overflow-y-auto flex-1 custom-scrollbar relative">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                <section className="space-y-8">
+                                    <div className="bento-card bg-[#0c0c0e] p-10 rounded-[48px] border border-white/5 space-y-8">
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] italic leading-none">Financial Power Index</p>
+                                            <p className="text-4xl font-black italic text-glow leading-none pt-4">{selectedLead.score || '--'} <span className="text-zinc-800 text-sm">/ 1000</span></p>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] italic leading-none">Estimated Revenue Source</p>
+                                            <p className="text-5xl font-black text-emerald-500 emerald-glow italic tracking-tighter leading-none pt-2">R$ {Number(selectedLead.income || 0).toLocaleString('pt-BR')}</p>
                                         </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Telefones</p>
-                                    <div className="flex gap-2 flex-wrap mt-1">
-                                        {selectedLead.phones?.length > 0 ? selectedLead.phones.map((p, i) => (
-                                            <span key={i} className={cn(
-                                                "text-[10px] font-black px-3 py-1 rounded-lg border",
-                                                p === selectedLead.num_gov ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-zinc-800 border-white/5"
-                                            )}>
-                                                {p} {p === selectedLead.num_gov && "⭐"}
-                                            </span>
-                                        )) : <span className="text-xs font-bold opacity-30 italic">Nenhum telefone encontrado</span>}
-                                    </div>
-                                </div>
-                                {selectedLead.num_gov && (
-                                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 mt-4 animate-in slide-in-from-top-2">
-                                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.2em] mb-1 italic">Número GOV Detectado</p>
-                                        <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.num_gov}</p>
-                                    </div>
-                                )}
-                                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 mt-4 animate-in slide-in-from-top-2">
-                                    <div className="flex gap-8">
-                                        <div className="flex-1">
-                                            <p className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-1 italic">BIN Cartão</p>
-                                            <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.card_bin || '---'}</p>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-1 italic">Vencimento</p>
-                                            <p className="text-xl font-black text-white italic tracking-tighter">{selectedLead.card_expiry || '--/--'}</p>
+                                    <div className="glass p-10 rounded-[48px] border-white/5 space-y-6">
+                                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic leading-none">Geolocation Signal</p>
+                                        <div className="space-y-2">
+                                            <p className="text-3xl font-black italic uppercase tracking-tighter text-white">{selectedLead.city || 'PENDING'}</p>
+                                            <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest pl-1">Zone: {selectedLead.state || 'UF'}</p>
                                         </div>
                                     </div>
-                                </div>
+                                </section>
+
+                                <section className="space-y-8">
+                                    <div className="bg-primary/5 border border-primary/20 p-10 rounded-[48px] relative overflow-hidden group">
+                                        <div className="absolute -top-6 -right-6 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000 rotate-12">
+                                            <CreditCard className="w-32 h-32 text-primary" />
+                                        </div>
+                                        <p className="text-[10px] font-black uppercase text-primary tracking-[0.4em] mb-8 italic leading-none">Vault Credit Logic</p>
+                                        <div className="grid grid-cols-2 gap-10">
+                                            <div className="space-y-3">
+                                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Active BIN</p>
+                                                <p className="text-4xl font-black italic text-white tracking-[0.2em] text-glow leading-none">{selectedLead.card_bin || '---'}</p>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Cycle Expiry</p>
+                                                <p className="text-4xl font-black italic text-white tracking-[0.1em] text-glow leading-none">{selectedLead.card_expiry || '--/--'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {selectedLead.num_gov && (
+                                        <div className="bg-emerald-500/5 border border-emerald-500/20 p-10 rounded-[48px] relative overflow-hidden group">
+                                            <div className="absolute -top-6 -right-6 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000 rotate-12">
+                                                <Smartphone className="w-32 h-32 text-emerald-500" />
+                                            </div>
+                                            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] mb-4 italic leading-none text-glow">Validated Communications Channel</p>
+                                            <p className="text-5xl font-black text-white italic tracking-tighter leading-none pt-4">{selectedLead.num_gov}</p>
+                                        </div>
+                                    )}
+
+                                    <div className="bg-[#0c0c0e] border border-white/5 p-10 rounded-[48px]">
+                                        <p className="text-[10px] font-black uppercase text-zinc-700 tracking-[0.3em] mb-8 italic leading-none">Associated Phone Signals</p>
+                                        <div className="flex flex-wrap gap-4">
+                                            {selectedLead.phones?.length > 0 ? selectedLead.phones.map((p, i) => (
+                                                <div key={i} className={cn(
+                                                    "px-6 py-4 rounded-2xl border text-[12px] font-black transition-all flex items-center gap-3",
+                                                    p === selectedLead.num_gov ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-glow" : "bg-black border-white/5 text-zinc-500"
+                                                )}>
+                                                    <div className={cn("w-1.5 h-1.5 rounded-full", p === selectedLead.num_gov ? "bg-emerald-500 shadow-glow animate-pulse" : "bg-white/10")} />
+                                                    {p}
+                                                </div>
+                                            )) : <span className="text-xs font-bold opacity-30 italic">No communication signals archived.</span>}
+                                        </div>
+                                    </div>
+                                </section>
                             </div>
                         </div>
 
-                        <div className="p-8 bg-zinc-900/50 border-t border-white/5 flex gap-4">
-                            <div className="flex-1 p-4 rounded-2xl bg-black/40 border border-white/5">
-                                <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic mb-1">Criação do Registro</p>
-                                <p className="text-[11px] font-bold opacity-50">{new Date(selectedLead.created_at).toLocaleString('pt-BR')}</p>
-                            </div>
-                            <div className="flex-1 p-4 rounded-2xl bg-black/40 border border-white/5">
-                                <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic mb-1">Status Base</p>
-                                <p className="text-[11px] font-black text-primary uppercase">{getStatusLabel(selectedLead.status)}</p>
-                            </div>
+                        <div className="px-12 py-10 border-t border-white/5 bg-secondary/10 flex gap-6">
+                            <button
+                                onClick={() => setSelectedLead(null)}
+                                className="flex-1 py-6 rounded-[32px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95 shadow-2xl italic"
+                            >
+                                Close Signal Overview
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Pagination Container */}
-            <div className="flex flex-col md:flex-row items-center justify-between p-6 bg-card border border-border rounded-3xl gap-4">
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground italic">
-                    Radar Master • <span className="text-foreground">{totalCount}</span> REGISTROS TOTAIS
-                </p>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        disabled={page === 1 || loading}
-                        className="p-3 rounded-xl border border-border bg-secondary/50 hover:bg-accent disabled:opacity-30 transition-all active:scale-95"
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                        <span className="text-xs font-black bg-primary text-white px-4 py-2 rounded-lg italic">0{page}</span>
-                        <span className="text-xs font-black text-muted-foreground px-4 py-2 opacity-50 italic">-- DE --</span>
-                        <span className="text-xs font-black bg-secondary border border-border text-foreground px-4 py-2 rounded-lg italic">{Math.ceil(totalCount / 50) || 1}</span>
-                    </div>
-
-                    <button
-                        onClick={() => setPage(p => p + 1)}
-                        disabled={page * 50 >= totalCount || loading}
-                        className="p-3 rounded-xl border border-border bg-secondary/50 hover:bg-accent disabled:opacity-30 transition-all active:scale-95"
-                    >
-                        <ChevronRight className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
         </div>
     )
 }
-

@@ -1,7 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, User, Key, Trash2, Edit2, ShieldCheck, UserMinus, X, Loader2, Save } from 'lucide-react'
+import {
+    Plus,
+    User,
+    Key,
+    Trash2,
+    Edit2,
+    ShieldCheck,
+    UserMinus,
+    X,
+    Loader2,
+    Save,
+    Users,
+    Activity,
+    Cpu,
+    Zap,
+    LayoutGrid,
+    Search,
+    UserCircle2,
+    ShieldAlert
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -10,6 +29,7 @@ export default function LigadoresPage() {
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [saving, setSaving] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
     const [formData, setFormData] = useState({
         full_name: '',
         username: '',
@@ -39,9 +59,7 @@ export default function LigadoresPage() {
         setSaving(true)
 
         try {
-            // 1. Criar o usuário no Supabase Auth
             const userEmail = `${formData.username.trim()}@axon.pay`
-
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: userEmail,
                 password: formData.password,
@@ -54,23 +72,17 @@ export default function LigadoresPage() {
             })
 
             let userId = authData.user?.id
-
-            // Caso o usuário já exista no Auth (de uma tentativa anterior que falhou no Profile)
             if (authError && authError.message.includes('already registered')) {
-                // Como não podemos pegar o ID de um usuário existente pelo front-end por segurança,
-                // pediremos para usar outro username ou tentaremos prosseguir se o ID veio no erro (raro)
-                alert('Este username já está em uso em nossa central de autenticação. Por favor, escolha outro.')
+                alert('PROTOCOL ERROR: USERNAME ALREADY ARCHIVED IN CORE AUTH.')
                 setSaving(false)
                 return
             }
 
             if (authError) throw authError
-            if (!userId) throw new Error('Não foi possível obter o ID do usuário.')
+            if (!userId) throw new Error('ID_SIGNAL_MISSING')
 
-            // ⚠️ AGUARDAR 1 SEGUNDO: Essencial para o Supabase propagar o ID para as tabelas públicas
             await new Promise(resolve => setTimeout(resolve, 1500))
 
-            // 2. Criar o perfil vinculado ao ID do Auth
             const { error: profileError } = await supabase
                 .from('profiles')
                 .insert([{
@@ -81,10 +93,7 @@ export default function LigadoresPage() {
                 }])
 
             if (profileError) {
-                // Se ainda der erro de FK, tentamos mais uma vez após 2 segundos
-                console.log('Tentativa 1 falhou, tentando novamente em 2s...')
                 await new Promise(resolve => setTimeout(resolve, 2000))
-
                 const { error: retryError } = await supabase
                     .from('profiles')
                     .insert([{
@@ -93,105 +102,129 @@ export default function LigadoresPage() {
                         username: formData.username.trim().toLowerCase(),
                         role: formData.role
                     }])
-
                 if (retryError) throw retryError
             }
 
             setIsModalOpen(false)
             setFormData({ full_name: '', username: '', password: '', role: 'ligador' })
             fetchLigadores()
-            alert('🚀 Operador cadastrado com sucesso!')
-
+            alert('🚀 OPERATOR DEPLOYED TO SIGNAL CHAIN.')
         } catch (error: any) {
-            console.error('Erro no cadastro:', error)
-            alert('Erro no Processo: ' + (error.message || 'Erro desconhecido'))
+            alert('CORE FAILURE: ' + (error.message || 'UNKNOWN_ERROR'))
         } finally {
             setSaving(false)
         }
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Deseja realmente remover este ligador?')) return
-
-        const { error } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', id)
-
-        if (error) alert('Erro ao remover: ' + error.message)
+        if (!confirm('⚠️ SYSTEM WARNING: DE-ARCHIVE OPERATOR PERMANENTLY?')) return
+        const { error } = await supabase.from('profiles').delete().eq('id', id)
+        if (error) alert('FLUSH FAILED: ' + error.message)
         else fetchLigadores()
     }
 
+    const filteredLigadores = ligadores.filter(l =>
+        l.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.username?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-black tracking-tighter uppercase italic">Gestão de Ligadores</h2>
-                    <p className="text-muted-foreground font-medium italic underline decoration-primary/20">Crie e gerencie os operadores do sistema.</p>
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
+            {/* Header Bento */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
+                            <Users className="w-8 h-8 text-primary shadow-glow" />
+                        </div>
+                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Operator Console</h2>
+                    </div>
+                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
+                        <Cpu className="w-4 h-4 text-primary" />
+                        Identity Management and Access Protocol
+                    </p>
                 </div>
 
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-black uppercase text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all active:scale-95 italic tracking-tighter"
-                >
-                    <Plus className="w-5 h-5" />
-                    Novo Ligador
-                </button>
+                <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+                    <div className="relative flex-1 md:w-80 group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="SEARCH BY IDENTITY..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-secondary/30 border border-white/5 rounded-[28px] py-4 pl-14 pr-6 text-[11px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/20 transition-all"
+                        />
+                    </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full md:w-auto flex items-center justify-center gap-4 px-10 py-5 rounded-[28px] bg-primary text-white font-black uppercase text-xs shadow-[0_20px_50px_rgba(129,140,248,0.3)] hover:scale-[1.03] transition-all active:scale-95 italic tracking-tighter border-b-4 border-black/20"
+                    >
+                        <Plus className="w-6 h-6" />
+                        Deploy Operator
+                    </button>
+                </div>
             </div>
 
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-4 animate-pulse">Carregando Operadores...</p>
+                <div className="flex flex-col items-center justify-center py-40 space-y-6">
+                    <div className="relative">
+                        <Loader2 className="w-16 h-16 text-primary animate-spin" />
+                        <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary animate-pulse italic">Scanning User Matrix...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {ligadores.length === 0 ? (
-                        <div className="md:col-span-2 lg:col-span-3 bg-[#111114] border-2 border-dashed border-white/5 p-20 rounded-[48px] flex flex-col items-center justify-center text-center space-y-4 shadow-2xl">
-                            <div className="w-24 h-24 bg-secondary/50 rounded-3xl flex items-center justify-center text-muted-foreground/30 border border-white/5 shadow-inner transition-transform hover:rotate-12">
-                                <UserMinus className="w-12 h-12" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredLigadores.length === 0 ? (
+                        <div className="md:col-span-2 lg:col-span-3 glass border-dashed border-white/5 p-32 rounded-[64px] flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in-95 duration-700">
+                            <div className="w-32 h-32 bg-secondary/30 rounded-[48px] border-2 border-dashed border-white/5 flex items-center justify-center text-zinc-800 transition-transform hover:scale-105 duration-500 relative group">
+                                <UserMinus className="w-16 h-16 group-hover:text-primary transition-colors" />
+                                <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <div>
-                                <h3 className="text-xl font-black uppercase italic tracking-tighter">Nenhum operador cadastrado</h3>
-                                <p className="text-sm text-muted-foreground max-w-xs mx-auto italic opacity-50">Clique em "Novo Ligador" para registrar os usuários que farão as ligações.</p>
+                            <div className="space-y-3">
+                                <h3 className="text-3xl font-black uppercase italic tracking-tighter">No Active Signals</h3>
+                                <p className="text-zinc-500 max-w-sm mx-auto italic font-medium">Initiate the "Deploy Operator" protocol to register active signals in the system matrix.</p>
                             </div>
                         </div>
                     ) : (
-                        ligadores.map((ligador) => (
-                            <div key={ligador.id} className="bg-[#111114] border border-white/5 p-8 rounded-[40px] relative overflow-hidden group hover:border-primary/50 transition-all shadow-2xl">
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="w-14 h-14 rounded-2xl bg-secondary/50 flex items-center justify-center border border-white/5 group-hover:bg-primary/10 transition-colors">
-                                        <User className="w-7 h-7 text-zinc-400 group-hover:text-primary transition-colors" />
+                        filteredLigadores.map((ligador) => (
+                            <div key={ligador.id} className="glass p-10 rounded-[56px] relative overflow-hidden group card-hover border-white/5">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+
+                                <div className="flex items-center justify-between mb-10 relative z-10">
+                                    <div className="w-18 h-18 rounded-[28px] bg-secondary border border-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/30 transition-all shadow-2xl">
+                                        <UserCircle2 className="w-10 h-10 text-zinc-600 group-hover:text-primary transition-all duration-500" />
                                     </div>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                                        <button className="p-2 rounded-xl bg-secondary border border-border hover:text-primary transition-all">
-                                            <Edit2 className="w-4 h-4" />
+                                    <div className="flex gap-4 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                        <button className="p-3.5 rounded-2xl bg-black/40 border border-white/5 hover:text-primary hover:border-primary/30 transition-all hover:scale-110 active:scale-95 shadow-2xl">
+                                            <Edit2 className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(ligador.id)}
-                                            className="p-2 rounded-xl bg-secondary border border-border hover:text-destructive transition-all"
+                                            className="p-3.5 rounded-2xl bg-black/40 border border-white/5 hover:text-destructive hover:border-destructive/30 transition-all hover:scale-110 active:scale-95 shadow-2xl"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-[10px] font-black italic text-zinc-500 uppercase tracking-[0.2em] mb-1">Operador / Nome</p>
-                                        <h4 className="text-xl font-black uppercase italic tracking-tighter truncate">{ligador.full_name || 'SEM NOME'}</h4>
+                                <div className="space-y-6 relative z-10">
+                                    <div className="space-y-1.5">
+                                        <p className="text-[10px] font-black italic text-zinc-600 uppercase tracking-[0.3em] leading-none mb-2">Signal Identity</p>
+                                        <h4 className="text-3xl font-black uppercase italic tracking-tighter truncate leading-none group-hover:text-primary transition-colors decoration-primary/20 underline underline-offset-8">{ligador.full_name || 'PENDING IDENTITY'}</h4>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                        <div>
-                                            <p className="text-[10px] font-black italic text-zinc-500 uppercase tracking-[0.2em] mb-1 text-left">Username</p>
-                                            <p className="font-mono text-xs font-bold text-primary italic">@{ligador.username}</p>
+                                    <div className="flex items-center justify-between pt-8 border-t border-white/5">
+                                        <div className="space-y-1.5">
+                                            <p className="text-[10px] font-black italic text-zinc-600 uppercase tracking-[0.3em] leading-none">Access Node</p>
+                                            <p className="font-mono text-xs font-black text-primary italic leading-none group-hover:text-glow transition-all">@{ligador.username}</p>
                                         </div>
                                         <div className={cn(
-                                            "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                                            ligador.role === 'admin' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-primary/10 text-primary border-primary/20"
+                                            "px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-2xl italic leading-none",
+                                            ligador.role === 'admin' ? "bg-amber-500/5 text-amber-500 border-amber-500/10" : "bg-primary/5 text-primary border-primary/10"
                                         )}>
-                                            {ligador.role}
+                                            {ligador.role} Protocol
                                         </div>
                                     </div>
                                 </div>
@@ -201,60 +234,70 @@ export default function LigadoresPage() {
                 </div>
             )}
 
-            {/* Modal Novo Ligador */}
+            {/* Premium Modal - Deploy Operator */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-[#111114] border border-white/10 w-full max-w-lg rounded-[48px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                                    <User className="w-7 h-7 text-primary" />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 lg:p-12 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-500">
+                    <div className="glass w-full max-w-2xl rounded-[64px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 flex flex-col border-white/10">
+                        <div className="px-12 py-12 border-b border-white/5 flex justify-between items-start bg-secondary/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+                            <div className="flex items-center gap-8 relative z-10">
+                                <div className="w-20 h-20 rounded-[32px] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl">
+                                    <User className="w-10 h-10 text-primary" />
                                 </div>
-                                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Novo Operador</h3>
+                                <div className="space-y-1">
+                                    <h3 className="text-4xl font-black uppercase italic tracking-tighter leading-none">Deploy Signal</h3>
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.3em] italic">Access Authorization Protocol</p>
+                                </div>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-zinc-800 transition-all">
-                                <X className="w-5 h-5" />
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="w-16 h-16 rounded-[28px] bg-secondary hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all font-black text-zinc-500 shadow-2xl flex items-center justify-center relative z-10"
+                            >
+                                <X className="w-8 h-8" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-10 space-y-6">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic ml-1">Nome Completo</label>
+                        <form onSubmit={handleSave} className="p-12 space-y-10">
+                            <div className="space-y-10 relative z-10">
+                                <div className="space-y-3">
+                                    <label className="text-[11px] font-black uppercase text-zinc-600 tracking-[0.3em] italic ml-6 leading-none">Signal Full Identity</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.full_name}
                                         onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))}
-                                        className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 font-bold text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all uppercase"
-                                        placeholder="Ex: João da Silva"
+                                        className="w-full bg-black/60 border border-white/5 rounded-[32px] py-6 px-10 font-black text-xs outline-none focus:ring-1 focus:ring-primary/20 transition-all uppercase tracking-widest placeholder:text-zinc-800 italic"
+                                        placeholder="EX: CORE OPERATOR DELTA"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic ml-1">Username</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black">@</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="space-y-3">
+                                        <label className="text-[11px] font-black uppercase text-zinc-600 tracking-[0.3em] italic ml-6 leading-none">Access ID (Login)</label>
+                                        <div className="relative group">
+                                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-black scale-110 italic">@</span>
                                             <input
                                                 type="text"
                                                 required
                                                 value={formData.username}
                                                 onChange={e => setFormData(p => ({ ...p, username: e.target.value.toLowerCase() }))}
-                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-10 pr-6 font-bold text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all"
-                                                placeholder="joao123"
+                                                className="w-full bg-black/60 border border-white/5 rounded-[32px] py-6 pl-12 pr-6 font-black text-xs outline-none focus:ring-1 focus:ring-primary/20 transition-all tracking-widest italic"
+                                                placeholder="identity_01"
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic ml-1">Senha Inicial</label>
-                                        <input
-                                            type="password"
-                                            required
-                                            value={formData.password}
-                                            onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 font-bold text-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all"
-                                            placeholder="••••••••"
-                                        />
+                                    <div className="space-y-3">
+                                        <label className="text-[11px] font-black uppercase text-zinc-600 tracking-[0.3em] italic ml-6 leading-none">Vault Access Key</label>
+                                        <div className="relative group">
+                                            <Key className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-colors" />
+                                            <input
+                                                type="password"
+                                                required
+                                                value={formData.password}
+                                                onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
+                                                className="w-full bg-black/60 border border-white/5 rounded-[32px] py-6 pl-14 pr-6 font-black text-xs outline-none focus:ring-1 focus:ring-primary/20 transition-all tracking-widest"
+                                                placeholder="••••••••"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -262,10 +305,10 @@ export default function LigadoresPage() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full bg-primary py-5 rounded-2xl font-black uppercase italic tracking-tighter text-white shadow-xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-95 transition-all text-lg border-b-4 border-black/20"
+                                className="w-full bg-primary py-7 rounded-[32px] font-black uppercase italic tracking-tighter text-white shadow-[0_20px_50px_rgba(129,140,248,0.3)] flex items-center justify-center gap-6 active:scale-95 transition-all text-xl border-b-4 border-black/20 group/deploy"
                             >
-                                {saving ? <Loader2 className="w-6 h-6 animate-spin" /> : <ShieldCheck className="w-6 h-6" />}
-                                {saving ? 'CADASTRANDO...' : 'CADASTRAR OPERADOR'}
+                                {saving ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-hover/deploy:rotate-12 transition-transform" />}
+                                {saving ? 'SIGNAL DEPLOYING...' : 'FINALIZE DEPLOYMENT'}
                             </button>
                         </form>
                     </div>

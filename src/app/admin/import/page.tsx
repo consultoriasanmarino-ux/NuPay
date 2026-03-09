@@ -1,7 +1,22 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, FileType, CheckCircle2, AlertCircle, FileText, X, Loader2, UserCheck } from 'lucide-react'
+import {
+    Upload,
+    FileType,
+    CheckCircle2,
+    AlertCircle,
+    FileText,
+    X,
+    Loader2,
+    UserCheck,
+    Database,
+    Zap,
+    Cpu,
+    Activity,
+    CloudIcon,
+    Terminal
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 
@@ -33,7 +48,7 @@ export default function ImportPage() {
                 setSelectedFile(file)
                 setResults(null)
             } else {
-                alert("Por favor, selecione apenas arquivos .txt")
+                alert("PROTOCOL ERROR: .TXT FILES ONLY")
             }
         }
     }
@@ -71,14 +86,10 @@ export default function ImportPage() {
                 }
             } else if (mode === 'cpf') {
                 const cpfMatch = line.match(/\d{11}/);
-                if (cpfMatch) {
-                    cpf = cpfMatch[0];
-                }
+                if (cpfMatch) cpf = cpfMatch[0];
             } else if (mode === 'gov') {
                 const match = line.match(/(\d{11})-(\d{2})/);
-                if (match) {
-                    govMatches.push({ cpf: match[1], lastTwo: match[2] });
-                }
+                if (match) govMatches.push({ cpf: match[1], lastTwo: match[2] });
             }
 
             if (cpf && cpf.length === 11 && !seenCpfs.has(cpf)) {
@@ -87,16 +98,6 @@ export default function ImportPage() {
                 if (fullName) leadObj.full_name = fullName;
                 if (card_bin) leadObj.card_bin = card_bin;
                 if (card_expiry) leadObj.card_expiry = card_expiry;
-
-                // Só setamos como incompleto se for novo. Se já existir, o upsert vai manter o status atual se não enviarmos? 
-                // Não, o upsert do Supabase sobrescreve. 
-                // Então vamos enviar 'incompleto' APENAS para novos, mas como é upsert, não sabemos se é novo.
-                // REGRA: Importação de Bot/CPF nunca deve marcar como 'concluido'.
-                // Se o lead já for 'concluido' (tem GOV), a importação de BIN não deve "rebaixar" ele.
-                // Por enquanto, vou omitir o status para que o banco use o default ou mantenha o atual?
-                // No Supabase upsert, campos omitidos viram NULL ou ficam como estão? 
-                // Se o campo não estiver no objeto, ele não é atualizado? Depende da config.
-
                 leads.push(leadObj);
             }
         });
@@ -114,14 +115,13 @@ export default function ImportPage() {
 
             if (mode === 'gov') {
                 if (govMatches.length === 0) {
-                    alert("Nenhum registro no formato CPF-XX encontrado.");
+                    alert("PACÔMETRO ZERO: CPF-XX FORM NOT DETECTED");
                     setUploading(false);
                     return;
                 }
 
                 let updatedCount = 0;
                 for (const item of govMatches) {
-                    // Busca o lead pelo CPF
                     const { data: leadData } = await supabase
                         .from('leads')
                         .select('id, phones')
@@ -130,7 +130,6 @@ export default function ImportPage() {
 
                     if (leadData) {
                         const phones = leadData.phones || [];
-                        // Tenta encontrar o telefone que termina com os 2 dígitos
                         const govPhone = phones.find((p: string) => {
                             const clean = p.replace(/\D/g, '');
                             return clean.endsWith(item.lastTwo);
@@ -152,101 +151,156 @@ export default function ImportPage() {
             }
 
             if (leads.length === 0) {
-                alert("Nenhum lead válido encontrado no arquivo.");
+                alert("SIGNAL FAILURE: NO VALID LEADS");
                 setUploading(false);
                 return;
             }
 
-            // INTEGRACAO REAL COM SUPABASE
             const { data, error } = await supabase
                 .from('leads')
                 .upsert(leads, { onConflict: 'cpf' })
                 .select();
 
             if (error) {
-                console.error('Erro Supabase:', error);
-                alert(`Erro ao salvar no banco: ${error.message}`);
+                alert(`DB SIGNAL DROP: ${error.message}`);
             } else {
                 setResults({ success: data?.length || 0, ignored: leads.length - (data?.length || 0) });
                 setSelectedFile(null);
             }
-
         } catch (err) {
-            console.error(err);
-            alert("Erro ao processar arquivo.");
+            alert("CORE UNKNOWN ERROR DURING UPLOAD");
         } finally {
             setUploading(false);
         }
     }
 
     return (
-        <div className="space-y-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                    <h2 className="text-3xl font-black tracking-tighter uppercase italic">Importação de Central</h2>
-                    <p className="text-muted-foreground font-medium italic">Injete os dados diretamente no banco de dados.</p>
+        <div className="space-y-12 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
+            {/* Header Bento */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8">
+                <div className="space-y-3">
+                    <div className="flex items-center gap-5">
+                        <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
+                            <CloudIcon className="w-8 h-8 text-primary shadow-glow" />
+                        </div>
+                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Protocolo Data-In</h2>
+                    </div>
+                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
+                        <Terminal className="w-4 h-4" />
+                        Injeção Massiva de Sinais no Core System
+                    </p>
                 </div>
+
                 {results && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 px-6 py-3 rounded-2xl animate-in zoom-in">
-                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest leading-none mb-1">Carga Finalizada</p>
-                        <p className="text-lg font-black text-white italic">
-                            {results.updated !== undefined ? `🚀 ${results.updated} Leads Concluídos` : `+${results.success} Leads no Banco`}
+                    <div className="glass px-10 py-6 rounded-[32px] animate-in zoom-in border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] leading-none mb-2 italic">Signal Sync Complete</p>
+                        <p className="text-2xl font-black text-white italic tracking-tighter">
+                            {results.updated !== undefined ? `🚀 ${results.updated} GOV VIRTUALIZED` : `+${results.success} LEADS ARCHIVED`}
                         </p>
                     </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                <button onClick={() => setMode('cpf')} className={cn("p-6 rounded-3xl border-2 transition-all text-left", mode === 'cpf' ? "bg-primary/10 border-primary shadow-xl" : "bg-card border-border")}>
-                    <FileType className="w-10 h-10 mb-4" />
-                    <h3 className="font-black uppercase italic tracking-tighter">Modo 1: Lista CPF</h3>
-                </button>
-                <button onClick={() => setMode('bot')} className={cn("p-6 rounded-3xl border-2 transition-all text-left", mode === 'bot' ? "bg-primary/10 border-primary shadow-xl" : "bg-card border-border")}>
-                    <Upload className="w-10 h-10 mb-4" />
-                    <h3 className="font-black uppercase italic tracking-tighter">Modo 2: Extrator Bot</h3>
-                </button>
-                <button onClick={() => setMode('gov')} className={cn("p-6 rounded-3xl border-2 transition-all text-left group", mode === 'gov' ? "bg-primary/10 border-primary shadow-xl" : "bg-card border-border")}>
-                    <UserCheck className={cn("w-10 h-10 mb-4", mode === 'gov' ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-                    <h3 className="font-black uppercase italic tracking-tighter">Importar Núms GOV</h3>
-                    <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">Formato: CPF-XX</p>
-                </button>
+            {/* Mode Selectors - Bento Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                    { id: 'cpf', icon: FileType, title: 'Modo 1: Lista CPF', desc: 'Injeção de Base Bruta', color: 'text-amber-500' },
+                    { id: 'bot', icon: Upload, title: 'Modo 2: Extrator Bot', desc: 'Parsers de Log Bin/Val', color: 'text-primary' },
+                    { id: 'gov', icon: UserCheck, title: 'Modo 3: Núms GOV', desc: 'CPF-XX Validation', color: 'text-emerald-500' }
+                ].map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => setMode(item.id as any)}
+                        className={cn(
+                            "glass p-10 rounded-[48px] border-2 transition-all text-left relative overflow-hidden group/card card-hover",
+                            mode === item.id ? "bg-primary/5 border-primary shadow-[0_0_40px_rgba(129,140,248,0.1)]" : "bg-card border-white/5 opacity-40 hover:opacity-100"
+                        )}
+                    >
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full" />
+                        <div className={cn("p-5 rounded-[24px] bg-black/40 border border-white/5 w-fit mb-8 transition-transform group-hover/card:scale-110 duration-500 shadow-2xl", item.color)}>
+                            <item.icon className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-black uppercase italic tracking-tighter leading-none mb-1">{item.title}</h3>
+                        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest leading-none mt-2">{item.desc}</p>
+                    </button>
+                ))}
             </div>
 
+            {/* Upload Zone */}
             <div
                 onClick={() => !selectedFile && fileInputRef.current?.click()}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
                 className={cn(
-                    "w-full aspect-[2/0.8] border-2 border-dashed rounded-[40px] flex flex-col items-center justify-center space-y-4 transition-all cursor-pointer relative",
-                    dragActive ? "border-primary bg-primary/5" : "border-border bg-card/50",
-                    selectedFile ? "border-emerald-500/50 bg-emerald-500/5 cursor-default" : ""
+                    "w-full aspect-[2/0.7] border-2 border-dashed rounded-[64px] flex flex-col items-center justify-center space-y-8 transition-all relative overflow-hidden group shadow-2xl",
+                    dragActive ? "border-primary bg-primary/10" : "border-white/5 bg-secondary/20",
+                    selectedFile ? "border-emerald-500/40 bg-emerald-500/5 cursor-default" : "cursor-pointer hover:border-primary/50"
                 )}
             >
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                 <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileChange} className="hidden" />
 
                 {!selectedFile ? (
-                    <div className="text-center group">
-                        <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4 group-hover:text-primary transition-colors" />
-                        <p className="text-xl font-black uppercase tracking-tighter">Anexar Log de Extração</p>
-                        <p className="text-xs font-bold text-muted-foreground mt-1 opacity-60">CLIQUE PARA SELECIONAR</p>
+                    <div className="text-center space-y-6 relative z-10">
+                        <div className="w-24 h-24 bg-black/40 rounded-[32px] border border-white/5 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-700 shadow-2xl relative">
+                            <Upload className="w-10 h-10 text-zinc-600 group-hover:text-primary transition-colors" />
+                            <div className="absolute inset-0 bg-primary/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-3xl font-black uppercase italic tracking-tighter leading-none">Deploy Central Signal Log</p>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.4em] italic opacity-60">CLIQUE OU ARRASTE O ARQUIVO .TXT PARA O RADAR</p>
+                        </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in zoom-in duration-300 px-6">
-                        <div className="flex items-center gap-4 bg-card p-5 rounded-2xl border border-emerald-500/30 w-full relative">
-                            <FileText className="text-emerald-500" />
-                            <div className="flex-1 truncate font-bold text-sm">{selectedFile.name}</div>
-                            <button onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }} className="text-destructive"><X className="w-4 h-4" /></button>
+                    <div className="flex flex-col items-center gap-10 w-full max-w-xl animate-in zoom-in-95 duration-500 px-10 relative z-10">
+                        <div className="glass p-8 rounded-[36px] border border-emerald-500/20 w-full flex items-center gap-6 relative group/file shadow-2xl">
+                            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                                <FileText className="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Arquivo Preparado</p>
+                                <p className="text-lg font-black italic tracking-tighter truncate leading-none">{selectedFile.name}</p>
+                            </div>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                                className="w-12 h-12 rounded-2xl bg-secondary hover:bg-destructive/10 hover:text-destructive transition-all flex items-center justify-center"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
+
                         <button
                             onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                             disabled={uploading}
-                            className="w-full bg-primary text-white font-black py-4 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95 transition-all"
+                            className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(129,140,248,0.3)] flex items-center justify-center gap-4 disabled:opacity-50 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
                         >
-                            {uploading ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
-                            {uploading ? "SALVANDO NO SUPABASE..." : "ENVIAR PARA O BANCO"}
+                            {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
+                            {uploading ? "SINCRONIZANDO CORE DATABASE..." : "DEPLOY SIGNALS TO CLOUD"}
                         </button>
                     </div>
                 )}
+            </div>
+
+            {/* Footer Intel */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
+                <div className="glass p-10 rounded-[48px] flex items-center gap-8 border-white/5 opacity-60 hover:opacity-100 transition-opacity">
+                    <div className="w-16 h-16 rounded-3xl bg-secondary border border-white/5 flex items-center justify-center shadow-inner">
+                        <Cpu className="w-8 h-8 text-zinc-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Protocol Logic</p>
+                        <p className="text-lg font-black italic tracking-tighter">Regex-Driven Stream Parsing</p>
+                    </div>
+                </div>
+                <div className="glass p-10 rounded-[48px] flex items-center gap-8 border-white/5 opacity-60 hover:opacity-100 transition-opacity">
+                    <div className="w-16 h-16 rounded-3xl bg-secondary border border-white/5 flex items-center justify-center shadow-inner">
+                        <Activity className="w-8 h-8 text-zinc-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">System Health</p>
+                        <p className="text-lg font-black italic tracking-tighter text-emerald-500 emerald-glow">Node Connected 100%</p>
+                    </div>
+                </div>
             </div>
         </div>
     )
