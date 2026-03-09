@@ -31,6 +31,7 @@ import {
     UserMinus,
     Trash2
 } from 'lucide-react'
+import Link from 'next/link'
 import { supabase, Lead } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -44,14 +45,6 @@ export default function FichasPage() {
     const [batchAssigning, setBatchAssigning] = useState(false)
     const [selectedLigadorForLead, setSelectedLigadorForLead] = useState<{ [key: string]: string }>({})
     const [selectedLigadorBatch, setSelectedLigadorBatch] = useState('')
-
-    // Unassign Logic State
-    const [isUnassignModalOpen, setIsUnassignModalOpen] = useState(false)
-    const [unassignData, setUnassignData] = useState<any[]>([])
-    const [loadingUnassign, setLoadingUnassign] = useState(false)
-    const [selectedLigadorToUnassign, setSelectedLigadorToUnassign] = useState<string | null>(null)
-    const [leadsToUnassign, setLeadsToUnassign] = useState<Lead[]>([])
-    const [processingUnassign, setProcessingUnassign] = useState(false)
 
     const [filters, setFilters] = useState({
         income: '',
@@ -165,99 +158,6 @@ export default function FichasPage() {
         setBatchAssigning(false)
     }
 
-    // Unassign Logic
-    const openUnassignModal = async () => {
-        setIsUnassignModalOpen(true)
-        setLoadingUnassign(true)
-
-        // Fetch Operators and their attributed lead counts
-        const { data: attributedLeads } = await supabase
-            .from('leads')
-            .select('owner_id')
-            .eq('status', 'atribuido')
-
-        const counts: { [key: string]: number } = {}
-        attributedLeads?.forEach(l => {
-            if (l.owner_id) {
-                counts[l.owner_id] = (counts[l.owner_id] || 0) + 1
-            }
-        })
-
-        const data = ligadores.map(l => ({
-            ...l,
-            leadCount: counts[l.id] || 0
-        })).filter(l => l.leadCount > 0)
-
-        setUnassignData(data)
-        setLoadingUnassign(false)
-    }
-
-    const fetchLeadsForLigador = async (ligId: string) => {
-        setLoadingUnassign(true)
-        setSelectedLigadorToUnassign(ligId)
-
-        const { data } = await supabase
-            .from('leads')
-            .select('*')
-            .eq('owner_id', ligId)
-            .eq('status', 'atribuido')
-            .order('created_at', { ascending: false })
-
-        setLeadsToUnassign(data as Lead[] || [])
-        setLoadingUnassign(false)
-    }
-
-    const handleUnassignLead = async (leadId: string) => {
-        if (!confirm('CONFIRM: DE-ASSIGN SIGNAL FROM OPERATOR?')) return
-
-        setProcessingUnassign(true)
-        const { error } = await supabase
-            .from('leads')
-            .update({
-                owner_id: null,
-                status: 'concluido'
-            })
-            .eq('id', leadId)
-
-        if (error) {
-            alert('UNASSIGN FAILED: ' + error.message)
-        } else {
-            setLeadsToUnassign(prev => prev.filter(l => l.id !== leadId))
-            // Update counts in main list if necessary? No, only on fetchData
-            fetchData()
-        }
-        setProcessingUnassign(false)
-    }
-
-    const handleUnassignAll = async () => {
-        if (!selectedLigadorToUnassign || leadsToUnassign.length === 0) return
-
-        const ligName = unassignData.find(l => l.id === selectedLigadorToUnassign)?.full_name
-        if (!confirm(`⚠️ CRITICAL: UNASSIGN ALL ${leadsToUnassign.length} SIGNALS FROM ${ligName}?`)) return
-
-        setProcessingUnassign(true)
-        const ids = leadsToUnassign.map(l => l.id)
-
-        const { error } = await supabase
-            .from('leads')
-            .update({
-                owner_id: null,
-                status: 'concluido'
-            })
-            .in('id', ids)
-
-        if (error) {
-            alert('FLASH UNASSIGN FAILED: ' + error.message)
-        } else {
-            alert('🚀 RADIUS CLEARED. SIGNALS RECALIBRATED TO BASE.')
-            setLeadsToUnassign([])
-            setSelectedLigadorToUnassign(null)
-            openUnassignModal() // Refresh operator list
-            fetchData()
-        }
-        setProcessingUnassign(false)
-    }
-
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
             {/* Header Section */}
@@ -276,13 +176,13 @@ export default function FichasPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-4">
-                    <button
-                        onClick={openUnassignModal}
+                    <Link
+                        href="/admin/unassign"
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all active:scale-95 shadow-2xl italic"
                     >
                         <Unlock className="w-5 h-5" />
                         Unlock Assigned Signals
-                    </button>
+                    </Link>
                     <div className="flex items-center gap-4 bg-secondary/30 border border-white/5 px-8 py-4 rounded-[24px] shadow-2xl group">
                         <Database className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
                         <div>
@@ -473,151 +373,6 @@ export default function FichasPage() {
                     </div>
                 </div>
             )}
-
-            {/* Unassign Signals Modal */}
-            {isUnassignModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 lg:p-12 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-500">
-                    <div className="glass w-full max-w-5xl rounded-[64px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 flex flex-col border-white/10 max-h-[90vh]">
-                        <div className="px-12 py-12 border-b border-white/5 flex justify-between items-center bg-secondary/20 relative">
-                            <div className="flex items-center gap-10">
-                                <div className="w-20 h-20 rounded-[32px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-2xl scale-110">
-                                    <Unlock className="w-10 h-10 text-amber-500 shadow-glow-amber" />
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-4xl font-black uppercase italic tracking-tighter leading-none">Unlock assigned Signals</h3>
-                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em] italic">De-Assignment and Redistribution Protocol</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsUnassignModalOpen(false)}
-                                className="w-16 h-16 rounded-[28px] bg-secondary hover:bg-destructive/10 hover:text-destructive transition-all font-black text-zinc-500 shadow-2xl flex items-center justify-center"
-                            >
-                                <X className="w-8 h-8" />
-                            </button>
-                        </div>
-
-                        <div className="p-12 overflow-hidden flex flex-col flex-1 gap-12">
-                            {/* Operator Selector for Unassign */}
-                            {!selectedLigadorToUnassign ? (
-                                <div className="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-4">
-                                    <p className="text-[11px] font-black uppercase text-zinc-600 tracking-[0.4em] italic leading-none">Select Access Node to De-Archivate</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {loadingUnassign ? (
-                                            <div className="col-span-full py-20 flex flex-col items-center justify-center gap-6">
-                                                <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary italic">Scanning Operators Matrix...</p>
-                                            </div>
-                                        ) : unassignData.length === 0 ? (
-                                            <div className="col-span-full py-20 glass border-dashed rounded-[48px] flex flex-col items-center justify-center gap-6 opacity-30">
-                                                <AlertCircle className="w-16 h-16" />
-                                                <p className="text-xl font-black uppercase italic tracking-widest">No Active Assignments Detected</p>
-                                            </div>
-                                        ) : unassignData.map(lig => (
-                                            <button
-                                                key={lig.id}
-                                                onClick={() => fetchLeadsForLigador(lig.id)}
-                                                className="glass p-10 rounded-[48px] text-left group card-hover border-white/5 bg-secondary/10"
-                                            >
-                                                <div className="flex items-center justify-between mb-8">
-                                                    <div className="w-16 h-16 rounded-[24px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                                                        <User className="w-8 h-8" />
-                                                    </div>
-                                                    <div className="px-5 py-2 rounded-full bg-black/40 border border-white/5 text-[10px] font-black uppercase italic tracking-widest text-zinc-500">
-                                                        {lig.leadCount} SIGS
-                                                    </div>
-                                                </div>
-                                                <h4 className="text-2xl font-black uppercase italic tracking-tighter truncate leading-none group-hover:text-amber-500 transition-colors uppercase">{lig.full_name}</h4>
-                                                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest mt-4">Node ID: <span className="text-zinc-500 font-mono">@{lig.username}</span></p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex-1 overflow-hidden flex flex-col gap-10">
-                                    <div className="flex items-center justify-between bg-black/40 p-8 rounded-[40px] border border-white/5 relative group">
-                                        <div className="flex items-center gap-8">
-                                            <button
-                                                onClick={() => setSelectedLigadorToUnassign(null)}
-                                                className="w-14 h-14 rounded-[22px] bg-secondary hover:bg-zinc-800 transition-all flex items-center justify-center border border-white/5"
-                                            >
-                                                <ChevronLeft className="w-6 h-6" />
-                                            </button>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase text-amber-500 tracking-[0.4em] mb-1.5 italic leading-none">De-assigning Signals FROM:</p>
-                                                <h4 className="text-3xl font-black uppercase italic tracking-tighter leading-none text-white">{unassignData.find(l => l.id === selectedLigadorToUnassign)?.full_name}</h4>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={handleUnassignAll}
-                                            disabled={processingUnassign || leadsToUnassign.length === 0}
-                                            className="px-10 py-5 rounded-[24px] bg-destructive text-white font-black uppercase italic tracking-tighter text-sm flex items-center gap-4 hover:scale-[1.03] transition-all active:scale-95 disabled:opacity-30 border-b-4 border-black/20 shadow-2xl"
-                                        >
-                                            <Trash2 className="w-6 h-6" />
-                                            Flash Unassign All
-                                        </button>
-                                    </div>
-
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
-                                        {loadingUnassign ? (
-                                            <div className="col-span-full py-20 flex flex-col items-center justify-center gap-6">
-                                                <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary italic">Relocking Signal Chain...</p>
-                                            </div>
-                                        ) : leadsToUnassign.length === 0 ? (
-                                            <div className="col-span-full py-20 flex flex-col items-center justify-center gap-6 opacity-30">
-                                                <UserMinus className="w-16 h-16" />
-                                                <p className="text-xl font-black uppercase italic tracking-widest">No Signals Captured</p>
-                                            </div>
-                                        ) : leadsToUnassign.map(lead => (
-                                            <div key={lead.id} className="glass p-8 rounded-[40px] flex items-center justify-between border-white/5 hover:border-amber-500/30 transition-all group">
-                                                <div className="flex items-center gap-6 min-w-0">
-                                                    <div className="w-14 h-14 rounded-[20px] bg-secondary flex items-center justify-center border border-white/5 shadow-2xl group-hover:bg-amber-500/10 group-hover:border-amber-500/20 transition-all">
-                                                        <SignalIcon className="w-7 h-7 text-zinc-600 group-hover:text-amber-500" />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <h5 className="text-lg font-black uppercase italic tracking-tighter truncate leading-none mb-1.5">{lead.full_name || 'PENDING IDENTITY'}</h5>
-                                                        <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest italic">{lead.cpf}</p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleUnassignLead(lead.id)}
-                                                    disabled={processingUnassign}
-                                                    className="w-14 h-14 rounded-[20px] bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-center hover:bg-destructive hover:text-white transition-all active:scale-90 shadow-2xl group/sub"
-                                                >
-                                                    <Unlock className="w-6 h-6 group-hover/sub:scale-110 transition-transform" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
-    )
-}
-
-function SignalIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M2 20h.01" />
-            <path d="M7 20v-4" />
-            <path d="M12 20v-8" />
-            <path d="M17 20V8" />
-            <path d="M22 20V4" />
-        </svg>
     )
 }

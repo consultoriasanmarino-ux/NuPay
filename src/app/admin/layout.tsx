@@ -7,6 +7,7 @@ import {
     Upload,
     Users,
     UserSquare2,
+    UserMinus,
     LogOut,
     Menu,
     X,
@@ -69,6 +70,7 @@ export default function AdminLayout({
         { label: 'Signal Base', icon: Database, href: '/admin/leads' },
         { label: 'Deploy In', icon: Upload, href: '/admin/import' },
         { label: 'Signal Queue', icon: UserSquare2, href: '/admin/fichas' },
+        { label: 'Desatribuir', icon: UserMinus, href: '/admin/unassign' },
         { label: 'Access Nodes', icon: Users, href: '/admin/ligadores' },
         { label: 'Core Config', icon: Settings, href: '/admin/settings' },
     ]
