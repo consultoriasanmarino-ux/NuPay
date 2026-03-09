@@ -34,11 +34,12 @@ export default function UnassignPage() {
     const fetchLigadores = async () => {
         setLoading(true)
 
-        // Fetch attributed leads to count them per operator
+        // Fetch ALL leads that have an owner (not archived)
         const { data: attributedLeads } = await supabase
             .from('leads')
             .select('owner_id')
-            .eq('status', 'atribuido')
+            .not('owner_id', 'is', null)
+            .neq('status', 'arquivado')
 
         const counts: { [key: string]: number } = {}
         attributedLeads?.forEach(l => {
@@ -72,7 +73,7 @@ export default function UnassignPage() {
             .from('leads')
             .select('*')
             .eq('owner_id', lig.id)
-            .eq('status', 'atribuido')
+            .neq('status', 'arquivado')
             .order('created_at', { ascending: false })
 
         setLeads(data as Lead[] || [])
