@@ -19,7 +19,8 @@ import {
   Search,
   RefreshCcw,
   Smartphone,
-  UserCircle2
+  UserCircle2,
+  Database
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase, Lead } from '@/lib/supabase'
@@ -119,7 +120,9 @@ export default function LigadorDashboard() {
 
           <div className="flex items-center gap-5">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black tracking-tight uppercase italic">{localStorage.getItem('nupay_ligador_user') || 'Ligador'}</p>
+              <p className="text-xs font-black tracking-tight uppercase italic">
+                {typeof window !== 'undefined' ? localStorage.getItem('nupay_ligador_user') : 'Ligador'}
+              </p>
               <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em] pt-0.5">Sessão Ativa</p>
             </div>
             <button

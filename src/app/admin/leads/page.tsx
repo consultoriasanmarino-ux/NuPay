@@ -7,7 +7,7 @@ import {
     MapPin, ShieldCheck, UserCheck, AlertCircle,
     ChevronLeft, ChevronRight, MoreHorizontal, Eye,
     RefreshCcw, Loader2, X, Download, Trash2, Database,
-    Smartphone, Zap, CreditCard, LayoutGrid
+    Smartphone, Zap, CreditCard, LayoutGrid, Activity
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
