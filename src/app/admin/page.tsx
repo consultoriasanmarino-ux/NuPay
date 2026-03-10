@@ -165,7 +165,6 @@ export default function AdminDashboard() {
                     }
 
                     const updateData: any = {
-                        full_name: foundName ? String(foundName).toUpperCase() : 'NOME NÃO ENCONTRADO',
                         birth_date: formattedDate,
                         score: finalScore,
                         income: isNaN(finalIncome) ? 0 : finalIncome,
@@ -176,6 +175,12 @@ export default function AdminDashboard() {
                         card_expiry: foundExpiry ? String(foundExpiry).toUpperCase() : null,
                         status: 'consultado'
                     }
+
+                    // Only update full_name if the API returned a valid name
+                    if (foundName && String(foundName).trim().length > 2) {
+                        updateData.full_name = String(foundName).toUpperCase()
+                    }
+
 
                     const { error: updateError } = await supabase
                         .from('leads')
@@ -206,9 +211,9 @@ export default function AdminDashboard() {
     }
 
     const statCards = [
-        { label: 'Signals Total', value: stats.total, icon: Database, color: 'text-primary' },
-        { label: 'Pending Data', value: stats.incomplete, icon: Clock, color: 'text-amber-500' },
-        { label: 'Assigned Leads', value: stats.assigned, icon: Zap, color: 'text-emerald-500' },
+        { label: 'Total de Leads', value: stats.total, icon: Database, color: 'text-primary' },
+        { label: 'Dados Pendentes', value: stats.incomplete, icon: Clock, color: 'text-amber-500' },
+        { label: 'Leads Atribuídos', value: stats.assigned, icon: Zap, color: 'text-emerald-500' },
     ]
 
     return (
@@ -235,7 +240,7 @@ export default function AdminDashboard() {
                             className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-secondary border border-white/10 hover:bg-zinc-800 transition-all active:scale-95 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group"
                         >
                             <RefreshCcw className={cn("w-4 h-4 transition-transform group-hover:rotate-180 duration-700", loading && "animate-spin")} />
-                            Recalibrar Base
+                            Atualizar Base
                         </button>
                     </div>
                 </div>
@@ -276,8 +281,8 @@ export default function AdminDashboard() {
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-3xl font-black uppercase italic tracking-tighter leading-none decoration-primary/20 underline underline-offset-8">Central Sync Pro</h3>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.3em] italic">AI-Driven Data Enrichment Workflow</p>
+                                <h3 className="text-3xl font-black uppercase italic tracking-tighter leading-none decoration-primary/20 underline underline-offset-8">Consulta OwnData</h3>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.3em] italic">Enriquecimento Automático de Leads</p>
                             </div>
                         </div>
 
@@ -309,7 +314,7 @@ export default function AdminDashboard() {
                                 className="group relative bg-primary hover:bg-primary/90 text-white font-black px-20 py-8 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(129,140,248,0.3)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-6 text-2xl"
                             >
                                 <Zap className="w-8 h-8 group-hover:rotate-12 transition-transform duration-500 fill-white" />
-                                Iniciar Core Sync
+                                Iniciar Consulta
                                 <div className="absolute inset-0 rounded-[32px] border-2 border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
                         </div>
@@ -321,14 +326,14 @@ export default function AdminDashboard() {
                                         <div className={cn("w-3 h-3 rounded-full shadow-glow", isPaused ? "bg-amber-500 shadow-amber-500/50" : "bg-primary animate-pulse shadow-primary/50")} />
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-zinc-500 leading-none">
-                                                {isPaused ? 'OPERAÇÃO SUSPENSA' : 'CORE PROCESSING ACTIVE'}
+                                                {isPaused ? 'OPERAÇÃO SUSPENSA' : 'PROCESSANDO LEADS'}
                                             </p>
                                             <p className="text-xl font-black uppercase tracking-tighter italic leading-none">{progress.current} <span className="text-zinc-700">/ {progress.total}</span></p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-3xl font-black text-white italic tracking-tighter leading-none">{Math.round((progress.current / progress.total) * 100)}%</p>
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 pt-1">Signal Progress</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 pt-1">Progresso</p>
                                     </div>
                                 </div>
 
@@ -344,14 +349,14 @@ export default function AdminDashboard() {
                                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
                                             <CheckCircle2 className="w-16 h-16 text-emerald-500" />
                                         </div>
-                                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] mb-3 italic leading-none relative z-10">Success Signals</p>
+                                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] mb-3 italic leading-none relative z-10">Sucesso</p>
                                         <p className="text-5xl font-black text-emerald-500 italic leading-none pt-2 text-glow relative z-10">+{progress.success}</p>
                                     </div>
                                     <div className="bg-[#050507] p-8 rounded-[40px] border border-destructive/10 flex flex-col items-center group overflow-hidden relative">
                                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
                                             <AlertCircle className="w-16 h-16 text-destructive" />
                                         </div>
-                                        <p className="text-[10px] font-black uppercase text-destructive tracking-[0.3em] mb-3 italic leading-none relative z-10">Dropped Packets</p>
+                                        <p className="text-[10px] font-black uppercase text-destructive tracking-[0.3em] mb-3 italic leading-none relative z-10">Erros</p>
                                         <p className="text-5xl font-black text-destructive italic leading-none pt-2 text-glow relative z-10">-{progress.failed}</p>
                                     </div>
                                 </div>
@@ -361,9 +366,9 @@ export default function AdminDashboard() {
                                 <div className="flex items-center justify-between px-4">
                                     <div className="flex items-center gap-3 text-zinc-500">
                                         <Terminal className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Real-Time Terminal Log</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Log em Tempo Real</span>
                                     </div>
-                                    <p className="text-[9px] font-black text-zinc-700 uppercase italic">Buffer Optimized</p>
+                                    <p className="text-[9px] font-black text-zinc-700 uppercase italic">Últimas 50 entradas</p>
                                 </div>
                                 <div className="bg-black/60 border border-white/5 rounded-[40px] h-60 overflow-y-auto p-10 font-mono text-[11px] space-y-3.5 custom-scrollbar backdrop-blur-3xl shadow-inner scroll-smooth">
                                     {logs.map((log, idx) => (
@@ -389,8 +394,8 @@ export default function AdminDashboard() {
                             <ShieldCheck className="w-12 h-12 text-emerald-500 shadow-glow" />
                         </div>
                         <div className="space-y-2 relative z-10">
-                            <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Security Core</h3>
-                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] bg-emerald-500/5 px-8 py-3 rounded-full border border-emerald-500/10 shadow-inner">SIGNAL STATUS: ACTIVATED</p>
+                            <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Segurança</h3>
+                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] bg-emerald-500/5 px-8 py-3 rounded-full border border-emerald-500/10 shadow-inner">STATUS: ATIVO</p>
                         </div>
                     </div>
 
@@ -400,11 +405,11 @@ export default function AdminDashboard() {
                             <Globe className="w-12 h-12 text-primary shadow-glow" />
                         </div>
                         <div className="space-y-3 relative z-10">
-                            <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Network Intelligence</h3>
+                            <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Rede</h3>
                             <div className="space-y-1">
-                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Latency: <span className="text-zinc-300">12ms</span></p>
-                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Protocol: <span className="text-zinc-300">HTTPS/2</span></p>
-                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Zone: <span className="text-zinc-300">us-east-1</span></p>
+                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Latência: <span className="text-zinc-300">12ms</span></p>
+                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Protocolo: <span className="text-zinc-300">HTTPS/2</span></p>
+                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Região: <span className="text-zinc-300">us-east-1</span></p>
                             </div>
                         </div>
                     </div>

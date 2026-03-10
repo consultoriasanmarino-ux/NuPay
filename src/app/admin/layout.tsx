@@ -56,7 +56,7 @@ export default function AdminLayout({
                     <Loader2 className="w-16 h-16 text-primary animate-spin" />
                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary mt-8 animate-pulse italic">Authenticating Admin Protocol...</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary mt-8 animate-pulse italic">Autenticando...</p>
             </div>
         )
     }
@@ -66,13 +66,13 @@ export default function AdminLayout({
     }
 
     const menuItems = [
-        { label: 'Intelligence', icon: LayoutDashboard, href: '/admin' },
-        { label: 'Signal Base', icon: Database, href: '/admin/leads' },
-        { label: 'Deploy In', icon: Upload, href: '/admin/import' },
-        { label: 'Signal Queue', icon: UserSquare2, href: '/admin/fichas' },
+        { label: 'Painel', icon: LayoutDashboard, href: '/admin' },
+        { label: 'Leads (Base)', icon: Database, href: '/admin/leads' },
+        { label: 'Importar', icon: Upload, href: '/admin/import' },
+        { label: 'Fichas', icon: UserSquare2, href: '/admin/fichas' },
         { label: 'Desatribuir', icon: UserMinus, href: '/admin/unassign' },
-        { label: 'Access Nodes', icon: Users, href: '/admin/ligadores' },
-        { label: 'Core Config', icon: Settings, href: '/admin/settings' },
+        { label: 'Ligadores', icon: Users, href: '/admin/ligadores' },
+        { label: 'Configurações', icon: Settings, href: '/admin/settings' },
     ]
 
     return (
@@ -89,7 +89,7 @@ export default function AdminLayout({
                         <div className="w-14 h-14 rounded-[24px] bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center font-black text-white italic shadow-[0_10px_30px_rgba(129,140,248,0.4)] transition-transform group-hover:scale-110 duration-500 scale-110">N</div>
                         <div className="space-y-0.5">
                             <h1 className="font-black text-2xl tracking-tighter uppercase italic leading-none">Nu-Pay</h1>
-                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] italic opacity-60">Admin Core Protocol</p>
+                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] italic opacity-60">Painel Administrativo</p>
                         </div>
                     </div>
 
@@ -120,7 +120,7 @@ export default function AdminLayout({
                     <div className="pt-8 border-t border-white/5 mt-8 space-y-6">
                         <div className="px-6 space-y-4">
                             <div className="flex items-center justify-between opacity-30 group hover:opacity-100 transition-opacity">
-                                <span className="text-[8px] font-black uppercase tracking-widest italic">Core Latency</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest italic">Latência</span>
                                 <span className="text-[10px] font-black italic">14ms</span>
                             </div>
                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
@@ -136,7 +136,7 @@ export default function AdminLayout({
                             className="flex items-center gap-5 px-6 py-5 w-full rounded-[24px] text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-destructive hover:bg-destructive/5 transition-all italic border border-transparent hover:border-destructive/10"
                         >
                             <LogOut className="w-5 h-5 rotate-180" />
-                            Flush Session
+                            Sair da Sessão
                         </button>
                     </div>
                 </div>
@@ -161,7 +161,7 @@ export default function AdminLayout({
                             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within/search:text-primary transition-all duration-500" />
                             <input
                                 type="text"
-                                placeholder="GLOBAL SIGNAL SCANNER..."
+                                placeholder="PESQUISAR..."
                                 className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/20 transition-all font-mono italic placeholder:text-zinc-800"
                             />
                         </div>
@@ -171,16 +171,16 @@ export default function AdminLayout({
                         {/* Status Module */}
                         <div className="hidden md:flex items-center gap-4 px-6 py-3.5 rounded-[24px] bg-black/40 border border-white/5 shadow-inner">
                             <div className="text-right">
-                                <p className="text-[8px] font-black uppercase text-zinc-600 leading-none mb-1.5 italic tracking-widest">Network Node</p>
+                                <p className="text-[8px] font-black uppercase text-zinc-600 leading-none mb-1.5 italic tracking-widest">Status</p>
                                 <p className="text-[10px] font-black text-emerald-500 flex items-center gap-2 justify-end uppercase tracking-[0.2em] italic">
                                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-glow" />
-                                    Synchronized
+                                    Sincronizado
                                 </p>
                             </div>
                             <div className="w-px h-8 bg-white/5 mx-2" />
                             <div className="flex items-center gap-4">
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black uppercase text-zinc-600 text-right italic tracking-widest">Identity</p>
+                                    <p className="text-[8px] font-black uppercase text-zinc-600 text-right italic tracking-widest">Usuário</p>
                                     <p className="text-[10px] font-black text-indigo-400 italic leading-none">ADMIN_MASTER</p>
                                 </div>
                                 <div className="w-12 h-12 rounded-[18px] bg-gradient-to-tr from-indigo-500/20 to-primary/20 flex items-center justify-center font-black text-indigo-400 text-xs border border-indigo-500/20 shadow-2xl">
@@ -204,12 +204,12 @@ export default function AdminLayout({
                     <div className="flex items-center justify-center gap-10">
                         <div className="flex items-center gap-3">
                             <Activity className="w-3 h-3" />
-                            <span className="text-[8px] font-black uppercase tracking-[0.5em] italic">Core V4.0.2 Stable</span>
+                            <span className="text-[8px] font-black uppercase tracking-[0.5em] italic">Versão 4.0.2</span>
                         </div>
                         <div className="w-1.5 h-1.5 bg-zinc-800 rounded-full" />
                         <div className="flex items-center gap-3">
                             <Cpu className="w-3 h-3" />
-                            <span className="text-[8px] font-black uppercase tracking-[0.5em] italic">System Uptime 99.9%</span>
+                            <span className="text-[8px] font-black uppercase tracking-[0.5em] italic">Uptime 99.9%</span>
                         </div>
                     </div>
                 </footer>

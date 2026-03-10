@@ -20,17 +20,18 @@ export default function LeadsPage() {
     const [incompleteCount, setIncompleteCount] = useState(0)
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
     const [filters, setFilters] = useState({
-        income: '', // 'greater', 'less'
+        income: '',
         score: '',
         age: ''
     })
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'incompleto': return 'PENDING'
-            case 'consultado': return 'ENRICHED'
-            case 'concluido': return 'VALIDATED'
-            case 'atribuido': return 'ASSIGNED'
+            case 'incompleto': return 'PENDENTE'
+            case 'consultado': return 'CONSULTADO'
+            case 'concluido': return 'CONCLUÍDO'
+            case 'atribuido': return 'ATRIBUÍDO'
+            case 'arquivado': return 'ARQUIVADO'
             default: return status.toUpperCase()
         }
     }
@@ -80,7 +81,7 @@ export default function LeadsPage() {
             .is('num_gov', null)
 
         if (error) {
-            alert('PROTOCOL FAILURE: ' + error.message)
+            alert('Erro ao exportar: ' + error.message)
         } else if (data && data.length > 0) {
             const cpfs = data.map(l => l.cpf).join('\n')
             const blob = new Blob([cpfs], { type: 'text/plain' })
@@ -91,28 +92,27 @@ export default function LeadsPage() {
             a.click()
             window.URL.revokeObjectURL(url)
         } else {
-            alert('RADAR SCAN: NO CPF MISSING GOV DATA DETECTED.')
+            alert('Nenhum CPF sem número do governo encontrado.')
         }
         setLoading(false)
     }
 
     const handleClearBase = async () => {
-        if (!confirm('⚠️ SYSTEM WARNING: THIS WILL ELIMINATE ALL SIGNALS IN THE DATABASE. PROCEED?')) return
+        if (!confirm('⚠️ ATENÇÃO: Isso vai APAGAR TODOS os leads do banco de dados. Tem certeza?')) return
         setLoading(true)
         const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-        if (error) alert('FLUSH FAILED: ' + error.message)
+        if (error) alert('Erro ao limpar: ' + error.message)
         else {
-            alert('🚀 DATABASE FLUSHED AND RECALIBRATED.')
+            alert('🚀 Base limpa com sucesso!')
             fetchLeads()
         }
         setLoading(false)
     }
 
     const handleFixStatus = async () => {
-        if (!confirm('⚠️ NORMALIZE: This will fix statuses for unassigned leads only. Assigned leads will NOT be affected. Proceed?')) return
+        if (!confirm('⚠️ NORMALIZAR: Vai corrigir status apenas de leads NÃO atribuídos. Leads atribuídos NÃO serão afetados. Continuar?')) return
         setLoading(true)
 
-        // Fix: leads 'concluido' without num_gov should be 'incompleto' (only unassigned ones)
         const { error: err1 } = await supabase
             .from('leads')
             .update({ status: 'incompleto' })
@@ -120,7 +120,6 @@ export default function LeadsPage() {
             .is('num_gov', null)
             .is('owner_id', null)
 
-        // Fix: leads with num_gov that are still 'incompleto' or 'consultado' should be 'concluido' (only unassigned ones)
         const { error: err2 } = await supabase
             .from('leads')
             .update({ status: 'concluido' })
@@ -128,14 +127,13 @@ export default function LeadsPage() {
             .is('owner_id', null)
             .in('status', ['incompleto', 'consultado'])
 
-        if (err1 || err2) alert('ERROR: ' + (err1?.message || err2?.message))
+        if (err1 || err2) alert('Erro: ' + (err1?.message || err2?.message))
         else {
-            alert('🛠️ SIGNAL NORMALIZATION COMPLETE. Assigned leads were NOT affected.')
+            alert('🛠️ Normalização concluída! Leads atribuídos não foram afetados.')
             fetchLeads()
         }
         setLoading(false)
     }
-
 
     useEffect(() => {
         fetchLeads()
@@ -143,18 +141,18 @@ export default function LeadsPage() {
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
-            {/* Header Bento Section */}
+            {/* Cabeçalho */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
                 <div className="space-y-4">
                     <div className="flex items-center gap-6">
                         <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
                             <LayoutGrid className="w-8 h-8 text-primary shadow-glow" />
                         </div>
-                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Signal Management</h2>
+                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Base de Leads</h2>
                     </div>
                     <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
                         <Activity className="w-4 h-4 text-primary" />
-                        Real-Time Control of Injected Lead Database
+                        Controle em tempo real de todos os leads cadastrados
                     </p>
                 </div>
 
@@ -164,37 +162,37 @@ export default function LeadsPage() {
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all active:scale-95 shadow-2xl"
                     >
                         <ShieldCheck className="w-4 h-4" />
-                        Normalize Signals
+                        Normalizar Status
                     </button>
                     <button
                         onClick={handleExportMissingGov}
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all active:scale-95 shadow-2xl italic"
                     >
                         <Download className="w-4 h-4" />
-                        Signals Filtered
+                        Exportar Sem Gov
                     </button>
                     <button
                         onClick={handleClearBase}
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-[0.2em] hover:bg-destructive hover:text-white transition-all active:scale-95 shadow-2xl italic"
                     >
                         <Trash2 className="w-4 h-4" />
-                        Flush Database
+                        Limpar Base
                     </button>
                     <button
                         onClick={fetchLeads}
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95"
                     >
                         <RefreshCcw className={cn("w-4 h-4 transition-transform duration-700", loading && "animate-spin")} />
-                        Refresh
+                        Atualizar
                     </button>
                 </div>
             </div>
 
-            {/* Stats Overview */}
+            {/* Estatísticas */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="glass p-8 rounded-[40px] flex items-center justify-between group hover:border-primary/20 transition-all">
                     <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic">Total Sinais</span>
+                        <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic">Total de Leads</span>
                         <p className="text-4xl font-black italic tracking-tighter leading-none">{totalCount.toLocaleString()}</p>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity">
@@ -203,7 +201,7 @@ export default function LeadsPage() {
                 </div>
                 <div className="glass p-8 rounded-[40px] flex items-center justify-between group hover:border-amber-500/20 transition-all">
                     <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase text-amber-500 tracking-[0.3em] italic">Pending IQ</span>
+                        <span className="text-[10px] font-black uppercase text-amber-500 tracking-[0.3em] italic">Pendentes</span>
                         <p className="text-4xl font-black italic tracking-tighter leading-none">{incompleteCount.toLocaleString()}</p>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-amber-500/5 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity text-amber-500">
@@ -212,13 +210,13 @@ export default function LeadsPage() {
                 </div>
             </div>
 
-            {/* Control Bar - Filters */}
+            {/* Filtros */}
             <div className="flex flex-col lg:flex-row gap-6 items-center">
                 <div className="relative flex-1 group w-full">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-colors" />
                     <input
                         type="text"
-                        placeholder="SCAN BY NAME OR IDENTIFIER..."
+                        placeholder="PESQUISAR POR NOME OU CPF..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-secondary/30 border border-white/5 rounded-[28px] py-5 pl-14 pr-8 text-[11px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/20 transition-all"
@@ -227,9 +225,9 @@ export default function LeadsPage() {
 
                 <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar">
                     {[
-                        { label: 'Income', key: 'income', options: [{ v: 'greater', l: 'Top Range' }, { v: 'less', l: 'Mid Range' }] },
-                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Elite Signal' }, { v: 'less', l: 'Low Signal' }] },
-                        { label: 'Age', key: 'age', options: [{ v: 'greater', l: 'Senior' }, { v: 'less', l: 'Junior' }] }
+                        { label: 'Renda', key: 'income', options: [{ v: 'greater', l: 'Alta (>5k)' }, { v: 'less', l: 'Média (<5k)' }] },
+                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Alto (>700)' }, { v: 'less', l: 'Baixo (<700)' }] },
+                        { label: 'Idade', key: 'age', options: [{ v: 'greater', l: 'Acima 40' }, { v: 'less', l: 'Abaixo 40' }] }
                     ].map((f) => (
                         <div key={f.key} className="flex items-center gap-4 bg-secondary/20 border border-white/5 h-14 px-6 rounded-[24px] shrink-0">
                             <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">{f.label}:</span>
@@ -238,7 +236,7 @@ export default function LeadsPage() {
                                 onChange={(e) => setFilters(prev => ({ ...prev, [f.key]: e.target.value }))}
                                 className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-white min-w-[100px]"
                             >
-                                <option value="" className="bg-[#0c0c0e]">ALL SIGNALS</option>
+                                <option value="" className="bg-[#0c0c0e]">TODOS</option>
                                 {f.options.map(opt => (
                                     <option key={opt.v} value={opt.v} className="bg-[#0c0c0e]">{opt.l}</option>
                                 ))}
@@ -253,17 +251,17 @@ export default function LeadsPage() {
                         }}
                         className="flex items-center gap-3 px-8 h-14 rounded-[24px] bg-secondary/40 border border-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive transition-all"
                     >
-                        <X className="w-4 h-4" /> Reset
+                        <X className="w-4 h-4" /> Limpar
                     </button>
                 </div>
             </div>
 
-            {/* Glassmorphism Table Container */}
+            {/* Tabela de Leads */}
             <div className="glass rounded-[56px] overflow-hidden shadow-2xl relative border-white/5">
                 {loading && (
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-20 flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-500">
                         <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Connecting to Signal Chain...</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Carregando leads...</p>
                     </div>
                 )}
 
@@ -271,11 +269,11 @@ export default function LeadsPage() {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-secondary/40 border-b border-white/5">
                             <tr>
-                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Signal Identity</th>
-                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Sync Metrics</th>
-                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Radar Location</th>
-                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none text-center">Protocol Status</th>
-                                <th className="px-10 py-8 text-right text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Action</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Identificação</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Renda / Score</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Localização</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none text-center">Status</th>
+                                <th className="px-10 py-8 text-right text-[10px] font-black uppercase text-zinc-500 tracking-[0.4em] italic leading-none">Ação</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -285,11 +283,11 @@ export default function LeadsPage() {
                                         <div className="flex items-center gap-6">
                                             <div className="w-14 h-14 rounded-[20px] bg-secondary/50 border border-white/5 flex items-center justify-center group-hover:scale-110 group-hover:border-primary/20 transition-all font-black text-xs text-zinc-700">SIG</div>
                                             <div className="space-y-2">
-                                                <p className="text-lg font-black tracking-tighter truncate max-w-[240px] uppercase italic text-zinc-100 leading-none group-hover:text-primary transition-colors">{lead.full_name || 'PENDING SIGNAL'}</p>
+                                                <p className="text-lg font-black tracking-tighter truncate max-w-[240px] uppercase italic text-zinc-100 leading-none group-hover:text-primary transition-colors">{lead.full_name || 'SEM NOME'}</p>
                                                 <div className="flex items-center gap-3">
-                                                    <p className="text-[10px] font-black text-zinc-600 tracking-[0.1em]">CPF IDENT: {lead.cpf}</p>
+                                                    <p className="text-[10px] font-black text-zinc-600 tracking-[0.1em]">CPF: {lead.cpf}</p>
                                                     {lead.num_gov && (
-                                                        <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-full border border-emerald-500/20 italic tracking-widest">GOV-VALID</span>
+                                                        <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-full border border-emerald-500/20 italic tracking-widest">GOV ✓</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -313,9 +311,9 @@ export default function LeadsPage() {
                                         <div className="flex flex-col gap-2">
                                             <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
                                                 <MapPin className="w-3.5 h-3.5 text-zinc-600" />
-                                                <p className="font-black text-[11px] uppercase italic tracking-tighter text-zinc-400 leading-none truncate max-w-[150px]">{lead.city || 'RADAR MISSING'}</p>
+                                                <p className="font-black text-[11px] uppercase italic tracking-tighter text-zinc-400 leading-none truncate max-w-[150px]">{lead.city || 'SEM CIDADE'}</p>
                                             </div>
-                                            <p className="text-[9px] font-black text-zinc-700 tracking-[0.3em] uppercase pl-5">Region: {lead.state || 'UF'}</p>
+                                            <p className="text-[9px] font-black text-zinc-700 tracking-[0.3em] uppercase pl-5">Estado: {lead.state || 'UF'}</p>
                                         </div>
                                     </td>
                                     <td className="px-10 py-10 text-center">
@@ -323,11 +321,13 @@ export default function LeadsPage() {
                                             "inline-flex items-center gap-3 px-6 py-2.5 rounded-full border text-[9px] font-black uppercase tracking-[0.3em] italic leading-none",
                                             lead.status === 'incompleto' ? "bg-amber-500/5 text-amber-500 border-amber-500/10" :
                                                 lead.status === 'consultado' ? "bg-primary/5 text-primary border-primary/10" :
-                                                    "bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
+                                                    lead.status === 'atribuido' ? "bg-blue-500/5 text-blue-400 border-blue-500/10" :
+                                                        "bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
                                         )}>
                                             <div className={cn("w-1.5 h-1.5 rounded-full",
                                                 lead.status === 'incompleto' ? "bg-amber-500" :
-                                                    lead.status === 'consultado' ? "bg-primary" : "bg-emerald-500"
+                                                    lead.status === 'consultado' ? "bg-primary" :
+                                                        lead.status === 'atribuido' ? "bg-blue-400" : "bg-emerald-500"
                                             )} />
                                             {getStatusLabel(lead.status)}
                                         </div>
@@ -347,8 +347,8 @@ export default function LeadsPage() {
                                             <AlertCircle className="w-12 h-12 text-zinc-800" />
                                         </div>
                                         <div className="space-y-2">
-                                            <p className="text-3xl font-black uppercase italic tracking-tighter opacity-10">Radar Signal Zero</p>
-                                            <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">Start injection protocol to populate database.</p>
+                                            <p className="text-3xl font-black uppercase italic tracking-tighter opacity-10">Nenhum Lead Encontrado</p>
+                                            <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">Importe leads para popular a base de dados.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -358,11 +358,11 @@ export default function LeadsPage() {
                 </div>
             </div>
 
-            {/* Pagination Controls - Bento Bar */}
+            {/* Paginação */}
             <div className="flex flex-col md:flex-row items-center justify-between p-8 glass rounded-[40px] gap-8 border-white/5">
                 <div className="space-y-1">
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 italic leading-none">Active Signal Chain Intensity</p>
-                    <p className="text-lg font-black italic tracking-tighter text-white uppercase">{totalCount.toLocaleString()} DISCOVERED SIGNALS</p>
+                    <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 italic leading-none">Total na base</p>
+                    <p className="text-lg font-black italic tracking-tighter text-white uppercase">{totalCount.toLocaleString()} leads cadastrados</p>
                 </div>
 
                 <div className="flex items-center gap-6">
@@ -375,9 +375,9 @@ export default function LeadsPage() {
                     </button>
 
                     <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-[24px] border border-white/5 shadow-inner">
-                        <span className="text-[10px] font-black bg-primary text-white px-6 py-3 rounded-[20px] italic shadow-glow">PAGE 0{page}</span>
+                        <span className="text-[10px] font-black bg-primary text-white px-6 py-3 rounded-[20px] italic shadow-glow">PÁG {page}</span>
                         <div className="w-px h-6 bg-white/5 mx-2" />
-                        <span className="text-[10px] font-black text-zinc-600 px-6 py-3 italic">OF 0{Math.ceil(totalCount / 50) || 1}</span>
+                        <span className="text-[10px] font-black text-zinc-600 px-6 py-3 italic">DE {Math.ceil(totalCount / 50) || 1}</span>
                     </div>
 
                     <button
@@ -390,10 +390,11 @@ export default function LeadsPage() {
                 </div>
             </div>
 
-            {/* AI-Native Detail Modal */}
+            {/* Modal de Detalhes */}
             {selectedLead && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 lg:p-12 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-500">
                     <div className="glass w-full max-w-4xl rounded-[64px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 max-h-[95vh] flex flex-col border-white/10">
+                        {/* Header do Modal */}
                         <div className="px-12 py-12 border-b border-white/5 flex justify-between items-start bg-secondary/20 relative overflow-hidden">
                             <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
                             <div className="flex items-center gap-10 relative z-10">
@@ -402,7 +403,7 @@ export default function LeadsPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="text-5xl font-black uppercase italic tracking-tighter leading-none">{selectedLead.full_name || 'LEAD SEM NOME'}</h3>
-                                    <p className="text-sm text-zinc-500 font-black uppercase tracking-[0.4em] italic leading-none">Document ID: <span className="text-white">{selectedLead.cpf}</span></p>
+                                    <p className="text-sm text-zinc-500 font-black uppercase tracking-[0.4em] italic leading-none">CPF: <span className="text-white">{selectedLead.cpf}</span></p>
                                 </div>
                             </div>
                             <button
@@ -413,58 +414,65 @@ export default function LeadsPage() {
                             </button>
                         </div>
 
+                        {/* Corpo do Modal */}
                         <div className="p-12 overflow-y-auto flex-1 custom-scrollbar relative">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 <section className="space-y-8">
+                                    {/* Score e Renda */}
                                     <div className="bento-card bg-[#0c0c0e] p-10 rounded-[48px] border border-white/5 space-y-8">
                                         <div className="space-y-2">
-                                            <p className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] italic leading-none">Financial Power Index</p>
+                                            <p className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] italic leading-none">Score Serasa</p>
                                             <p className="text-4xl font-black italic text-glow leading-none pt-4">{selectedLead.score || '--'} <span className="text-zinc-800 text-sm">/ 1000</span></p>
                                         </div>
                                         <div className="space-y-4">
-                                            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] italic leading-none">Estimated Revenue Source</p>
+                                            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] italic leading-none">Renda Estimada</p>
                                             <p className="text-5xl font-black text-emerald-500 emerald-glow italic tracking-tighter leading-none pt-2">R$ {Number(selectedLead.income || 0).toLocaleString('pt-BR')}</p>
                                         </div>
                                     </div>
+
+                                    {/* Localização */}
                                     <div className="glass p-10 rounded-[48px] border-white/5 space-y-6">
-                                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic leading-none">Geolocation Signal</p>
+                                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic leading-none">Localização</p>
                                         <div className="space-y-2">
-                                            <p className="text-3xl font-black italic uppercase tracking-tighter text-white">{selectedLead.city || 'PENDING'}</p>
-                                            <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest pl-1">Zone: {selectedLead.state || 'UF'}</p>
+                                            <p className="text-3xl font-black italic uppercase tracking-tighter text-white">{selectedLead.city || 'SEM CIDADE'}</p>
+                                            <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest pl-1">Estado: {selectedLead.state || 'UF'}</p>
                                         </div>
                                     </div>
                                 </section>
 
                                 <section className="space-y-8">
+                                    {/* BIN e Validade - SEPARADOS */}
                                     <div className="bg-primary/5 border border-primary/20 p-10 rounded-[48px] relative overflow-hidden group">
                                         <div className="absolute -top-6 -right-6 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000 rotate-12">
                                             <CreditCard className="w-32 h-32 text-primary" />
                                         </div>
-                                        <p className="text-[10px] font-black uppercase text-primary tracking-[0.4em] mb-8 italic leading-none">Vault Credit Logic</p>
-                                        <div className="grid grid-cols-2 gap-10">
-                                            <div className="space-y-3">
-                                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Active BIN</p>
-                                                <p className="text-4xl font-black italic text-white tracking-[0.2em] text-glow leading-none">{selectedLead.card_bin || '---'}</p>
+                                        <p className="text-[10px] font-black uppercase text-primary tracking-[0.4em] mb-8 italic leading-none">Dados do Cartão</p>
+                                        <div className="space-y-6">
+                                            <div className="bg-black/40 p-6 rounded-3xl border border-white/5">
+                                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">BIN do Cartão</p>
+                                                <p className="text-3xl font-black italic text-white tracking-[0.3em] text-glow leading-none">{selectedLead.card_bin || '------'}</p>
                                             </div>
-                                            <div className="space-y-3">
-                                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Cycle Expiry</p>
-                                                <p className="text-4xl font-black italic text-white tracking-[0.1em] text-glow leading-none">{selectedLead.card_expiry || '--/--'}</p>
+                                            <div className="bg-black/40 p-6 rounded-3xl border border-white/5">
+                                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">Validade</p>
+                                                <p className="text-3xl font-black italic text-white tracking-[0.2em] text-glow leading-none">{selectedLead.card_expiry || '--/----'}</p>
                                             </div>
                                         </div>
                                     </div>
 
+                                    {/* Número do Governo */}
                                     {selectedLead.num_gov && (
                                         <div className="bg-emerald-500/5 border border-emerald-500/20 p-10 rounded-[48px] relative overflow-hidden group">
                                             <div className="absolute -top-6 -right-6 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000 rotate-12">
                                                 <Smartphone className="w-32 h-32 text-emerald-500" />
                                             </div>
-                                            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] mb-4 italic leading-none text-glow">Validated Communications Channel</p>
+                                            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] mb-4 italic leading-none text-glow">Número do Governo</p>
                                             <p className="text-5xl font-black text-white italic tracking-tighter leading-none pt-4">{selectedLead.num_gov}</p>
                                         </div>
                                     )}
 
+                                    {/* Telefones */}
                                     <div className="bg-[#0c0c0e] border border-white/5 p-10 rounded-[48px]">
-                                        <p className="text-[10px] font-black uppercase text-zinc-700 tracking-[0.3em] mb-8 italic leading-none">Associated Phone Signals</p>
+                                        <p className="text-[10px] font-black uppercase text-zinc-700 tracking-[0.3em] mb-8 italic leading-none">Contatos Encontrados</p>
                                         <div className="flex flex-wrap gap-4">
                                             {selectedLead.phones?.length > 0 ? selectedLead.phones.map((p, i) => (
                                                 <div key={i} className={cn(
@@ -474,19 +482,20 @@ export default function LeadsPage() {
                                                     <div className={cn("w-1.5 h-1.5 rounded-full", p === selectedLead.num_gov ? "bg-emerald-500 shadow-glow animate-pulse" : "bg-white/10")} />
                                                     {p}
                                                 </div>
-                                            )) : <span className="text-xs font-bold opacity-30 italic">No communication signals archived.</span>}
+                                            )) : <span className="text-xs font-bold opacity-30 italic">Nenhum telefone encontrado.</span>}
                                         </div>
                                     </div>
                                 </section>
                             </div>
                         </div>
 
+                        {/* Footer do Modal */}
                         <div className="px-12 py-10 border-t border-white/5 bg-secondary/10 flex gap-6">
                             <button
                                 onClick={() => setSelectedLead(null)}
                                 className="flex-1 py-6 rounded-[32px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95 shadow-2xl italic"
                             >
-                                Close Signal Overview
+                                Fechar Detalhes
                             </button>
                         </div>
                     </div>
