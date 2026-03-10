@@ -47,16 +47,16 @@ export default function LigadorLoginPage() {
     return (
         <div className="min-h-[100dvh] bg-[#0a0a0f] flex flex-col items-center justify-center p-6 selection:bg-violet-500/20">
             {/* Background Glow */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-violet-600/8 blur-[120px] rounded-full pointer-events-none" />
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] blur-[120px] rounded-full pointer-events-none" style={{ background: 'rgba(130,10,209,0.06)' }} />
 
             <div className="w-full max-w-sm space-y-10 relative z-10">
                 {/* Logo */}
                 <div className="text-center space-y-4" style={{ animation: 'fadeSlideUp 0.6s ease-out both' }}>
                     <div className="relative inline-block">
-                        <div className="w-20 h-20 bg-gradient-to-br from-violet-600 to-purple-800 rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-violet-600/30">
+                        <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto shadow-xl" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 12px 32px rgba(130,10,209,0.3)' }}>
                             <span className="text-3xl font-black text-white">N</span>
                         </div>
-                        <div className="absolute inset-0 bg-violet-500/20 blur-[50px] rounded-full" />
+                        <div className="absolute inset-0 blur-[50px] rounded-full" style={{ background: 'rgba(130,10,209,0.2)' }} />
                     </div>
                     <div>
                         <h1 className="text-4xl font-bold tracking-tight text-white">Nu-Pay</h1>
@@ -104,7 +104,8 @@ export default function LigadorLoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-violet-600/30 active:scale-[0.97] disabled:opacity-50 text-sm mt-6"
+                            className="w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg active:scale-[0.97] disabled:opacity-50 text-sm mt-6"
+                            style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 12px 32px rgba(130,10,209,0.3)' }}
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>

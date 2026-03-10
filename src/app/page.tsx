@@ -87,35 +87,50 @@ export default function LigadorDashboard() {
     l.cpf?.includes(searchTerm)
   )
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (selectedLead) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+  }, [selectedLead])
+
   if (!authorized) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-4">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center animate-pulse">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center animate-pulse" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)' }}>
             <div className="w-16 h-16 rounded-full bg-[#0a0a0f] flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#820AD1' }} />
             </div>
           </div>
-          <div className="absolute inset-0 bg-violet-500/30 blur-[60px] rounded-full" />
+          <div className="absolute inset-0 blur-[60px] rounded-full" style={{ background: 'rgba(130,10,209,0.3)' }} />
         </div>
-        <p className="text-sm font-semibold text-violet-400 mt-6 animate-pulse">Carregando...</p>
+        <p className="text-sm font-semibold mt-6 animate-pulse" style={{ color: '#820AD1' }}>Carregando...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#0a0a0f] text-white flex flex-col selection:bg-violet-500/30 overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-[#0a0a0f] text-white flex flex-col overflow-x-hidden" style={{ '--nu-purple': '#820AD1', '--nu-purple-light': '#9B30D9', '--nu-purple-dark': '#6B07AB' } as any}>
       {/* ===== MOBILE-FIRST HEADER ===== */}
       <header className="sticky top-0 z-50 backdrop-blur-2xl bg-[#0a0a0f]/90 border-b border-white/5">
         <div className="flex items-center justify-between px-5 py-4 md:px-8 md:py-5">
           {/* Logo + User */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-violet-600/30">
+            <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center font-black text-white text-sm shadow-lg" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' }}>
               N
             </div>
             <div>
               <h1 className="font-bold text-base md:text-lg leading-none tracking-tight">Nu-Pay</h1>
-              <p className="text-[10px] text-violet-400 font-medium mt-0.5">{userName}</p>
+              <p className="text-[10px] font-medium mt-0.5" style={{ color: '#820AD1' }}>{userName}</p>
             </div>
           </div>
 
@@ -125,7 +140,7 @@ export default function LigadorDashboard() {
               onClick={() => fetchLeads()}
               className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-violet-500/10 active:scale-90 transition-all"
             >
-              <RefreshCcw className={cn("w-4 h-4 text-zinc-400", loading && "animate-spin text-violet-400")} />
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-400", loading && "animate-spin")} style={loading ? { color: '#820AD1' } : {}} />
             </button>
             <button
               onClick={() => {
@@ -148,9 +163,10 @@ export default function LigadorDashboard() {
               className={cn(
                 "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
                 activeTab === 'pendentes'
-                  ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-lg shadow-violet-600/30"
+                  ? "text-white shadow-lg"
                   : "text-zinc-500 hover:text-white"
               )}
+              style={activeTab === 'pendentes' ? { background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' } : {}}
             >
               Pendentes ({leads.length})
             </button>
@@ -178,7 +194,8 @@ export default function LigadorDashboard() {
             placeholder="Buscar por nome ou CPF..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/5 outline-none focus:border-violet-500/30 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm placeholder:text-zinc-600"
+            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/5 outline-none transition-all text-sm placeholder:text-zinc-600"
+            style={{ borderColor: searchTerm ? 'rgba(130,10,209,0.3)' : undefined }}
           />
         </div>
       </div>
@@ -188,10 +205,10 @@ export default function LigadorDashboard() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full border-2 border-violet-500/20 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+              <div className="w-16 h-16 rounded-full border-2 flex items-center justify-center" style={{ borderColor: 'rgba(130,10,209,0.2)' }}>
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#820AD1' }} />
               </div>
-              <div className="absolute inset-0 bg-violet-500/20 blur-[40px] rounded-full" />
+              <div className="absolute inset-0 blur-[40px] rounded-full" style={{ background: 'rgba(130,10,209,0.2)' }} />
             </div>
             <p className="text-sm text-zinc-500 font-medium">Carregando fichas...</p>
           </div>
@@ -206,7 +223,8 @@ export default function LigadorDashboard() {
             </div>
             <button
               onClick={() => fetchLeads()}
-              className="px-6 py-3 rounded-2xl bg-violet-600 text-sm font-semibold hover:bg-violet-500 active:scale-95 transition-all shadow-lg shadow-violet-600/30"
+              className="px-6 py-3 rounded-2xl text-sm font-semibold active:scale-95 transition-all shadow-lg text-white"
+              style={{ background: '#820AD1', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' }}
             >
               Atualizar
             </button>
@@ -221,8 +239,8 @@ export default function LigadorDashboard() {
                 style={{ animationDelay: `${idx * 50}ms`, animation: 'fadeSlideUp 0.4s ease-out both' }}
               >
                 {/* Avatar */}
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-violet-600/20 to-purple-800/20 border border-violet-500/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <UserCircle2 className="w-6 h-6 md:w-7 md:h-7 text-violet-400" />
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl border flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform" style={{ background: 'rgba(130,10,209,0.08)', borderColor: 'rgba(130,10,209,0.1)' }}>
+                  <UserCircle2 className="w-6 h-6 md:w-7 md:h-7" style={{ color: '#9B30D9' }} />
                 </div>
 
                 {/* Info */}
@@ -250,7 +268,7 @@ export default function LigadorDashboard() {
                 </div>
 
                 {/* Chevron */}
-                <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:translate-x-0.5 transition-all shrink-0" style={{ color: undefined }} />
               </div>
             ))}
           </div>
@@ -259,8 +277,8 @@ export default function LigadorDashboard() {
 
       {/* ===== DETAIL MODAL - FULLSCREEN MOBILE ===== */}
       {selectedLead && (
-        <div className="fixed inset-0 z-[100] bg-[#0a0a0f] flex flex-col animate-in slide-in-from-bottom duration-300 md:bg-black/80 md:backdrop-blur-xl md:items-center md:justify-center md:p-6">
-          <div className="flex-1 flex flex-col md:flex-none md:w-full md:max-w-lg md:rounded-3xl md:overflow-hidden md:max-h-[90vh] md:bg-[#0a0a0f] md:border md:border-white/10 md:shadow-2xl">
+        <div className="fixed inset-0 z-[100] bg-[#0a0a0f] overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="min-h-full flex flex-col">
 
             {/* Modal Header */}
             <div className="relative px-5 pt-5 pb-8 md:px-6 md:pt-6 md:pb-8">
@@ -277,7 +295,7 @@ export default function LigadorDashboard() {
 
               {/* Profile */}
               <div className="relative z-10 flex flex-col items-center text-center pt-4">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center shadow-xl shadow-violet-600/30 mb-4">
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl mb-4" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 12px 32px rgba(130,10,209,0.3)' }}>
                   <UserCircle2 className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold tracking-tight leading-tight max-w-[280px]">
@@ -287,16 +305,16 @@ export default function LigadorDashboard() {
 
                 {/* Score Badge */}
                 {selectedLead.score && (
-                  <div className="mt-3 flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
-                    <Star className="w-3.5 h-3.5 text-violet-400 fill-violet-400" />
-                    <span className="text-sm font-bold text-violet-300">Score {selectedLead.score}</span>
+                  <div className="mt-3 flex items-center gap-2 px-4 py-1.5 rounded-full" style={{ background: 'rgba(130,10,209,0.1)', border: '1px solid rgba(130,10,209,0.2)' }}>
+                    <Star className="w-3.5 h-3.5 fill-current" style={{ color: '#9B30D9' }} />
+                    <span className="text-sm font-bold" style={{ color: '#9B30D9' }}>Score {selectedLead.score}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Modal Body - Scrollable */}
-            <div className="flex-1 overflow-y-auto px-5 pb-6 md:px-6 space-y-4 custom-scrollbar">
+            {/* Modal Body */}
+            <div className="px-5 pb-6 space-y-4">
               {/* Quick Stats Row */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
@@ -307,14 +325,14 @@ export default function LigadorDashboard() {
                   <p className="text-[10px] text-zinc-600 font-medium mt-1">Renda</p>
                 </div>
                 <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
-                  <Calendar className="w-4 h-4 text-violet-400 mx-auto mb-2" />
+                  <Calendar className="w-4 h-4 mx-auto mb-2" style={{ color: '#820AD1' }} />
                   <p className="text-lg font-bold leading-none">
                     {selectedLead.age || '--'}
                   </p>
                   <p className="text-[10px] text-zinc-600 font-medium mt-1">Anos</p>
                 </div>
                 <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
-                  <MapPin className="w-4 h-4 text-violet-400 mx-auto mb-2" />
+                  <MapPin className="w-4 h-4 mx-auto mb-2" style={{ color: '#820AD1' }} />
                   <p className="text-sm font-bold leading-none truncate">
                     {selectedLead.state || 'UF'}
                   </p>
@@ -353,19 +371,19 @@ export default function LigadorDashboard() {
               </div>
 
               {/* Card Data */}
-              <div className="bg-gradient-to-br from-violet-500/5 to-purple-600/5 border border-violet-500/15 rounded-2xl p-5 space-y-4">
+              <div className="border rounded-2xl p-5 space-y-4" style={{ background: 'rgba(130,10,209,0.03)', borderColor: 'rgba(130,10,209,0.12)' }}>
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-violet-400" />
-                  <p className="text-xs font-semibold text-violet-400">Dados do Cartão</p>
+                  <CreditCard className="w-4 h-4" style={{ color: '#9B30D9' }} />
+                  <p className="text-xs font-semibold" style={{ color: '#9B30D9' }}>Dados do Cartão</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-black/30 rounded-xl p-4 border border-white/5">
                     <p className="text-[10px] text-zinc-600 font-medium mb-1">BIN</p>
-                    <p className="text-xl font-bold tracking-wider text-violet-300">{selectedLead.card_bin || '------'}</p>
+                    <p className="text-xl font-bold tracking-wider" style={{ color: '#9B30D9' }}>{selectedLead.card_bin || '------'}</p>
                   </div>
                   <div className="bg-black/30 rounded-xl p-4 border border-white/5">
                     <p className="text-[10px] text-zinc-600 font-medium mb-1">Validade</p>
-                    <p className="text-xl font-bold tracking-wider text-violet-300">{selectedLead.card_expiry || '--/----'}</p>
+                    <p className="text-xl font-bold tracking-wider" style={{ color: '#9B30D9' }}>{selectedLead.card_expiry || '--/----'}</p>
                   </div>
                 </div>
               </div>
@@ -397,8 +415,8 @@ export default function LigadorDashboard() {
               )}
             </div>
 
-            {/* Modal Footer - Fixed at Bottom */}
-            <div className="px-5 py-4 md:px-6 border-t border-white/5 bg-[#0a0a0f] flex gap-3 safe-area-bottom">
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 px-5 py-4 border-t border-white/5 bg-[#0a0a0f] flex gap-3" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={() => setSelectedLead(null)}
                 className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm font-semibold hover:bg-white/10 active:scale-95 transition-all"
@@ -409,7 +427,8 @@ export default function LigadorDashboard() {
                 <button
                   onClick={() => handleFinalize(selectedLead.id)}
                   disabled={saving}
-                  className="flex-[2] py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-sm font-bold shadow-lg shadow-violet-600/30 hover:shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-[2] py-4 rounded-2xl text-white text-sm font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' }}
                 >
                   {saving ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -429,29 +448,8 @@ export default function LigadorDashboard() {
       {/* Custom Animations */}
       <style jsx global>{`
         @keyframes fadeSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .safe-area-bottom {
-          padding-bottom: max(1rem, env(safe-area-inset-bottom));
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(139, 92, 246, 0.2);
-          border-radius: 999px;
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
