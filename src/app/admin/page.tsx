@@ -79,7 +79,7 @@ export default function AdminDashboard() {
             .from('leads')
             .select('id, cpf, full_name')
             .eq('status', 'incompleto')
-            .limit(500)
+            .limit(1000)
 
         if (fetchError || !leads || leads.length === 0) {
             addLog('❌ NENHUM LEAD PENDENTE ENCONTRADO.', 'error')
