@@ -173,7 +173,7 @@ export default function SettingsPage() {
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="w-full md:w-auto px-16 py-7 bg-primary text-white font-black rounded-[32px] shadow-[0_20px_60px_rgba(129,140,248,0.3)] flex items-center justify-center gap-5 transition-all active:scale-95 disabled:opacity-50 hover:scale-[1.03] text-xl italic tracking-tighter border-b-4 border-black/20 group/save"
+                        className="w-full md:w-auto px-16 py-7 bg-primary text-white font-black rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex items-center justify-center gap-5 transition-all active:scale-95 disabled:opacity-50 hover:scale-[1.03] text-xl italic tracking-tighter border-b-4 border-black/20 group/save"
                     >
                         {saving ? <Loader2 className="w-8 h-8 animate-spin" /> : <Save className="w-8 h-8 group-hover/save:scale-110 transition-transform" />}
                         {saving ? 'SYNCRONIZING...' : 'CORE DEPLOY UPDATE'}

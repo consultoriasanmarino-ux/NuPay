@@ -213,7 +213,7 @@ export default function ImportPage() {
                         onClick={() => setMode(item.id as any)}
                         className={cn(
                             "glass p-10 rounded-[48px] border-2 transition-all text-left relative overflow-hidden group/card card-hover",
-                            mode === item.id ? "bg-primary/5 border-primary shadow-[0_0_40px_rgba(129,140,248,0.1)]" : "bg-card border-white/5 opacity-40 hover:opacity-100"
+                            mode === item.id ? "bg-primary/5 border-primary shadow-[0_0_40px_rgba(138,5,190,0.1)]" : "bg-card border-white/5 opacity-40 hover:opacity-100"
                         )}
                     >
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full" />
@@ -272,7 +272,7 @@ export default function ImportPage() {
                         <button
                             onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                             disabled={uploading}
-                            className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(129,140,248,0.3)] flex items-center justify-center gap-4 disabled:opacity-50 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
+                            className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex items-center justify-center gap-4 disabled:opacity-50 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
                         >
                             {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
                             {uploading ? "SINCRONIZANDO CORE DATABASE..." : "DEPLOY SIGNALS TO CLOUD"}

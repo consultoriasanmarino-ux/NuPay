@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                                 <button
                                     onClick={() => handleConsult(false)}
                                     disabled={loading}
-                                    className="group relative bg-primary hover:bg-primary/90 text-white font-black px-14 py-7 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(129,140,248,0.3)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl"
+                                    className="group relative bg-primary hover:bg-primary/90 text-white font-black px-14 py-7 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(138,5,190,0.3)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl"
                                 >
                                     <Zap className="w-7 h-7 group-hover:rotate-12 transition-transform duration-500 fill-white" />
                                     Consultar Pendentes
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
 
                                 <div className="w-full h-4 bg-[#050507] rounded-full overflow-hidden border border-white/5 relative p-1 mb-10 ring-4 ring-white/5">
                                     <div
-                                        className="h-full bg-gradient-to-r from-primary via-indigo-400 to-primary bg-[length:200%_auto] animate-shimmer rounded-full transition-all duration-700 shadow-[0_0_20px_var(--primary-glow)]"
+                                        className="h-full bg-gradient-to-r from-primary via-purple-400 to-primary bg-[length:200%_auto] animate-shimmer rounded-full transition-all duration-700 shadow-[0_0_20px_var(--primary-glow)]"
                                         style={{ width: `${(progress.current / progress.total) * 100}%` }}
                                     />
                                 </div>

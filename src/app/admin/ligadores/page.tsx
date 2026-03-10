@@ -234,7 +234,7 @@ export default function LigadoresPage() {
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-primary text-white font-bold text-sm shadow-[0_12px_40px_rgba(129,140,248,0.3)] hover:scale-[1.03] transition-all active:scale-95"
+                        className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-primary text-white font-bold text-sm shadow-[0_12px_40px_rgba(138,5,190,0.3)] hover:scale-[1.03] transition-all active:scale-95"
                     >
                         <Plus className="w-5 h-5" />
                         Novo Ligador
@@ -441,7 +441,7 @@ export default function LigadoresPage() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full bg-primary py-5 rounded-2xl font-black uppercase text-white shadow-[0_12px_40px_rgba(129,140,248,0.3)] flex items-center justify-center gap-3 active:scale-95 transition-all text-sm"
+                                className="w-full bg-primary py-5 rounded-2xl font-black uppercase text-white shadow-[0_12px_40px_rgba(138,5,190,0.3)] flex items-center justify-center gap-3 active:scale-95 transition-all text-sm"
                             >
                                 {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5 fill-white" />}
                                 {saving ? 'Criando...' : 'Criar Ligador'}

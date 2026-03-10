@@ -22,26 +22,33 @@ export default function AdminLoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 bg-grid">
-            <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-500">
-                <div className="text-center space-y-2">
-                    <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-primary/20">
-                        <ShieldAlert className="w-10 h-10 text-primary" />
+        <div className="min-h-screen bg-[#050507] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            {/* Atmospheric glow */}
+            <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(138, 5, 190, 0.12) 0%, transparent 70%)' }} />
+
+            <div className="w-full max-w-sm space-y-8 relative z-10" style={{ animation: 'fadeUp 0.6s ease-out' }}>
+                <div className="text-center space-y-3">
+                    <div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border"
+                        style={{ background: 'rgba(138, 5, 190, 0.1)', borderColor: 'rgba(138, 5, 190, 0.2)' }}
+                    >
+                        <ShieldAlert className="w-8 h-8" style={{ color: '#8A05BE' }} />
                     </div>
-                    <h1 className="text-3xl font-black tracking-tighter">Área Restrita</h1>
-                    <p className="text-muted-foreground">Insira o PIN de 6 dígitos para acessar o Painel Master.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-white">Área Restrita</h1>
+                    <p className="text-sm text-zinc-500">Insira o PIN de 6 dígitos para acessar.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
                         <input
                             type="password"
                             maxLength={6}
                             value={pin}
                             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                             placeholder="••••••"
-                            className={`w-full bg-card border ${error ? 'border-destructive animate-shake' : 'border-border'} rounded-2xl py-4 pl-12 pr-4 text-center text-2xl font-black tracking-[1em] outline-none focus:ring-4 focus:ring-primary/10 transition-all`}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-center text-xl font-bold tracking-[0.8em] outline-none transition-all text-white placeholder:text-zinc-700"
+                            style={{ borderColor: error ? '#ef4444' : undefined }}
                             autoFocus
                         />
                     </div>
@@ -49,19 +56,27 @@ export default function AdminLoginPage() {
                     <button
                         type="submit"
                         disabled={pin.length !== 6}
-                        className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-primary/20"
+                        className="w-full text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-40 active:scale-[0.98]"
+                        style={{ background: '#8A05BE', boxShadow: '0 8px 24px rgba(138, 5, 190, 0.3)' }}
                     >
                         Acessar Dashboard
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-4 h-4" />
                     </button>
                 </form>
 
                 {error && (
-                    <p className="text-center text-destructive font-bold text-sm animate-bounce">
-                        PIN INCORRETO. ACESSO NEGADO.
+                    <p className="text-center text-red-400 font-semibold text-sm">
+                        PIN incorreto. Tente novamente.
                     </p>
                 )}
             </div>
+
+            <style jsx>{`
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </div>
     )
 }

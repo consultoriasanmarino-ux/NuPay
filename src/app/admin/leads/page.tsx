@@ -398,7 +398,7 @@ export default function LeadsPage() {
                         <div className="px-12 py-12 border-b border-white/5 flex justify-between items-start bg-secondary/20 relative overflow-hidden">
                             <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
                             <div className="flex items-center gap-10 relative z-10">
-                                <div className="w-28 h-28 rounded-[40px] bg-gradient-to-br from-primary/20 to-indigo-600/20 flex items-center justify-center border border-primary/30 shadow-2xl">
+                                <div className="w-28 h-28 rounded-[40px] bg-gradient-to-br from-primary/20 to-primary/20 flex items-center justify-center border border-primary/30 shadow-2xl">
                                     <UserCheck className="w-16 h-16 text-primary" />
                                 </div>
                                 <div className="space-y-2">

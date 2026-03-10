@@ -12,14 +12,12 @@ import {
     Menu,
     X,
     Search,
-    ChevronDown,
     Bell,
     Database,
     Settings,
     Loader2,
-    Zap,
-    Cpu,
     Activity,
+    Cpu,
     Shield
 } from 'lucide-react'
 import Link from 'next/link'
@@ -51,12 +49,12 @@ export default function AdminLayout({
 
     if (authorized === null) {
         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-grid">
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
                 <div className="relative">
-                    <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                    <Loader2 className="w-12 h-12 animate-spin" style={{ color: '#8A05BE' }} />
+                    <div className="absolute inset-0 blur-3xl rounded-full" style={{ background: 'rgba(138, 5, 190, 0.15)' }} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary mt-8 animate-pulse italic">Autenticando...</p>
+                <p className="text-sm font-medium mt-6 animate-pulse" style={{ color: '#8A05BE' }}>Autenticando...</p>
             </div>
         )
     }
@@ -76,140 +74,139 @@ export default function AdminLayout({
     ]
 
     return (
-        <div className="min-h-screen bg-background text-zinc-100 selection:bg-primary/30 bg-grid">
-            {/* AI-Native Sidebar */}
+        <div className="min-h-screen bg-background text-zinc-100">
+            {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-[60] w-80 glass border-r border-white/5 transition-all duration-700 ease-out lg:translate-x-0 overflow-y-auto m-4 rounded-[48px] shadow-2xl",
-                    !isSidebarOpen && "-translate-x-[110%]"
+                    "fixed inset-y-0 left-0 z-[60] w-72 border-r border-white/5 transition-all duration-500 ease-out lg:translate-x-0 overflow-y-auto",
+                    "bg-[#0a0a0c]",
+                    !isSidebarOpen && "-translate-x-full"
                 )}
             >
-                <div className="flex flex-col h-full p-8">
-                    <div className="flex items-center gap-5 px-4 mb-14 group">
-                        <div className="w-14 h-14 rounded-[24px] bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center font-black text-white italic shadow-[0_10px_30px_rgba(129,140,248,0.4)] transition-transform group-hover:scale-110 duration-500 scale-110">N</div>
-                        <div className="space-y-0.5">
-                            <h1 className="font-black text-2xl tracking-tighter uppercase italic leading-none">Nu-Pay</h1>
-                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] italic opacity-60">Painel Administrativo</p>
+                <div className="flex flex-col h-full p-6">
+                    {/* Logo */}
+                    <div className="flex items-center gap-4 px-3 mb-10 group">
+                        <div
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white text-lg"
+                            style={{ background: 'linear-gradient(135deg, #8A05BE, #A020D0)' }}
+                        >
+                            N
+                        </div>
+                        <div>
+                            <h1 className="font-black text-xl tracking-tight uppercase leading-none">Nu-Pay</h1>
+                            <p className="text-[9px] font-medium uppercase tracking-[0.3em] mt-0.5" style={{ color: '#8A05BE' }}>Painel Admin</p>
                         </div>
                     </div>
 
-                    <nav className="flex-1 space-y-3">
-                        {menuItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-5 px-6 py-4.5 rounded-[24px] text-[11px] font-black uppercase tracking-[0.15em] transition-all group relative overflow-hidden italic",
-                                    pathname === item.href
-                                        ? "bg-primary text-white shadow-[0_15px_40px_rgba(129,140,248,0.3)] scale-105 z-10"
-                                        : "text-zinc-600 hover:text-zinc-100 hover:bg-white/5"
-                                )}
-                            >
-                                {pathname === item.href && (
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-                                )}
-                                <item.icon className={cn("w-5 h-5 transition-transform duration-500", pathname === item.href ? "text-white scale-110" : "group-hover:text-primary group-hover:scale-110")} />
-                                {item.label}
-                                {pathname === item.href && (
-                                    <div className="absolute right-6 w-1.5 h-1.5 rounded-full bg-white shadow-glow animate-pulse" />
-                                )}
-                            </Link>
-                        ))}
+                    {/* Navigation */}
+                    <nav className="flex-1 space-y-1">
+                        {menuItems.map((item) => {
+                            const isActive = pathname === item.href
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={cn(
+                                        "flex items-center gap-3.5 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all relative",
+                                        isActive
+                                            ? "text-white"
+                                            : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                                    )}
+                                    style={isActive ? { background: '#8A05BE' } : undefined}
+                                >
+                                    <item.icon className="w-[18px] h-[18px]" />
+                                    {item.label}
+                                </Link>
+                            )
+                        })}
                     </nav>
 
-                    <div className="pt-8 border-t border-white/5 mt-8 space-y-6">
-                        <div className="px-6 space-y-4">
-                            <div className="flex items-center justify-between opacity-30 group hover:opacity-100 transition-opacity">
-                                <span className="text-[8px] font-black uppercase tracking-widest italic">Latência</span>
-                                <span className="text-[10px] font-black italic">14ms</span>
-                            </div>
-                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div className="w-[85%] h-full bg-primary" />
-                            </div>
-                        </div>
-
+                    {/* Footer */}
+                    <div className="pt-6 border-t border-white/5 mt-4 space-y-3">
                         <button
                             onClick={() => {
                                 localStorage.removeItem('nupay_admin_token')
                                 router.push('/admin/login')
                             }}
-                            className="flex items-center gap-5 px-6 py-5 w-full rounded-[24px] text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-destructive hover:bg-destructive/5 transition-all italic border border-transparent hover:border-destructive/10"
+                            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-[13px] font-medium text-zinc-600 hover:text-red-400 hover:bg-red-500/5 transition-all"
                         >
-                            <LogOut className="w-5 h-5 rotate-180" />
+                            <LogOut className="w-[18px] h-[18px] rotate-180" />
                             Sair da Sessão
                         </button>
                     </div>
                 </div>
             </aside>
 
-            {/* Main Viewport */}
+            {/* Main Area */}
             <div className={cn(
-                "transition-all duration-700 ease-out min-h-screen flex flex-col",
-                isSidebarOpen ? "lg:pl-[340px]" : "pl-0"
+                "transition-all duration-500 ease-out min-h-screen flex flex-col",
+                isSidebarOpen ? "lg:pl-72" : "pl-0"
             )}>
-                {/* AI-Native Global Header */}
-                <header className="h-24 glass border-b border-white/5 sticky top-4 z-[50] flex items-center justify-between px-10 mx-4 rounded-[32px] shadow-2xl backdrop-blur-3xl group/header border-white/10">
-                    <div className="flex items-center gap-8 flex-1">
+                {/* Header */}
+                <header className="h-16 border-b border-white/5 sticky top-0 z-[50] flex items-center justify-between px-6 bg-[#0a0a0c]/80 backdrop-blur-xl">
+                    <div className="flex items-center gap-4 flex-1">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+                            className="p-2 rounded-lg hover:bg-white/5 transition-all active:scale-90"
                         >
-                            {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
 
-                        <div className="relative group/search flex-1 max-w-xl hidden xl:block">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within/search:text-primary transition-all duration-500" />
+                        <div className="relative flex-1 max-w-md hidden xl:block">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
                             <input
                                 type="text"
-                                placeholder="PESQUISAR..."
-                                className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/20 transition-all font-mono italic placeholder:text-zinc-800"
+                                placeholder="Pesquisar..."
+                                className="w-full bg-white/5 border border-white/5 rounded-lg py-2 pl-10 pr-4 text-sm outline-none focus:border-[#8A05BE]/40 transition-all placeholder:text-zinc-700"
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        {/* Status Module */}
-                        <div className="hidden md:flex items-center gap-4 px-6 py-3.5 rounded-[24px] bg-black/40 border border-white/5 shadow-inner">
+                    <div className="flex items-center gap-4">
+                        <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/5">
                             <div className="text-right">
-                                <p className="text-[8px] font-black uppercase text-zinc-600 leading-none mb-1.5 italic tracking-widest">Status</p>
-                                <p className="text-[10px] font-black text-emerald-500 flex items-center gap-2 justify-end uppercase tracking-[0.2em] italic">
-                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-glow" />
-                                    Sincronizado
+                                <p className="text-[10px] text-zinc-500 leading-none mb-0.5">Status</p>
+                                <p className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                                    Online
                                 </p>
                             </div>
-                            <div className="w-px h-8 bg-white/5 mx-2" />
-                            <div className="flex items-center gap-4">
-                                <div className="space-y-1">
-                                    <p className="text-[8px] font-black uppercase text-zinc-600 text-right italic tracking-widest">Usuário</p>
-                                    <p className="text-[10px] font-black text-indigo-400 italic leading-none">ADMIN_MASTER</p>
+                            <div className="w-px h-6 bg-white/5" />
+                            <div className="flex items-center gap-2">
+                                <div>
+                                    <p className="text-[10px] text-zinc-500 text-right leading-none mb-0.5">Usuário</p>
+                                    <p className="text-[11px] font-semibold leading-none" style={{ color: '#8A05BE' }}>admin_master</p>
                                 </div>
-                                <div className="w-12 h-12 rounded-[18px] bg-gradient-to-tr from-indigo-500/20 to-primary/20 flex items-center justify-center font-black text-indigo-400 text-xs border border-indigo-500/20 shadow-2xl">
-                                    <Shield className="w-5 h-5 rotate-12" />
+                                <div
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center border"
+                                    style={{ background: 'rgba(138, 5, 190, 0.1)', borderColor: 'rgba(138, 5, 190, 0.2)' }}
+                                >
+                                    <Shield className="w-4 h-4" style={{ color: '#8A05BE' }} />
                                 </div>
                             </div>
                         </div>
 
-                        <button className="relative w-12 h-12 rounded-2xl bg-secondary border border-white/5 flex items-center justify-center group/bell transition-all hover:bg-zinc-800">
-                            <Bell className="w-5 h-5 text-zinc-500 group-hover/bell:text-white transition-colors" />
-                            <span className="absolute top-0 right-0 w-3 h-3 bg-primary rounded-full border-4 border-[#09090b] shadow-glow" />
+                        <button className="relative w-9 h-9 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 transition-all">
+                            <Bell className="w-4 h-4 text-zinc-500" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full" style={{ background: '#8A05BE' }} />
                         </button>
                     </div>
                 </header>
 
-                <main className="flex-1 p-10 max-w-[1600px] mx-auto w-full animate-in fade-in duration-1000 slide-in-from-right-4">
+                <main className="flex-1 p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
                     {children}
                 </main>
 
-                <footer className="p-10 opacity-20 hover:opacity-100 transition-opacity duration-1000">
-                    <div className="flex items-center justify-center gap-10">
-                        <div className="flex items-center gap-3">
+                <footer className="p-6 opacity-20 hover:opacity-60 transition-opacity">
+                    <div className="flex items-center justify-center gap-6 text-[10px] text-zinc-600">
+                        <div className="flex items-center gap-2">
                             <Activity className="w-3 h-3" />
-                            <span className="text-[8px] font-black uppercase tracking-[0.5em] italic">Versão 4.0.2</span>
+                            <span>v4.0.2</span>
                         </div>
-                        <div className="w-1.5 h-1.5 bg-zinc-800 rounded-full" />
-                        <div className="flex items-center gap-3">
+                        <span>•</span>
+                        <div className="flex items-center gap-2">
                             <Cpu className="w-3 h-3" />
-                            <span className="text-[8px] font-black uppercase tracking-[0.5em] italic">Uptime 99.9%</span>
+                            <span>Uptime 99.9%</span>
                         </div>
                     </div>
                 </footer>
