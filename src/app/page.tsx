@@ -1,26 +1,27 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   PhoneCall,
   MapPin,
   CreditCard,
-  TrendingUp,
   LogOut,
-  Bell,
   CheckCircle2,
-  XCircle,
   MessageSquare,
   Loader2,
   ShieldCheck,
   Zap,
-  LayoutGrid,
   Search,
   RefreshCcw,
   Smartphone,
   UserCircle2,
-  Database
+  X,
+  ChevronRight,
+  Star,
+  Calendar,
+  TrendingUp,
+  Phone
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase, Lead } from '@/lib/supabase'
@@ -34,6 +35,7 @@ export default function LigadorDashboard() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [saving, setSaving] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [userName, setUserName] = useState('Ligador')
 
   const fetchLeads = useCallback(async () => {
     const ligadorId = localStorage.getItem('nupay_ligador_id')
@@ -60,6 +62,7 @@ export default function LigadorDashboard() {
     if (!user || !ligadorId) {
       router.push('/login')
     } else {
+      setUserName(user)
       setAuthorized(true)
       fetchLeads()
     }
@@ -86,357 +89,334 @@ export default function LigadorDashboard() {
 
   if (!authorized) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 bg-grid">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-6" />
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary animate-pulse italic">Shielding Session...</p>
+      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-4">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center animate-pulse">
+            <div className="w-16 h-16 rounded-full bg-[#0a0a0f] flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+          </div>
+          <div className="absolute inset-0 bg-violet-500/30 blur-[60px] rounded-full" />
+        </div>
+        <p className="text-sm font-semibold text-violet-400 mt-6 animate-pulse">Carregando...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground bg-grid flex flex-col selection:bg-primary/30 selection:text-white">
-      {/* AI-Native Header */}
-      <header className="h-24 border-b border-white/5 bg-background/80 backdrop-blur-2xl flex items-center justify-between px-10 sticky top-0 z-50">
-        <div className="flex items-center gap-6 group cursor-pointer" onClick={() => router.push('/')}>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center font-black text-white italic shadow-2xl shadow-primary/30 rotate-12 group-hover:rotate-0 transition-transform duration-500">N</div>
-          <div className="space-y-0.5">
-            <h1 className="font-black text-2xl tracking-tighter italic leading-none">Nu-Pay</h1>
-            <p className="text-[9px] font-bold text-primary tracking-[0.3em] uppercase opacity-60">Terminal <span className="text-zinc-500">v2.0</span></p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-10">
-          <div className="hidden lg:flex items-center gap-6 px-6 py-2.5 bg-secondary/30 rounded-full border border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Database Live</span>
+    <div className="min-h-[100dvh] bg-[#0a0a0f] text-white flex flex-col selection:bg-violet-500/30 overflow-x-hidden">
+      {/* ===== MOBILE-FIRST HEADER ===== */}
+      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-[#0a0a0f]/90 border-b border-white/5">
+        <div className="flex items-center justify-between px-5 py-4 md:px-8 md:py-5">
+          {/* Logo + User */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-violet-600/30">
+              N
             </div>
-            <div className="w-px h-4 bg-white/10" />
-            <div className="flex items-center gap-3 group px-2 cursor-pointer" onClick={() => fetchLeads()}>
-              <RefreshCcw className={cn("w-3.5 h-3.5 text-zinc-400 group-hover:text-primary transition-colors", loading && "animate-spin text-primary")} />
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">Sync</span>
+            <div>
+              <h1 className="font-bold text-base md:text-lg leading-none tracking-tight">Nu-Pay</h1>
+              <p className="text-[10px] text-violet-400 font-medium mt-0.5">{userName}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-black tracking-tight uppercase italic">
-                {typeof window !== 'undefined' ? localStorage.getItem('nupay_ligador_user') : 'Ligador'}
-              </p>
-              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em] pt-0.5">Sessão Ativa</p>
-            </div>
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fetchLeads()}
+              className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-violet-500/10 active:scale-90 transition-all"
+            >
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-400", loading && "animate-spin text-violet-400")} />
+            </button>
             <button
               onClick={() => {
                 localStorage.removeItem('nupay_ligador_user')
                 localStorage.removeItem('nupay_ligador_id')
                 router.push('/login')
               }}
-              className="p-4 rounded-2xl bg-secondary/50 border border-white/5 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all active:scale-95 shadow-2xl group"
+              className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/10 active:scale-90 transition-all"
             >
-              <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <LogOut className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="px-5 pb-3 md:px-8">
+          <div className="flex p-1 bg-white/5 rounded-2xl w-full">
+            <button
+              onClick={() => setActiveTab('pendentes')}
+              className={cn(
+                "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                activeTab === 'pendentes'
+                  ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-lg shadow-violet-600/30"
+                  : "text-zinc-500 hover:text-white"
+              )}
+            >
+              Pendentes ({leads.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('finalizadas')}
+              className={cn(
+                "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                activeTab === 'finalizadas'
+                  ? "bg-white/10 text-white shadow-lg"
+                  : "text-zinc-500 hover:text-white"
+              )}
+            >
+              Finalizadas
             </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1600px] mx-auto w-full p-8 lg:p-12 space-y-12">
-        {/* Control Bar - Bento Style */}
-        <section className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="space-y-3">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-                <LayoutGrid className="w-6 h-6 text-primary" />
-              </div>
-              <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Minha Fila</h2>
-            </div>
-            <p className="text-muted-foreground font-medium italic opacity-60 text-lg">Central de Atendimento e Conversão Operacional.</p>
-          </div>
+      {/* ===== SEARCH BAR ===== */}
+      <div className="px-5 py-4 md:px-8">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou CPF..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/5 outline-none focus:border-violet-500/30 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm placeholder:text-zinc-600"
+          />
+        </div>
+      </div>
 
-          <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
-            {/* Search Pill */}
-            <div className="relative w-full md:w-80 group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-primary transition-colors" />
-              <input
-                type="text"
-                placeholder="BUSCAR POR NOME OU CPF..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-14 pr-6 py-4 rounded-[28px] bg-secondary/30 border border-white/5 outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary/20 transition-all font-black text-[10px] uppercase tracking-widest"
-              />
-            </div>
-
-            {/* Tabs Pill */}
-            <div className="flex p-1.5 bg-secondary/20 backdrop-blur-md rounded-[32px] border border-white/5 shadow-inner w-full md:w-auto">
-              <button
-                onClick={() => setActiveTab('pendentes')}
-                className={cn(
-                  "flex-1 md:flex-none px-10 py-3.5 rounded-[28px] text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                  activeTab === 'pendentes' ? "bg-primary text-white shadow-2xl shadow-primary/30" : "text-zinc-500 hover:text-white"
-                )}
-              >
-                Pendentes ({leads.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('finalizadas')}
-                className={cn(
-                  "flex-1 md:flex-none px-10 py-3.5 rounded-[28px] text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                  activeTab === 'finalizadas' ? "bg-white/10 text-white shadow-xl" : "text-zinc-500 hover:text-white"
-                )}
-              >
-                Finalizadas
-              </button>
-            </div>
-          </div>
-        </section>
-
+      {/* ===== CONTENT ===== */}
+      <main className="flex-1 px-5 pb-8 md:px-8 md:max-w-2xl md:mx-auto md:w-full">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40 space-y-6">
+          <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <div className="relative">
-              <Loader2 className="w-16 h-16 text-primary animate-spin" />
-              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+              <div className="w-16 h-16 rounded-full border-2 border-violet-500/20 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+              </div>
+              <div className="absolute inset-0 bg-violet-500/20 blur-[40px] rounded-full" />
             </div>
-            <div className="text-center space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse leading-none italic">Sincronização Ativa</p>
-              <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Aguarde um instante...</p>
-            </div>
+            <p className="text-sm text-zinc-500 font-medium">Carregando fichas...</p>
           </div>
         ) : filteredLeads.length === 0 ? (
-          <div className="bg-[#0c0c0e] border border-dashed border-white/5 rounded-[64px] p-24 flex flex-col items-center justify-center text-center space-y-8 shadow-2xl animate-in zoom-in-95 duration-700">
-            <div className="w-32 h-32 bg-secondary/50 rounded-[48px] flex items-center justify-center text-zinc-800 border-2 border-dashed border-white/5 relative group">
-              <PhoneCall className="w-16 h-16 group-hover:scale-110 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-primary/10 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in duration-500">
+            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center">
+              <PhoneCall className="w-10 h-10 text-zinc-700" />
             </div>
-            <div className="space-y-3 max-w-sm">
-              <h3 className="text-3xl font-black uppercase italic tracking-tighter">Fila Vazia</h3>
-              <p className="text-sm text-zinc-500 italic font-medium leading-relaxed">Nenhuma ficha aguardando sua ação neste radar. Aguarde uma nova atribuição do Admin.</p>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-bold">Fila vazia</h3>
+              <p className="text-sm text-zinc-500 max-w-xs">Nenhuma ficha aguardando. Aguarde uma nova atribuição do administrador.</p>
             </div>
             <button
               onClick={() => fetchLeads()}
-              className="bg-secondary hover:bg-zinc-800 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] px-12 py-5 rounded-[28px] transition-all active:scale-95 shadow-2xl"
+              className="px-6 py-3 rounded-2xl bg-violet-600 text-sm font-semibold hover:bg-violet-500 active:scale-95 transition-all shadow-lg shadow-violet-600/30"
             >
-              Verificar Radar
+              Atualizar
             </button>
           </div>
         ) : (
-          <section className="bento-grid">
-            {filteredLeads.map((lead) => (
+          <div className="space-y-3">
+            {filteredLeads.map((lead, idx) => (
               <div
                 key={lead.id}
-                className="glass rounded-[48px] p-10 flex flex-col space-y-8 card-hover relative overflow-hidden group cursor-pointer"
                 onClick={() => setSelectedLead(lead)}
+                className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 md:p-5 flex items-center gap-4 active:scale-[0.98] transition-all duration-200 cursor-pointer hover:bg-violet-500/5 hover:border-violet-500/10 group"
+                style={{ animationDelay: `${idx * 50}ms`, animation: 'fadeSlideUp 0.4s ease-out both' }}
               >
-                {/* Glare Effect */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -z-0 rounded-full group-hover:bg-primary/10 transition-colors" />
-
-                <div className="flex items-start justify-between relative z-10">
-                  <div className="w-18 h-18 rounded-[32px] bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                    <UserCircle2 className="w-10 h-10 text-primary" />
-                  </div>
-                  <div className="text-right flex flex-col items-end gap-3">
-                    <div className="px-5 py-2 rounded-full bg-primary/5 border border-primary/20">
-                      <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic leading-none">Ready to Treatment</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-zinc-500 italic">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">{lead.city || 'RADAR'}, {lead.state || 'UF'}</span>
-                    </div>
-                  </div>
+                {/* Avatar */}
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-violet-600/20 to-purple-800/20 border border-violet-500/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <UserCircle2 className="w-6 h-6 md:w-7 md:h-7 text-violet-400" />
                 </div>
 
-                <div className="space-y-1.5 relative z-10">
-                  <h4 className="text-3xl font-black uppercase italic tracking-tighter truncate group-hover:text-primary transition-colors leading-none decoration-primary/20 underline-offset-8">
-                    {lead.full_name || 'LEAD SEM NOME'}
+                {/* Info */}
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <h4 className="font-bold text-sm md:text-base truncate leading-tight group-hover:text-violet-300 transition-colors">
+                    {lead.full_name || 'Sem nome'}
                   </h4>
-                  <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest italic group-hover:text-zinc-500">CPF IDENT: {lead.cpf}</p>
+                  <div className="flex items-center gap-3 text-[11px] text-zinc-500">
+                    <span>CPF: {lead.cpf?.slice(0, 7)}...</span>
+                    {lead.city && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {lead.city}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-emerald-400">
+                      {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '--'}
+                    </span>
+                    {lead.num_gov && (
+                      <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-semibold border border-emerald-500/20">GOV ✓</span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-5 relative z-10">
-                  <div className="bg-background/80 p-6 rounded-[32px] border border-white/5 space-y-1">
-                    <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Score</p>
-                    <p className="text-2xl font-black italic text-glow leading-none">{lead.score || '--'}</p>
-                  </div>
-                  <div className="bg-background/80 p-6 rounded-[32px] border border-white/5 space-y-1">
-                    <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Renda</p>
-                    <p className="text-2xl font-black italic text-emerald-500 emerald-glow leading-none">R$ {Number(lead.income || 0).toLocaleString('pt-BR')}</p>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-white/5 flex items-center justify-between relative z-10">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/30" />
-                    <span className="text-[11px] font-black text-zinc-500 uppercase italic leading-none">{lead.age || '--'} ANOS DE IDADE</span>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-primary shadow-2xl shadow-primary/30 group-hover:rotate-12 transition-transform duration-500">
-                    <Zap className="w-5 h-5 text-white" />
-                  </div>
-                </div>
+                {/* Chevron */}
+                <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all shrink-0" />
               </div>
             ))}
-          </section>
+          </div>
         )}
       </main>
 
-      {/* AI-Native Detail Modal */}
+      {/* ===== DETAIL MODAL - FULLSCREEN MOBILE ===== */}
       {selectedLead && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 lg:p-12 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="glass w-full max-w-4xl rounded-[64px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 max-h-[95vh] flex flex-col border-white/10">
+        <div className="fixed inset-0 z-[100] bg-[#0a0a0f] flex flex-col animate-in slide-in-from-bottom duration-300 md:bg-black/80 md:backdrop-blur-xl md:items-center md:justify-center md:p-6">
+          <div className="flex-1 flex flex-col md:flex-none md:w-full md:max-w-lg md:rounded-3xl md:overflow-hidden md:max-h-[90vh] md:bg-[#0a0a0f] md:border md:border-white/10 md:shadow-2xl">
+
             {/* Modal Header */}
-            <div className="px-12 py-12 border-b border-white/5 flex justify-between items-start bg-secondary/20 relative overflow-hidden">
-              <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-
-              <div className="flex items-center gap-10 relative z-10">
-                <div className="w-28 h-28 rounded-[40px] bg-gradient-to-br from-primary/20 to-indigo-600/20 flex items-center justify-center border border-primary/30 shadow-2xl">
-                  <UserCircle2 className="w-16 h-16 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-4">
-                    <h3 className="text-5xl font-black uppercase italic tracking-tighter leading-none">{selectedLead.full_name || 'LEAD SEM NOME'}</h3>
-                    <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                      <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic">Vip Qualified</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-zinc-500 font-black uppercase tracking-[0.4em] italic leading-none">Document Identification: <span className="text-white">{selectedLead.cpf}</span></p>
-                </div>
-              </div>
+            <div className="relative px-5 pt-5 pb-8 md:px-6 md:pt-6 md:pb-8">
+              {/* Close Button */}
               <button
                 onClick={() => setSelectedLead(null)}
-                className="w-16 h-16 rounded-[28px] bg-secondary hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all font-black text-zinc-500 shadow-2xl flex items-center justify-center relative z-10"
+                className="absolute top-5 right-5 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 active:scale-90 transition-all z-20"
               >
-                <XCircle className="w-8 h-8" />
+                <X className="w-5 h-5 text-zinc-400" />
               </button>
+
+              {/* Purple Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-violet-600/10 blur-[100px] rounded-full pointer-events-none" />
+
+              {/* Profile */}
+              <div className="relative z-10 flex flex-col items-center text-center pt-4">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center shadow-xl shadow-violet-600/30 mb-4">
+                  <UserCircle2 className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold tracking-tight leading-tight max-w-[280px]">
+                  {selectedLead.full_name || 'Sem Nome'}
+                </h3>
+                <p className="text-sm text-zinc-500 mt-1 font-mono">CPF: {selectedLead.cpf}</p>
+
+                {/* Score Badge */}
+                {selectedLead.score && (
+                  <div className="mt-3 flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
+                    <Star className="w-3.5 h-3.5 text-violet-400 fill-violet-400" />
+                    <span className="text-sm font-bold text-violet-300">Score {selectedLead.score}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-12 overflow-y-auto flex-1 custom-scrollbar relative">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
-                <section className="space-y-6">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 italic flex items-center gap-3 mb-6">
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    Metrics & Financials
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-[#0c0c0e] p-8 rounded-[40px] border border-white/5 space-y-4">
-                      <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic leading-none">Score Serasa</p>
-                      <div className="space-y-4">
-                        <p className="text-4xl font-black italic text-glow leading-none">{selectedLead.score || '--'}</p>
-                        <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden border border-white/5">
-                          <div className="h-full bg-primary shadow-[0_0_20px_var(--primary-glow)]" style={{ width: `${(selectedLead.score || 0) / 10}%` }} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-[#0c0c0e] p-8 rounded-[40px] border border-white/5 space-y-2">
-                      <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic leading-none">Renda Estimada</p>
-                      <p className="text-3xl font-black text-emerald-500 emerald-glow italic leading-none pt-2">R$ {Number(selectedLead.income || 0).toLocaleString('pt-BR')}</p>
-                      <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest pt-2">Monthly Estimate</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#0c0c0e] p-8 rounded-[40px] border border-white/5 flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic leading-none">Age Information</p>
-                      <p className="text-3xl font-black italic tracking-tighter leading-none pt-2">{selectedLead.age || '--'} ANOS</p>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic leading-none">Birth Date</p>
-                      <p className="text-xl font-bold italic opacity-60 pt-2">{selectedLead.birth_date ? new Date(selectedLead.birth_date + 'T00:00:00').toLocaleDateString('pt-BR') : '--/--/--'}</p>
-                    </div>
-                  </div>
-                </section>
+            {/* Modal Body - Scrollable */}
+            <div className="flex-1 overflow-y-auto px-5 pb-6 md:px-6 space-y-4 custom-scrollbar">
+              {/* Quick Stats Row */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
+                  <TrendingUp className="w-4 h-4 text-emerald-400 mx-auto mb-2" />
+                  <p className="text-lg font-bold text-emerald-400 leading-none">
+                    R$ {Number(selectedLead.income || 0).toLocaleString('pt-BR')}
+                  </p>
+                  <p className="text-[10px] text-zinc-600 font-medium mt-1">Renda</p>
+                </div>
+                <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
+                  <Calendar className="w-4 h-4 text-violet-400 mx-auto mb-2" />
+                  <p className="text-lg font-bold leading-none">
+                    {selectedLead.age || '--'}
+                  </p>
+                  <p className="text-[10px] text-zinc-600 font-medium mt-1">Anos</p>
+                </div>
+                <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
+                  <MapPin className="w-4 h-4 text-violet-400 mx-auto mb-2" />
+                  <p className="text-sm font-bold leading-none truncate">
+                    {selectedLead.state || 'UF'}
+                  </p>
+                  <p className="text-[10px] text-zinc-600 font-medium mt-1">Estado</p>
+                </div>
+              </div>
 
-                <section className="space-y-6">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 italic flex items-center gap-3 mb-6">
-                    <Smartphone className="w-3.5 h-3.5" />
-                    Contact Architecture
+              {/* Gov Number - MAIN CTA */}
+              <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl p-5 md:p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-emerald-400" />
+                  <p className="text-xs font-semibold text-emerald-400">Número do Governo</p>
+                </div>
+                <p className="text-3xl md:text-4xl font-bold text-white tracking-tight text-center py-2">
+                  {selectedLead.num_gov ? selectedLead.num_gov.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') : 'Não disponível'}
+                </p>
+                {selectedLead.num_gov && (
+                  <button
+                    onClick={() => window.open(`https://wa.me/55${selectedLead.num_gov?.replace(/\D/g, '')}`, '_blank')}
+                    className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-5 h-5 fill-white" />
+                    Abrir WhatsApp
+                  </button>
+                )}
+              </div>
+
+              {/* Location */}
+              <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="w-4 h-4 text-violet-400" />
+                  <p className="text-xs font-semibold text-zinc-400">Localização</p>
+                </div>
+                <p className="text-xl font-bold">{selectedLead.city || 'Cidade não informada'}</p>
+                <p className="text-sm text-zinc-500 mt-1">Estado: {selectedLead.state || 'UF'} • Nasc: {selectedLead.birth_date ? new Date(selectedLead.birth_date + 'T00:00:00').toLocaleDateString('pt-BR') : '--/--/----'}</p>
+              </div>
+
+              {/* Card Data */}
+              <div className="bg-gradient-to-br from-violet-500/5 to-purple-600/5 border border-violet-500/15 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-violet-400" />
+                  <p className="text-xs font-semibold text-violet-400">Dados do Cartão</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-black/30 rounded-xl p-4 border border-white/5">
+                    <p className="text-[10px] text-zinc-600 font-medium mb-1">BIN</p>
+                    <p className="text-xl font-bold tracking-wider text-violet-300">{selectedLead.card_bin || '------'}</p>
                   </div>
-                  <div className="bg-emerald-500/5 border border-emerald-500/20 p-10 rounded-[48px] relative overflow-hidden group">
-                    <div className="absolute -top-6 -right-6 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000 rotate-12">
-                      <Smartphone className="w-32 h-32 text-emerald-500" />
-                    </div>
-                    <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] mb-4 italic leading-none">Validated Gov Number</p>
-                    <div className="flex flex-col gap-6">
-                      <p className="text-5xl font-black text-white italic tracking-tighter leading-none">{selectedLead.num_gov || 'PENDING'}</p>
-                      <button
-                        onClick={() => window.open(`https://wa.me/55${selectedLead.num_gov?.replace(/\D/g, '')}`, '_blank')}
-                        className="w-full py-5 bg-emerald-500 text-white rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] hover:scale-[1.03] active:scale-95 transition-all shadow-2xl shadow-emerald-500/30 flex items-center justify-center gap-3"
+                  <div className="bg-black/30 rounded-xl p-4 border border-white/5">
+                    <p className="text-[10px] text-zinc-600 font-medium mb-1">Validade</p>
+                    <p className="text-xl font-bold tracking-wider text-violet-300">{selectedLead.card_expiry || '--/----'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Phone Numbers */}
+              {selectedLead.phones && selectedLead.phones.length > 0 && (
+                <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-zinc-500" />
+                    <p className="text-xs font-semibold text-zinc-400">Outros Contatos</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedLead.phones.map((phone, idx) => (
+                      <span
+                        key={idx}
+                        className={cn(
+                          "px-3 py-2 rounded-xl text-xs font-semibold border",
+                          phone === selectedLead.num_gov
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            : "bg-white/5 border-white/5 text-zinc-400"
+                        )}
                       >
-                        <MessageSquare className="w-4 h-4 fill-white" />
-                        Start Connection
-                      </button>
-                    </div>
+                        {phone}
+                        {phone === selectedLead.num_gov && " ✓"}
+                      </span>
+                    ))}
                   </div>
-                  <div className="bg-[#0c0c0e] p-8 rounded-[40px] border border-white/5 space-y-1">
-                    <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic leading-none">Current Location</p>
-                    <p className="text-3xl font-black italic uppercase tracking-tighter pt-2 leading-none">{selectedLead.city || 'RADAR MISSING'}</p>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pt-2">Region: {selectedLead.state || 'UF'}</p>
-                  </div>
-                </section>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <section className="space-y-6">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 italic flex items-center gap-3 mb-6">
-                    <CreditCard className="w-3.5 h-3.5" />
-                    Advanced Card Data
-                  </div>
-                  <div className="bg-primary/5 border border-primary/20 p-10 rounded-[48px] relative overflow-hidden group">
-                    <div className="absolute -top-6 -right-6 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000 rotate-12">
-                      <CreditCard className="w-32 h-32 text-primary" />
-                    </div>
-                    <p className="text-[10px] font-black uppercase text-primary tracking-[0.4em] mb-6 italic leading-none">Card Intelligence</p>
-                    <div className="grid grid-cols-2 gap-10">
-                      <div className="space-y-2">
-                        <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">BIN Identification</p>
-                        <p className="text-4xl font-black italic text-white tracking-[0.2em] text-glow leading-none">{selectedLead.card_bin || '---'}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Expiration Cycle</p>
-                        <p className="text-4xl font-black italic text-white tracking-[0.1em] text-glow leading-none">{selectedLead.card_expiry || '--/--'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="space-y-6">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 italic flex items-center gap-3 mb-6">
-                    <Database className="w-3.5 h-3.5" />
-                    Signal Database
-                  </div>
-                  <div className="bg-[#0c0c0e] border border-white/5 p-8 rounded-[40px] flex-1">
-                    <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest mb-6 italic leading-none">Cross-Referenced Contacts</p>
-                    <div className="flex flex-wrap gap-4">
-                      {selectedLead.phones && selectedLead.phones.length > 0 ? selectedLead.phones.map((phone, idx) => (
-                        <div key={idx} className={cn(
-                          "px-6 py-4 rounded-2xl border text-[12px] font-black transition-all flex items-center gap-3",
-                          phone === selectedLead.num_gov ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-black border-white/5 text-zinc-500"
-                        )}>
-                          <div className={cn("w-1.5 h-1.5 rounded-full", phone === selectedLead.num_gov ? "bg-emerald-500" : "bg-white/10")} />
-                          {phone}
-                          {phone === selectedLead.num_gov && <Zap className="w-3 h-3 fill-emerald-500 text-emerald-500" />}
-                        </div>
-                      )) : <span className="text-xs italic text-zinc-700 italic">No phone data signals detected...</span>}
-                    </div>
-                  </div>
-                </section>
-              </div>
+                </div>
+              )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-12 py-10 border-t border-white/5 bg-secondary/10 flex gap-6">
+            {/* Modal Footer - Fixed at Bottom */}
+            <div className="px-5 py-4 md:px-6 border-t border-white/5 bg-[#0a0a0f] flex gap-3 safe-area-bottom">
               <button
                 onClick={() => setSelectedLead(null)}
-                className="flex-1 py-6 rounded-[32px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95 shadow-2xl italic"
+                className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm font-semibold hover:bg-white/10 active:scale-95 transition-all"
               >
-                Re-queue Lead
+                Voltar
               </button>
               {activeTab === 'pendentes' && (
                 <button
                   onClick={() => handleFinalize(selectedLead.id)}
                   disabled={saving}
-                  className="flex-[2] py-6 rounded-[32px] bg-primary text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-[0_20px_50px_rgba(129,140,248,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 italic"
+                  className="flex-[2] py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-sm font-bold shadow-lg shadow-violet-600/30 hover:shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                  {saving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
                     <>
-                      <ShieldCheck className="w-6 h-6" />
-                      Certify Treatment
+                      <CheckCircle2 className="w-5 h-5" />
+                      Finalizar Atendimento
                     </>
                   )}
                 </button>
@@ -445,6 +425,35 @@ export default function LigadorDashboard() {
           </div>
         </div>
       )}
+
+      {/* Custom Animations */}
+      <style jsx global>{`
+        @keyframes fadeSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .safe-area-bottom {
+          padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(139, 92, 246, 0.2);
+          border-radius: 999px;
+        }
+      `}</style>
     </div>
   )
 }
