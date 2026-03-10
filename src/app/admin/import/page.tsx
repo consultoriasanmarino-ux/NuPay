@@ -73,16 +73,28 @@ export default function ImportPage() {
             let card_expiry = null;
 
             if (mode === 'bot') {
+                // Format 1: NOME: Fulano | 🆔 12345678900 | BIN: 516292 | VAL: 01/2030
                 const nameMatch = line.match(/NOME:\s*([^|]+)/);
-                const cpfMatch = line.match(/🆔\s*(\d+)/);
-                const binMatch = line.match(/BIN:\s*(\d+)/);
+                const cpfMatch1 = line.match(/🆔\s*(\d+)/);
+                const binMatch1 = line.match(/BIN:\s*(\d+)/);
                 const valMatch = line.match(/VAL:\s*(\d+\s*\/\s*\d+)/);
 
-                if (cpfMatch) {
-                    cpf = cpfMatch[1].trim();
+                // Format 2: 1️⃣ 516292 | 👤Gabriela fernandes | 📝15574748770
+                const cpfMatch2 = line.match(/📝\s*(\d+)/);
+                const nameMatch2 = line.match(/👤\s*([^|]+)/);
+                const binMatch2 = line.match(/(\d{6})\s*\|/);
+
+                if (cpfMatch1) {
+                    // Format 1
+                    cpf = cpfMatch1[1].trim();
                     fullName = nameMatch ? nameMatch[1].trim().toUpperCase() : 'NOME_AUSENTE';
-                    if (binMatch) card_bin = binMatch[1].trim().slice(0, 6);
+                    if (binMatch1) card_bin = binMatch1[1].trim().slice(0, 6);
                     if (valMatch) card_expiry = valMatch[1].trim().replace(/\s/g, '');
+                } else if (cpfMatch2) {
+                    // Format 2
+                    cpf = cpfMatch2[1].trim();
+                    fullName = nameMatch2 ? nameMatch2[1].trim().toUpperCase() : 'NOME_AUSENTE';
+                    if (binMatch2) card_bin = binMatch2[1].trim().slice(0, 6);
                 }
             } else if (mode === 'cpf') {
                 const cpfMatch = line.match(/\d{11}/);
