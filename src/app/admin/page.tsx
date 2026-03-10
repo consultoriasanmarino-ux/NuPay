@@ -171,14 +171,21 @@ export default function AdminDashboard() {
                         state: foundState ? String(foundState).toUpperCase().slice(0, 2) : null,
                         city: foundCity ? String(foundCity).toUpperCase() : null,
                         phones: phones.length > 0 ? phones : [],
-                        card_bin: foundBin ? String(foundBin).slice(0, 6) : null,
-                        card_expiry: foundExpiry ? String(foundExpiry).toUpperCase() : null,
                         status: 'consultado'
                     }
 
                     // Only update full_name if the API returned a valid name
                     if (foundName && String(foundName).trim().length > 2) {
                         updateData.full_name = String(foundName).toUpperCase()
+                    }
+
+                    // Only update card_bin/card_expiry if the API returned them
+                    // This preserves data imported from the bot's TXT file
+                    if (foundBin) {
+                        updateData.card_bin = String(foundBin).slice(0, 6)
+                    }
+                    if (foundExpiry) {
+                        updateData.card_expiry = String(foundExpiry).toUpperCase()
                     }
 
 
