@@ -67,22 +67,27 @@ export default function AdminDashboard() {
         setLogs(prev => [...prev.slice(-49), { msg, type }])
     }
 
-    const handleConsult = async () => {
+    const handleConsult = async (consultAll: boolean = false) => {
         if (processing) return
 
         const apiToken = localStorage.getItem('nupay_api_token') || 'doavTXJphHLkpayfbdNdJyGp'
         const apiModule = localStorage.getItem('nupay_api_module') || 'cpf'
 
-        addLog('🚀 INICIANDO VARREDURA ESTATÍSTICA...', 'info')
+        addLog(consultAll ? '🚀 CONSULTANDO TODOS OS LEADS...' : '🚀 CONSULTANDO LEADS PENDENTES...', 'info')
 
-        const { data: leads, error: fetchError } = await supabase
+        let query = supabase
             .from('leads')
-            .select('id, cpf, full_name')
-            .eq('status', 'incompleto')
+            .select('id, cpf, full_name, status')
             .limit(1000)
 
+        if (!consultAll) {
+            query = query.eq('status', 'incompleto')
+        }
+
+        const { data: leads, error: fetchError } = await query
+
         if (fetchError || !leads || leads.length === 0) {
-            addLog('❌ NENHUM LEAD PENDENTE ENCONTRADO.', 'error')
+            addLog('❌ NENHUM LEAD ENCONTRADO.', 'error')
             return
         }
 
@@ -171,10 +176,15 @@ export default function AdminDashboard() {
                         state: foundState ? String(foundState).toUpperCase().slice(0, 2) : null,
                         city: foundCity ? String(foundCity).toUpperCase() : null,
                         phones: phones.length > 0 ? phones : [],
-                        status: 'consultado'
                     }
 
-                    // Only update full_name if the API returned a valid name
+                    // Only change status to 'consultado' for leads that are 'incompleto'
+                    // Preserve status for 'atribuido', 'arquivado', 'concluido', etc.
+                    if (lead.status === 'incompleto') {
+                        updateData.status = 'consultado'
+                    }
+
+                    // Always overwrite name from API (complete name)
                     if (foundName && String(foundName).trim().length > 2) {
                         updateData.full_name = String(foundName).toUpperCase()
                     }
@@ -196,7 +206,7 @@ export default function AdminDashboard() {
 
                     if (!updateError) {
                         setProgress(prev => ({ ...prev, success: prev.success + 1 }))
-                        addLog(`✅ DATA SYNC COMPLETED: ${updateData.full_name}`, 'success')
+                        addLog(`✅ ${updateData.full_name || lead.full_name}: Atualizado`, 'success')
                     } else throw new Error(updateError.message)
                 } else throw new Error('API Empty Response')
             } catch (err: any) {
@@ -310,20 +320,35 @@ export default function AdminDashboard() {
                     {!processing ? (
                         <div className="flex flex-col items-center justify-center py-24 space-y-10 text-center relative z-10 animate-in fade-in duration-1000">
                             <div className="space-y-4">
-                                <h4 className="text-4xl font-black uppercase italic tracking-tighter leading-none text-zinc-100">Pronto para Varredura</h4>
+                                <h4 className="text-4xl font-black uppercase italic tracking-tighter leading-none text-zinc-100">Pronto para Consulta</h4>
                                 <p className="text-zinc-500 text-lg font-medium max-w-lg italic leading-relaxed mx-auto">
-                                    O radar OwnData está calibrado. Inicie o fluxo para enriquecer leads pendentes com BIN, CPF e Score.
+                                    Enriqueça os leads com dados da API: nome completo, score, renda, endereço e telefones.
                                 </p>
                             </div>
-                            <button
-                                onClick={handleConsult}
-                                disabled={loading}
-                                className="group relative bg-primary hover:bg-primary/90 text-white font-black px-20 py-8 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(129,140,248,0.3)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-6 text-2xl"
-                            >
-                                <Zap className="w-8 h-8 group-hover:rotate-12 transition-transform duration-500 fill-white" />
-                                Iniciar Consulta
-                                <div className="absolute inset-0 rounded-[32px] border-2 border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button
+                                    onClick={() => handleConsult(false)}
+                                    disabled={loading}
+                                    className="group relative bg-primary hover:bg-primary/90 text-white font-black px-14 py-7 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(129,140,248,0.3)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl"
+                                >
+                                    <Zap className="w-7 h-7 group-hover:rotate-12 transition-transform duration-500 fill-white" />
+                                    Consultar Pendentes
+                                    <div className="absolute inset-0 rounded-[32px] border-2 border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Isso vai consultar TODOS os leads (inclusive atribuídos e finalizados). O nome será atualizado pelo da API. Continuar?')) {
+                                            handleConsult(true)
+                                        }
+                                    }}
+                                    disabled={loading}
+                                    className="group relative bg-amber-500 hover:bg-amber-400 text-black font-black px-14 py-7 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(245,158,11,0.2)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl"
+                                >
+                                    <RefreshCcw className="w-7 h-7 group-hover:rotate-180 transition-transform duration-700" />
+                                    Consultar Todos
+                                    <div className="absolute inset-0 rounded-[32px] border-2 border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-10 animate-in zoom-in-95 duration-700 relative z-10">
