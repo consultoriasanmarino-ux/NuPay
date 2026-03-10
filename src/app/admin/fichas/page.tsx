@@ -100,7 +100,7 @@ export default function FichasPage() {
     const handleAssign = async (leadId: string) => {
         const ownerId = selectedLigadorForLead[leadId]
         if (!ownerId) {
-            alert('PROTOCOL ERROR: SELECT OPERATOR FIRST.')
+            alert('Selecione um ligador primeiro.')
             return
         }
 
@@ -115,7 +115,7 @@ export default function FichasPage() {
             .eq('id', leadId)
 
         if (error) {
-            alert('DB ERROR: ' + error.message)
+            alert('Erro: ' + error.message)
         } else {
             setLeads(prev => prev.filter(l => l.id !== leadId))
             setTotalCount(prev => prev - 1)
@@ -125,18 +125,18 @@ export default function FichasPage() {
 
     const handleBatchAssign = async () => {
         if (!selectedLigadorBatch) {
-            alert('PROTOCOL ERROR: SELECT BATCH OPERATOR.')
+            alert('Selecione um ligador para atribuição em lote.')
             return
         }
 
         const leadsToAssign = leads.slice(0, 10)
         if (leadsToAssign.length === 0) {
-            alert('RADAR EMPTY: NO LEADS AVAILABLE.')
+            alert('Nenhum lead disponível.')
             return
         }
 
         const selectedLigadorName = ligadores.find(l => l.id === selectedLigadorBatch)?.full_name || 'este ligador'
-        if (!confirm(`CONFIRM: ASSIGN ${leadsToAssign.length} SIGNALS TO ${selectedLigadorName}?`)) return
+        if (!confirm(`Confirmar: Atribuir ${leadsToAssign.length} fichas para ${selectedLigadorName}?`)) return
 
         setBatchAssigning(true)
         const ids = leadsToAssign.map(l => l.id)
@@ -150,9 +150,9 @@ export default function FichasPage() {
             .in('id', ids)
 
         if (error) {
-            alert('BATCH FAILURE: ' + error.message)
+            alert('Erro na atribuição: ' + error.message)
         } else {
-            alert(`✅ ${leadsToAssign.length} SIGNALS SYNCED SUCCESSFULLY.`)
+            alert(`✅ ${leadsToAssign.length} fichas atribuídas com sucesso.`)
             fetchData()
         }
         setBatchAssigning(false)
@@ -167,11 +167,11 @@ export default function FichasPage() {
                         <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
                             <Activity className="w-8 h-8 text-primary shadow-glow" />
                         </div>
-                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Signal Queue Center</h2>
+                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Central de Fichas</h2>
                     </div>
                     <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
                         <Smartphone className="w-4 h-4 text-emerald-500" />
-                        Validated Leads Ready for Operator Interaction
+                        Fichas validadas prontas para atribuição aos ligadores
                     </p>
                 </div>
 
@@ -181,13 +181,13 @@ export default function FichasPage() {
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all active:scale-95 shadow-2xl italic"
                     >
                         <Unlock className="w-5 h-5" />
-                        Unlock Assigned Signals
+                        Desatribuir Fichas
                     </Link>
                     <div className="flex items-center gap-4 bg-secondary/30 border border-white/5 px-8 py-4 rounded-[24px] shadow-2xl group">
                         <Database className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
                         <div>
-                            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] leading-none mb-1 shadow-glow-sm">Available IQ</p>
-                            <p className="text-2xl font-black italic text-white tracking-tighter">{totalCount} SIGNALS</p>
+                            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] leading-none mb-1 shadow-glow-sm">Disponíveis</p>
+                            <p className="text-2xl font-black italic text-white tracking-tighter">{totalCount} FICHAS</p>
                         </div>
                     </div>
                 </div>
@@ -197,9 +197,9 @@ export default function FichasPage() {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                 <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 glass p-6 rounded-[48px] border-white/5 backdrop-blur-3xl shadow-xl">
                     {[
-                        { label: 'Renda', key: 'income', options: [{ v: 'greater', l: 'Top Range (>5k)' }, { v: 'less', l: 'Mid Range (<5k)' }] },
-                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Elite Signal (>700)' }, { v: 'less', l: 'Standard (<700)' }] },
-                        { label: 'Idade', key: 'age', options: [{ v: 'greater', l: 'Senior (40+)' }, { v: 'less', l: 'Junior (<40)' }] }
+                        { label: 'Renda', key: 'income', options: [{ v: 'greater', l: 'Acima de 5k' }, { v: 'less', l: 'Abaixo de 5k' }] },
+                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Acima de 700' }, { v: 'less', l: 'Abaixo de 700' }] },
+                        { label: 'Idade', key: 'age', options: [{ v: 'greater', l: '40+ anos' }, { v: 'less', l: 'Menos de 40' }] }
                     ].map((f) => (
                         <div key={f.key} className="relative group">
                             <Filter className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-all duration-300" />
@@ -208,7 +208,7 @@ export default function FichasPage() {
                                 onChange={(e) => setFilters(p => ({ ...p, [f.key]: e.target.value }))}
                                 className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/40 transition-all appearance-none cursor-pointer text-zinc-400 group-hover:text-white"
                             >
-                                <option value="">{f.label} Portal</option>
+                                <option value="">{f.label} (Filtro)</option>
                                 {f.options.map(o => <option key={o.v} value={o.v} className="bg-[#0c0c0e]">{o.l}</option>)}
                             </select>
                         </div>
@@ -223,7 +223,7 @@ export default function FichasPage() {
                             onChange={(e) => setSelectedLigadorBatch(e.target.value)}
                             className="w-full bg-black/40 border border-primary/20 rounded-[20px] py-4 pl-10 pr-4 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/40 transition-all appearance-none cursor-pointer text-primary shadow-glow-sm"
                         >
-                            <option value="" className="bg-[#0c0c0e] text-zinc-500">Target Protocol...</option>
+                            <option value="" className="bg-[#0c0c0e] text-zinc-500">Selecionar Ligador...</option>
                             {ligadores.map(lig => (
                                 <option key={lig.id} value={lig.id} className="bg-[#0c0c0e]">{lig.full_name}</option>
                             ))}
@@ -247,7 +247,7 @@ export default function FichasPage() {
                         <Loader2 className="w-16 h-16 text-primary animate-spin" />
                         <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Connecting to Signal Matrix...</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Carregando fichas...</p>
                 </div>
             ) : leads.length === 0 ? (
                 <div className="glass border-dashed border-white/5 rounded-[64px] p-32 flex flex-col items-center justify-center text-center space-y-8 shadow-2xl animate-in zoom-in-95 duration-700">
@@ -255,8 +255,8 @@ export default function FichasPage() {
                         <PhoneCall className="w-14 h-14 group-hover:text-primary transition-colors" />
                     </div>
                     <div className="space-y-3">
-                        <h3 className="text-3xl font-black uppercase italic tracking-tighter">Queue Exhausted</h3>
-                        <p className="text-zinc-500 max-w-sm mx-auto italic font-medium">Inject new validated protocols or enrich pending signals to populate the assignment radar.</p>
+                        <h3 className="text-3xl font-black uppercase italic tracking-tighter">Fila Vazia</h3>
+                        <p className="text-zinc-500 max-w-sm mx-auto italic font-medium">Nenhuma ficha disponível para atribuição. Enriqueça ou importe novos leads.</p>
                     </div>
                 </div>
             ) : (
@@ -270,7 +270,7 @@ export default function FichasPage() {
                                     <UserCheck className="w-9 h-9 text-primary shadow-glow" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.3em] bg-emerald-500/5 px-6 py-2.5 rounded-full border border-emerald-500/10 mb-3 italic emerald-glow">Signal Ready</p>
+                                    <p className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.3em] bg-emerald-500/5 px-6 py-2.5 rounded-full border border-emerald-500/10 mb-3 italic emerald-glow">Pronta</p>
                                     <div className="flex items-center gap-2 justify-end text-zinc-600">
                                         <MapPin className="w-3.5 h-3.5" />
                                         <span className="text-[10px] font-black uppercase tracking-widest italic">{lead.city || 'GLOBAL'}, {lead.state || 'UF'}</span>
@@ -280,17 +280,17 @@ export default function FichasPage() {
 
                             <div className="relative z-10 space-y-2">
                                 <h4 className="text-3xl font-black uppercase italic tracking-tighter truncate group-hover:text-primary transition-colors leading-none decoration-primary/20 underline underline-offset-8">
-                                    {lead.full_name || 'PENDING IDENTITY'}
+                                    {lead.full_name || 'SEM NOME'}
                                 </h4>
-                                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">Network ID: <span className="text-zinc-400">{lead.cpf}</span></p>
+                                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">CPF: <span className="text-zinc-400">{lead.cpf}</span></p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-5 relative z-10">
                                 {[
-                                    { icon: ShieldCheck, label: 'Score Signal', val: lead.score || '--', color: 'text-white' },
-                                    { icon: Database, label: 'Capital IQ', val: `R$ ${Number(lead.income || 0).toLocaleString('pt-BR')}`, color: 'text-emerald-500' },
-                                    { icon: Calendar, label: 'Cycle Range', val: `${lead.age || '--'} ANOS`, color: 'text-blue-400' },
-                                    { icon: Clock, label: 'Gov Protocol', val: lead.num_gov || 'PENDING', color: 'text-white', full: true }
+                                    { icon: ShieldCheck, label: 'Score', val: lead.score || '--', color: 'text-white' },
+                                    { icon: Database, label: 'Renda', val: `R$ ${Number(lead.income || 0).toLocaleString('pt-BR')}`, color: 'text-emerald-500' },
+                                    { icon: Calendar, label: 'Idade', val: `${lead.age || '--'} ANOS`, color: 'text-blue-400' },
+                                    { icon: Clock, label: 'Nº Gov', val: lead.num_gov || 'Pendente', color: 'text-white', full: true }
                                 ].map((item, i) => (
                                     <div key={i} className={cn("glass-deep p-6 rounded-[32px] border-white/5 hover:border-white/10 transition-all", item.full && "col-span-2")}>
                                         <div className="flex items-center gap-3 mb-3">
@@ -301,19 +301,19 @@ export default function FichasPage() {
                                     </div>
                                 ))}
                                 <div className="glass-deep p-6 rounded-[32px] border-white/5 col-span-1 border-primary/10">
-                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-3 italic">BIN Node</p>
-                                    <p className="text-2xl font-black italic text-primary text-glow leading-none">{lead.card_bin || '---'}</p>
+                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-3 italic">BIN</p>
+                                    <p className="text-2xl font-black italic text-primary text-glow leading-none">{lead.card_bin || 'N/D'}</p>
                                 </div>
                                 <div className="glass-deep p-6 rounded-[32px] border-white/5 col-span-1 border-primary/10">
-                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-3 italic">Vault Exp.</p>
-                                    <p className="text-2xl font-black italic text-primary text-glow leading-none">{lead.card_expiry || '--/--'}</p>
+                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-3 italic">Validade</p>
+                                    <p className="text-2xl font-black italic text-primary text-glow leading-none">{lead.card_expiry || 'N/D'}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4 pt-4 relative z-10">
                                 <div className="flex items-center gap-3 mb-1">
                                     <Zap className="w-4 h-4 text-primary animate-pulse" />
-                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] italic">Deploy to Operator Node</p>
+                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] italic">Atribuir a Ligador</p>
                                 </div>
                                 <div className="flex gap-4">
                                     <select
@@ -321,7 +321,7 @@ export default function FichasPage() {
                                         onChange={(e) => setSelectedLigadorForLead(prev => ({ ...prev, [lead.id]: e.target.value }))}
                                         className="flex-1 bg-black/40 border border-white/5 rounded-[24px] px-8 py-5 text-[11px] font-black uppercase italic tracking-[0.1em] outline-none focus:ring-1 focus:ring-primary/40 appearance-none cursor-pointer shadow-inner text-white group-hover:border-primary/20 transition-all"
                                     >
-                                        <option value="" className="bg-[#0c0c0e] text-zinc-600">Select Node ID...</option>
+                                        <option value="" className="bg-[#0c0c0e] text-zinc-600">Selecionar Ligador...</option>
                                         {ligadores.map(lig => (
                                             <option key={lig.id} value={lig.id} className="bg-[#0c0c0e]">{lig.full_name}</option>
                                         ))}
@@ -348,8 +348,8 @@ export default function FichasPage() {
                             <Cpu className="w-10 h-10 text-zinc-700 group-hover:text-primary transition-colors" />
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 italic leading-none mb-2">Protocol Page Index</p>
-                            <p className="text-3xl font-black italic tracking-tighter leading-none">{page} <span className="text-zinc-800 mx-4 text-sm font-black italic">OF MATRIX</span> {Math.ceil(totalCount / ITEMS_PER_PAGE) || 1}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 italic leading-none mb-2">Página</p>
+                            <p className="text-3xl font-black italic tracking-tighter leading-none">{page} <span className="text-zinc-800 mx-4 text-sm font-black italic">DE</span> {Math.ceil(totalCount / ITEMS_PER_PAGE) || 1}</p>
                         </div>
                     </div>
 
@@ -360,14 +360,14 @@ export default function FichasPage() {
                             className="flex items-center gap-4 px-10 py-6 rounded-[28px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-20 shadow-xl italic"
                         >
                             <ChevronLeft className="w-6 h-6" />
-                            Prev Sequence
+                            Anterior
                         </button>
                         <button
                             onClick={() => { setPage(p => (p * ITEMS_PER_PAGE < totalCount ? p + 1 : p)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             disabled={page * ITEMS_PER_PAGE >= totalCount}
                             className="flex items-center gap-4 px-12 py-6 rounded-[28px] bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-glow hover:scale-[1.03] transition-all active:scale-95 disabled:opacity-20 italic border-b-4 border-black/20"
                         >
-                            Next Radar Data
+                            Próxima
                             <ChevronRight className="w-6 h-6" />
                         </button>
                     </div>
