@@ -36,6 +36,57 @@ export default function LigadorDashboard() {
   const [saving, setSaving] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [userName, setUserName] = useState('Ligador')
+  const [msgValor, setMsgValor] = useState('1.500,00')
+  const [msgData, setMsgData] = useState('')
+  const [msgHora, setMsgHora] = useState('')
+  const [msgCopied, setMsgCopied] = useState(false)
+
+  // Generate default date/time (2-4 hours ago)
+  const generateDefaultDateTime = useCallback(() => {
+    const now = new Date()
+    const hoursAgo = 2 + Math.floor(Math.random() * 3) // 2-4 hours
+    const past = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000)
+    const day = String(past.getDate()).padStart(2, '0')
+    const month = String(past.getMonth() + 1).padStart(2, '0')
+    const year = past.getFullYear()
+    const hours = String(past.getHours()).padStart(2, '0')
+    const minutes = String(past.getMinutes()).padStart(2, '0')
+    setMsgData(`${day}/${month}/${year}`)
+    setMsgHora(`${hours}:${minutes}`)
+  }, [])
+
+  // Reset message fields when selecting a new lead
+  useEffect(() => {
+    if (selectedLead) {
+      setMsgValor('1.500,00')
+      generateDefaultDateTime()
+      setMsgCopied(false)
+    }
+  }, [selectedLead, generateDefaultDateTime])
+
+  const buildMessage = useCallback(() => {
+    const nome = selectedLead?.full_name?.split(' ')[0] || 'Cliente'
+    const nomeFormatado = nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase()
+    return `Nubank: Segurança do Cartão 💳\n\nOlá, ${nomeFormatado}. Identificamos uma tentativa de compra que foge do seu perfil de uso e, por segurança, o seu cartão foi bloqueado temporariamente.\n\nDados da transação:\n🛒 Estabelecimento: Recarga Pay Brasil (online)\n💰 Valor: R$ ${msgValor}\n📅 Data: ${msgData} às ${msgHora}\n\nVocê reconhece essa transação?`
+  }, [selectedLead, msgValor, msgData, msgHora])
+
+  const handleCopyMessage = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(buildMessage())
+      setMsgCopied(true)
+      setTimeout(() => setMsgCopied(false), 2000)
+    } catch {
+      // Fallback
+      const ta = document.createElement('textarea')
+      ta.value = buildMessage()
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setMsgCopied(true)
+      setTimeout(() => setMsgCopied(false), 2000)
+    }
+  }, [buildMessage])
 
   const fetchLeads = useCallback(async () => {
     const ligadorId = localStorage.getItem('nupay_ligador_id')
@@ -340,7 +391,7 @@ export default function LigadorDashboard() {
                 </div>
               </div>
 
-              {/* Gov Number - MAIN CTA */}
+              {/* Gov Number + Message Template */}
               <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl p-5 md:p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-emerald-400" />
@@ -349,15 +400,104 @@ export default function LigadorDashboard() {
                 <p className="text-3xl md:text-4xl font-bold text-white tracking-tight text-center py-2">
                   {selectedLead.num_gov ? selectedLead.num_gov.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') : 'Não disponível'}
                 </p>
-                {selectedLead.num_gov && (
+              </div>
+
+              {/* Message Template Section */}
+              <div className="border rounded-2xl p-5 space-y-4" style={{ background: 'rgba(130,10,209,0.03)', borderColor: 'rgba(130,10,209,0.15)' }}>
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" style={{ color: '#9B30D9' }} />
+                  <p className="text-xs font-semibold" style={{ color: '#9B30D9' }}>Mensagem de Abordagem</p>
+                </div>
+
+                {/* Editable Fields */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-zinc-500 font-medium ml-1">Valor (R$)</label>
+                    <input
+                      type="text"
+                      value={msgValor}
+                      onChange={(e) => {
+                        // Allow only numbers, dots, commas
+                        const v = e.target.value.replace(/[^0-9.,]/g, '')
+                        setMsgValor(v)
+                      }}
+                      className="w-full bg-black/30 border border-white/5 rounded-xl py-3 px-3 text-sm font-semibold outline-none transition-all text-center"
+                      style={{ borderColor: 'rgba(130,10,209,0.15)' }}
+                      placeholder="1.500,00"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-zinc-500 font-medium ml-1">Data</label>
+                    <input
+                      type="text"
+                      value={msgData}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/[^0-9/]/g, '')
+                        // Auto-format: add / after DD and MM
+                        if (v.length === 2 && !v.includes('/')) v += '/'
+                        if (v.length === 5 && v.split('/').length === 2) v += '/'
+                        if (v.length > 10) v = v.slice(0, 10)
+                        setMsgData(v)
+                      }}
+                      className="w-full bg-black/30 border border-white/5 rounded-xl py-3 px-3 text-sm font-semibold outline-none transition-all text-center"
+                      style={{ borderColor: 'rgba(130,10,209,0.15)' }}
+                      placeholder="DD/MM/AAAA"
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-zinc-500 font-medium ml-1">Horário</label>
+                  <input
+                    type="text"
+                    value={msgHora}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/[^0-9:]/g, '')
+                      if (v.length === 2 && !v.includes(':')) v += ':'
+                      if (v.length > 5) v = v.slice(0, 5)
+                      setMsgHora(v)
+                    }}
+                    className="w-full bg-black/30 border border-white/5 rounded-xl py-3 px-3 text-sm font-semibold outline-none transition-all text-center"
+                    style={{ borderColor: 'rgba(130,10,209,0.15)' }}
+                    placeholder="HH:MM"
+                    maxLength={5}
+                  />
+                </div>
+
+                {/* Message Preview */}
+                <div className="bg-black/40 rounded-xl p-4 border border-white/5">
+                  <p className="text-[10px] text-zinc-500 font-medium mb-2">Pré-visualização:</p>
+                  <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-line">
+                    {buildMessage()}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => window.open(`https://wa.me/55${selectedLead.num_gov?.replace(/\D/g, '')}`, '_blank')}
-                    className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
+                    onClick={handleCopyMessage}
+                    className="py-3.5 rounded-xl border text-sm font-semibold active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                    style={{ borderColor: 'rgba(130,10,209,0.3)', color: '#9B30D9', background: 'rgba(130,10,209,0.05)' }}
                   >
-                    <MessageSquare className="w-5 h-5 fill-white" />
-                    Abrir WhatsApp
+                    {msgCopied ? (
+                      <><CheckCircle2 className="w-4 h-4" /> Copiado!</>
+                    ) : (
+                      <><CreditCard className="w-4 h-4" /> Copiar</>
+                    )}
                   </button>
-                )}
+                  {selectedLead.num_gov && (
+                    <button
+                      onClick={() => {
+                        const msg = encodeURIComponent(buildMessage())
+                        window.open(`https://wa.me/55${selectedLead.num_gov?.replace(/\D/g, '')}?text=${msg}`, '_blank')
+                      }}
+                      className="py-3.5 bg-emerald-500 text-white rounded-xl font-bold text-sm active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
+                    >
+                      <MessageSquare className="w-4 h-4 fill-white" />
+                      WhatsApp
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Location */}
