@@ -47,8 +47,14 @@ export default function LeadsPage() {
             .range(start, end)
             .order('created_at', { ascending: false })
 
-        if (searchTerm) {
-            query = query.or(`cpf.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+        let cleanSearch = searchTerm
+        if (/[\d.-]{11,14}/.test(searchTerm)) {
+            // Se parecer um CPF, limpa pontos e traços para bater com o banco
+            cleanSearch = searchTerm.replace(/\D/g, '')
+        }
+
+        if (cleanSearch) {
+            query = query.or(`cpf.ilike.%${cleanSearch}%,full_name.ilike.%${searchTerm}%`)
         }
 
         if (filters.income === 'greater') query = query.gte('income', 5000)
@@ -108,7 +114,6 @@ export default function LeadsPage() {
         }
         setLoading(false)
     }
-
     const handleFixStatus = async () => {
         if (!confirm('⚠️ NORMALIZAR: Vai corrigir status apenas de leads NÃO atribuídos. Leads atribuídos NÃO serão afetados. Continuar?')) return
         setLoading(true)
@@ -135,6 +140,31 @@ export default function LeadsPage() {
         setLoading(false)
     }
 
+    const handleRepairSystem = async () => {
+        if (!confirm('🚀 REPARAR SISTEMA: Isso vai unificar CPFs duplicados e devolver fichas perdidas para os ligadores. Continuar?')) return
+        setLoading(true)
+
+        try {
+            const res = await fetch('/api/fix-assigned', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ secret: 'fix-assigned-171033' })
+            })
+            const data = await res.json()
+            
+            if (res.ok) {
+                alert(`✅ Reparação Concluída!\n\n- Fichas devolvidas: ${data.fichas_restauradas_para_ligador}\n- Duplicatas removidas: ${data.duplicatas_de_formatacao_removidas}`)
+                fetchLeads()
+            } else {
+                alert('Erro na reparação: ' + data.error)
+            }
+        } catch (err) {
+            alert('Falha na comunicação com o servidor.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     useEffect(() => {
         fetchLeads()
     }, [page, searchTerm, filters])
@@ -157,6 +187,13 @@ export default function LeadsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={handleRepairSystem}
+                        className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-500 hover:text-white transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.1)] italic"
+                    >
+                        <Zap className="w-4 h-4 fill-current" />
+                        Reparar Sistema
+                    </button>
                     <button
                         onClick={handleFixStatus}
                         className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all active:scale-95 shadow-2xl"

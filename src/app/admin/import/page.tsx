@@ -75,12 +75,12 @@ export default function ImportPage() {
             if (mode === 'bot') {
                 // Format 1: NOME: Fulano | 🆔 12345678900 | BIN: 516292 | VAL: 01/2030
                 const nameMatch = line.match(/NOME:\s*([^|]+)/);
-                const cpfMatch1 = line.match(/🆔\s*(\d+)/);
+                const cpfMatch1 = line.match(/🆔\s*([\d.-]+)/);
                 const binMatch1 = line.match(/BIN:\s*(\d+)/);
                 const valMatch = line.match(/VAL:\s*(\d+\s*\/\s*\d+)/);
 
                 // Format 2: 1️⃣ 516292 | 👤Gabriela fernandes | 📝15574748770
-                const cpfMatch2 = line.match(/📝\s*(\d+)/);
+                const cpfMatch2 = line.match(/📝\s*([\d.-]+)/);
                 const nameMatch2 = line.match(/👤\s*([^|]+)/);
                 const binMatch2 = line.match(/(\d{6})\s*\|/);
 
@@ -97,20 +97,28 @@ export default function ImportPage() {
                     if (binMatch2) card_bin = binMatch2[1].trim().slice(0, 6);
                 }
             } else if (mode === 'cpf') {
-                const cpfMatch = line.match(/\d{11}/);
+                const cpfMatch = line.match(/[\d.-]{11,14}/);
                 if (cpfMatch) cpf = cpfMatch[0];
             } else if (mode === 'gov') {
-                const match = line.match(/(\d{11})-(\d{2})/);
-                if (match) govMatches.push({ cpf: match[1], lastTwo: match[2] });
+                const match = line.match(/([\d.-]+)-(\d{2})/);
+                if (match) {
+                    cpf = match[1].replace(/\D/g, '');
+                    govMatches.push({ cpf: cpf, lastTwo: match[2] });
+                }
             }
 
-            if (cpf && cpf.length === 11 && !seenCpfs.has(cpf)) {
-                seenCpfs.add(cpf);
-                const leadObj: any = { cpf };
-                if (fullName) leadObj.full_name = fullName;
-                if (card_bin) leadObj.card_bin = card_bin;
-                if (card_expiry) leadObj.card_expiry = card_expiry;
-                leads.push(leadObj);
+            if (cpf) {
+                // Limpa o CPF (remove pontos, traços, espaços) e garante que tenha 11 dígitos
+                cpf = cpf.replace(/\D/g, '');
+                
+                if (cpf.length === 11 && !seenCpfs.has(cpf)) {
+                    seenCpfs.add(cpf);
+                    const leadObj: any = { cpf };
+                    if (fullName) leadObj.full_name = fullName;
+                    if (card_bin) leadObj.card_bin = card_bin;
+                    if (card_expiry) leadObj.card_expiry = card_expiry;
+                    leads.push(leadObj);
+                }
             }
         });
 
@@ -136,7 +144,7 @@ export default function ImportPage() {
                 for (const item of govMatches) {
                     const { data: leadData } = await supabase
                         .from('leads')
-                        .select('id, phones')
+                        .select('id, phones, status, owner_id')
                         .eq('cpf', item.cpf)
                         .single();
 
@@ -148,9 +156,17 @@ export default function ImportPage() {
                         });
 
                         if (govPhone) {
+                            // SÓ muda o status se a ficha ainda estiver pendente (não atribuída)
+                            const shouldUpdateStatus = ['incompleto', 'consultado', 'processando'].includes(leadData.status);
+                            
+                            const updateData: any = { num_gov: govPhone };
+                            if (shouldUpdateStatus) {
+                                updateData.status = 'concluido';
+                            }
+
                             await supabase
                                 .from('leads')
-                                .update({ num_gov: govPhone, status: 'concluido' })
+                                .update(updateData)
                                 .eq('id', leadData.id);
                             updatedCount++;
                         }
