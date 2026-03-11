@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         if (!updateError) fixedCount = ids.length
     }
 
-    // 2. DETECTAR DUPLICATAS (Formatos diferentes: 123.456 e 123456)
+    // 2. DETECTAR DUPLICATAS (Formatos diferentes e Zeros à esquerda)
     const { data: allLeads } = await supabase.from('leads').select('id, cpf, created_at').order('created_at', { ascending: false })
     
     let deletedDuplicates = 0
@@ -44,11 +44,17 @@ export async function POST(request: Request) {
         const toDelete: string[] = []
         
         for (const lead of allLeads) {
-            const cleanCpf = lead.cpf.replace(/\D/g, '')
+            // Limpa tudo: remove pontos, traços, espaços e garante 11 dígitos com zeros à esquerda
+            const cleanCpf = lead.cpf.replace(/\D/g, '').trim().padStart(11, '0')
+            
             if (seen.has(cleanCpf)) {
-                toDelete.push(lead.id) // Já vimos esse CPF antes (mais recente), apaga este antigo
+                toDelete.push(lead.id)
             } else {
                 seen.set(cleanCpf, lead.id)
+                // Aproveita para normalizar o CPF no banco se ele estiver bagunçado
+                if (lead.cpf !== cleanCpf) {
+                    await supabase.from('leads').update({ cpf: cleanCpf }).eq('id', lead.id)
+                }
             }
         }
 
