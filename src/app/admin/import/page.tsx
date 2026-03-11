@@ -25,7 +25,7 @@ export default function ImportPage() {
     const [mode, setMode] = useState<'cpf' | 'bot' | 'gov'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [results, setResults] = useState<{ success: number, ignored: number, updated?: number } | null>(null)
+    const [results, setResults] = useState<{ success: number, ignored: number, updated?: number, new?: number, existing?: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleDrag = (e: React.DragEvent) => {
@@ -192,7 +192,26 @@ export default function ImportPage() {
             if (error) {
                 alert(`DB SIGNAL DROP: ${error.message}`);
             } else {
-                setResults({ success: data?.length || 0, ignored: leads.length - (data?.length || 0) });
+                // Ao usar upsert com onConflict, 'data' contém todos os registros (novos e atualizados).
+                // Para saber quais são novos, precisaríamos de uma lógica de pré-verificação ou metadados de 'created_at'.
+                // Como o Supabase não diz explicitamente o que foi INSERT vs UPDATE no retorno do upsert,
+                // vamos fazer uma contagem baseada nos CPFs enviados.
+                
+                const cpfs = leads.map(l => l.cpf);
+                const { count: existingCount } = await supabase
+                    .from('leads')
+                    .select('*', { count: 'exact', head: true })
+                    .in('cpf', cpfs);
+
+                const existing = existingCount || 0;
+                const newLeads = leads.length - existing;
+
+                setResults({ 
+                    success: leads.length, 
+                    new: newLeads,
+                    existing: existing,
+                    ignored: leads.length - (data?.length || 0) 
+                });
                 setSelectedFile(null);
             }
         } catch (err) {
@@ -222,9 +241,18 @@ export default function ImportPage() {
                 {results && (
                     <div className="glass px-10 py-6 rounded-[32px] animate-in zoom-in border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
                         <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] leading-none mb-2 italic">Signal Sync Complete</p>
-                        <p className="text-2xl font-black text-white italic tracking-tighter">
-                            {results.updated !== undefined ? `🚀 ${results.updated} GOV VIRTUALIZED` : `+${results.success} LEADS ARCHIVED`}
-                        </p>
+                        <div className="text-2xl font-black text-white italic tracking-tighter flex flex-col items-end">
+                            {mode === 'gov' ? (
+                                <span>🚀 {results.updated} GOV VIRTUALIZED</span>
+                            ) : (
+                                <>
+                                    <span>+{results.new} NOVO RECORDS</span>
+                                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                                        {results.existing} JÁ EXISTIAM (ATUALIZADOS)
+                                    </span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
