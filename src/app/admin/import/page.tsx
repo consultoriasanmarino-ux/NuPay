@@ -108,8 +108,8 @@ export default function ImportPage() {
             }
 
             if (cpf) {
-                // Limpa o CPF (remove pontos, traços, espaços) e garante que tenha 11 dígitos
-                cpf = cpf.replace(/\D/g, '');
+                // Limpa o CPF (remove pontos, traços, espaços) e garante a normalização de 11 dígitos
+                cpf = cpf.replace(/\D/g, '').padStart(11, '0');
                 
                 if (cpf.length === 11 && !seenCpfs.has(cpf)) {
                     seenCpfs.add(cpf);
