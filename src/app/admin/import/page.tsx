@@ -184,33 +184,32 @@ export default function ImportPage() {
                 return;
             }
 
-            const { data, error } = await supabase
+            // 1. Verificar quais CPFs já existem para NÃO atualizar nem duplicar
+            const cpfsToImport = leads.map(l => l.cpf);
+            const { data: existingLeadsData } = await supabase
                 .from('leads')
-                .upsert(leads, { onConflict: 'cpf' })
-                .select();
+                .select('cpf')
+                .in('cpf', cpfsToImport);
+            
+            const existingCpfsInDb = new Set(existingLeadsData?.map(l => l.cpf) || []);
+            const onlyNewLeads = leads.filter(l => !existingCpfsInDb.has(l.cpf));
 
-            if (error) {
-                alert(`DB SIGNAL DROP: ${error.message}`);
-            } else {
-                // Ao usar upsert com onConflict, 'data' contém todos os registros (novos e atualizados).
-                // Para saber quais são novos, precisaríamos de uma lógica de pré-verificação ou metadados de 'created_at'.
-                // Como o Supabase não diz explicitamente o que foi INSERT vs UPDATE no retorno do upsert,
-                // vamos fazer uma contagem baseada nos CPFs enviados.
-                
-                const cpfs = leads.map(l => l.cpf);
-                const { count: existingCount } = await supabase
+            let currentError = null;
+            if (onlyNewLeads.length > 0) {
+                const { error } = await supabase
                     .from('leads')
-                    .select('*', { count: 'exact', head: true })
-                    .in('cpf', cpfs);
+                    .insert(onlyNewLeads);
+                currentError = error;
+            }
 
-                const existing = existingCount || 0;
-                const newLeads = leads.length - existing;
-
+            if (currentError) {
+                alert(`DB SIGNAL DROP: ${currentError.message}`);
+            } else {
                 setResults({ 
                     success: leads.length, 
-                    new: newLeads,
-                    existing: existing,
-                    ignored: leads.length - (data?.length || 0) 
+                    new: onlyNewLeads.length,
+                    existing: existingCpfsInDb.size,
+                    ignored: existingCpfsInDb.size 
                 });
                 setSelectedFile(null);
             }
@@ -248,7 +247,7 @@ export default function ImportPage() {
                                 <>
                                     <span>+{results.new} NOVO RECORDS</span>
                                     <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-                                        {results.existing} JÁ EXISTIAM (ATUALIZADOS)
+                                        {results.existing} JÁ EXISTIAM (IGNORADOS)
                                     </span>
                                 </>
                             )}
