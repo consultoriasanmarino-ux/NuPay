@@ -20,7 +20,8 @@ import {
     Cpu,
     Activity,
     Search,
-    Globe
+    Globe,
+    Award
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -32,7 +33,11 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState({
         total: 0,
         incomplete: 0,
-        assigned: 0
+        assigned: 0,
+        ready: 0,
+        finished: 0,
+        withGov: 0,
+        noGov: 0
     })
     const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 })
     const [logs, setLogs] = useState<{ msg: string, type: 'success' | 'error' | 'info' }[]>([])
@@ -41,14 +46,32 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         setLoading(true)
-        const { count: total } = await supabase.from('leads').select('*', { count: 'exact', head: true })
-        const { count: incomplete } = await supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto')
-        const { count: assigned } = await supabase.from('leads').select('*', { count: 'exact', head: true }).not('owner_id', 'is', null)
+        const [
+            { count: total },
+            { count: incomplete },
+            { count: assigned },
+            { count: ready },
+            { count: finished },
+            { count: withGov },
+            { count: noGov }
+        ] = await Promise.all([
+            supabase.from('leads').select('*', { count: 'exact', head: true }),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'atribuido'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'concluido'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'arquivado'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).not('num_gov', 'is', null),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).is('num_gov', null)
+        ])
 
         setStats({
             total: total || 0,
             incomplete: incomplete || 0,
-            assigned: assigned || 0
+            assigned: assigned || 0,
+            ready: ready || 0,
+            finished: finished || 0,
+            withGov: withGov || 0,
+            noGov: noGov || 0
         })
         setLoading(false)
     }
@@ -230,7 +253,10 @@ export default function AdminDashboard() {
     const statCards = [
         { label: 'Total de Leads', value: stats.total, icon: Database, color: 'text-primary' },
         { label: 'Dados Pendentes', value: stats.incomplete, icon: Clock, color: 'text-amber-500' },
-        { label: 'Leads Atribuídos', value: stats.assigned, icon: Zap, color: 'text-emerald-500' },
+        { label: 'Faltam Nº Gov', value: stats.noGov, icon: AlertCircle, color: 'text-rose-500' },
+        { label: 'Prontas (GOV OK)', value: stats.ready, icon: CheckCircle2, color: 'text-emerald-500' },
+        { label: 'Com Ligadores', value: stats.assigned, icon: Zap, color: 'text-primary' },
+        { label: 'Finalizadas', value: stats.finished, icon: Award, color: 'text-blue-500' },
     ]
 
     return (
@@ -264,19 +290,19 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bento Grid Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                 {statCards.map((stat, idx) => (
-                    <div key={stat.label} className="glass rounded-[48px] p-10 relative overflow-hidden group card-hover border-white/5">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full" />
-                        <div className="flex items-center justify-between mb-10 relative z-10">
-                            <div className={cn("p-5 rounded-[28px] bg-black/40 border border-white/5 shadow-2xl transition-transform group-hover:scale-110 duration-500", stat.color)}>
-                                <stat.icon className="w-8 h-8" />
+                    <div key={stat.label} className="glass rounded-[32px] p-6 relative overflow-hidden group card-hover border-white/5 flex flex-col justify-between">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                            <div className={cn("p-3 rounded-2xl bg-black/40 border border-white/5 shadow-2xl transition-transform group-hover:scale-110 duration-500", stat.color)}>
+                                <stat.icon className="w-5 h-5" />
                             </div>
-                            <Activity className="w-5 h-5 text-zinc-800 group-hover:animate-pulse transition-opacity" />
+                            <Activity className="w-3 h-3 text-zinc-800 group-hover:animate-pulse transition-opacity" />
                         </div>
-                        <div className="relative z-10 space-y-2">
-                            <p className="text-[10px] font-black italic text-zinc-500 uppercase tracking-[0.4em] leading-none">{stat.label}</p>
-                            <h3 className="text-7xl font-black tracking-tighter italic leading-tight">
+                        <div className="relative z-10 space-y-1">
+                            <p className="text-[9px] font-black italic text-zinc-500 uppercase tracking-widest leading-none">{stat.label}</p>
+                            <h3 className="text-3xl font-black tracking-tighter italic leading-tight">
                                 {loading ? "..." : stat.value.toLocaleString()}
                             </h3>
                         </div>
