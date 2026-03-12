@@ -35,7 +35,8 @@ type LigadorStats = {
     role: string
     created_at: string
     total_atribuidas: number
-    total_finalizadas: number
+    total_sucessos: number
+    total_falhas: number
     total_pendentes: number
     taxa_sucesso: number
 }
@@ -55,9 +56,10 @@ export default function LigadoresPage() {
 
     // Totals
     const totalAtribuidas = ligadores.reduce((s, l) => s + l.total_atribuidas, 0)
-    const totalFinalizadas = ligadores.reduce((s, l) => s + l.total_finalizadas, 0)
+    const totalSucessos = ligadores.reduce((s, l) => s + l.total_sucessos, 0)
+    const totalFalhas = ligadores.reduce((s, l) => s + l.total_falhas, 0)
     const totalPendentes = ligadores.reduce((s, l) => s + l.total_pendentes, 0)
-    const taxaGeral = totalAtribuidas > 0 ? Math.round((totalFinalizadas / totalAtribuidas) * 100) : 0
+    const taxaGeral = totalAtribuidas > 0 ? Math.round((totalSucessos / totalAtribuidas) * 100) : 0
 
     const fetchLigadores = async () => {
         setLoading(true)
@@ -74,28 +76,35 @@ export default function LigadoresPage() {
 
         // Fetch lead stats for each ligador
         const statsPromises = profiles.map(async (profile) => {
-            const [attrRes, finRes] = await Promise.all([
+            const [attrRes, sucRes, falRes] = await Promise.all([
                 supabase
                     .from('leads')
                     .select('id', { count: 'exact', head: true })
                     .eq('owner_id', profile.id)
-                    .in('status', ['atribuido', 'arquivado', 'concluido']),
+                    .in('status', ['atribuido', 'arquivado', 'concluido', 'pago', 'recusado']),
                 supabase
                     .from('leads')
                     .select('id', { count: 'exact', head: true })
                     .eq('owner_id', profile.id)
-                    .eq('status', 'arquivado')
+                    .eq('status', 'pago'),
+                supabase
+                    .from('leads')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('owner_id', profile.id)
+                    .in('status', ['recusado', 'arquivado']) // Count old archived as failure as requested
             ])
 
             const total_atribuidas = (attrRes.count || 0)
-            const total_finalizadas = (finRes.count || 0)
-            const total_pendentes = total_atribuidas - total_finalizadas
-            const taxa_sucesso = total_atribuidas > 0 ? Math.round((total_finalizadas / total_atribuidas) * 100) : 0
+            const total_sucessos = (sucRes.count || 0)
+            const total_falhas = (falRes.count || 0)
+            const total_pendentes = total_atribuidas - (total_sucessos + total_falhas)
+            const taxa_sucesso = (total_sucessos + total_falhas) > 0 ? Math.round((total_sucessos / (total_sucessos + total_falhas)) * 100) : 0
 
             return {
                 ...profile,
                 total_atribuidas,
-                total_finalizadas,
+                total_sucessos,
+                total_falhas,
                 total_pendentes,
                 taxa_sucesso
             } as LigadorStats
@@ -247,8 +256,8 @@ export default function LigadoresPage() {
                 {[
                     { label: 'Total Ligadores', value: ligadores.filter(l => l.role === 'ligador').length, icon: Users, color: 'text-primary', bg: 'bg-primary/5 border-primary/10' },
                     { label: 'Fichas Ativas', value: totalPendentes, icon: Target, color: 'text-amber-400', bg: 'bg-amber-500/5 border-amber-500/10' },
-                    { label: 'Finalizadas', value: totalFinalizadas, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/5 border-emerald-500/10' },
-                    { label: 'Taxa Geral', value: `${taxaGeral}%`, icon: TrendingUp, color: taxaGeral >= 50 ? 'text-emerald-400' : 'text-amber-400', bg: taxaGeral >= 50 ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-amber-500/5 border-amber-500/10' }
+                    { label: 'Sucessos $', value: totalSucessos, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/5 border-emerald-500/10' },
+                    { label: 'Falhas/Recusas', value: totalFalhas, icon: X, color: 'text-rose-400', bg: 'bg-rose-500/5 border-rose-500/10' }
                 ].map((stat, i) => (
                     <div key={i} className={cn("glass p-6 xl:p-8 rounded-[32px] border flex flex-col gap-4 hover:scale-[1.02] transition-all", stat.bg)}>
                         <div className="flex items-center justify-between">
@@ -311,18 +320,34 @@ export default function LigadoresPage() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="p-6 xl:p-8 grid grid-cols-3 gap-3">
-                                    <div className="bg-black/30 rounded-2xl p-4 text-center border border-white/5">
-                                        <p className="text-2xl font-black italic leading-none text-amber-400">{ligador.total_pendentes}</p>
-                                        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-1.5">Pendentes</p>
+                                <div className="p-6 xl:p-8 grid grid-cols-2 gap-4">
+                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
+                                        <p className="text-3xl font-black italic leading-none text-amber-500 mb-2">{ligador.total_pendentes}</p>
+                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
+                                            <Clock className="w-3 h-3 text-amber-500" />
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Pendentes</p>
+                                        </div>
                                     </div>
-                                    <div className="bg-black/30 rounded-2xl p-4 text-center border border-white/5">
-                                        <p className="text-2xl font-black italic leading-none text-emerald-400">{ligador.total_finalizadas}</p>
-                                        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-1.5">Finalizadas</p>
+                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
+                                        <p className="text-3xl font-black italic leading-none text-emerald-500 mb-2">{ligador.total_sucessos}</p>
+                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Sucessos</p>
+                                        </div>
                                     </div>
-                                    <div className="bg-black/30 rounded-2xl p-4 text-center border border-white/5">
-                                        <p className="text-2xl font-black italic leading-none">{ligador.total_atribuidas}</p>
-                                        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 mt-1.5">Total</p>
+                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
+                                        <p className="text-3xl font-black italic leading-none text-rose-500 mb-2">{ligador.total_falhas}</p>
+                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
+                                            <X className="w-3 h-3 text-rose-500" />
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Falhas</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
+                                        <p className="text-3xl font-black italic leading-none text-zinc-400 mb-2">{ligador.total_atribuidas}</p>
+                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
+                                            <Target className="w-3 h-3 text-zinc-400" />
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total</p>
+                                        </div>
                                     </div>
                                 </div>
 
