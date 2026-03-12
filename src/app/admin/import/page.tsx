@@ -25,7 +25,7 @@ export default function ImportPage() {
     const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'rejected'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [results, setResults] = useState<{ success: number, ignored: number, updated?: number, new?: number, existing?: number } | null>(null)
+    const [results, setResults] = useState<{ success: number, ignored: number, updated?: number, new?: number, existing?: number, bad?: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleDrag = (e: React.DragEvent) => {
@@ -141,14 +141,23 @@ export default function ImportPage() {
                 }
 
                 let updatedCount = 0;
+                let badCount = 0;
+                let alreadyHadCount = 0;
+
                 for (const item of govMatches) {
                     const { data: leadData } = await supabase
                         .from('leads')
-                        .select('id, phones, status, owner_id')
+                        .select('id, phones, status, num_gov')
                         .eq('cpf', item.cpf)
                         .single();
 
                     if (leadData) {
+                        // Se já tem num_gov, não faz nada com esse lead
+                        if (leadData.num_gov) {
+                            alreadyHadCount++;
+                            continue;
+                        }
+
                         const phones = leadData.phones || [];
                         const govPhone = phones.find((p: string) => {
                             const clean = p.replace(/\D/g, '');
@@ -178,11 +187,18 @@ export default function ImportPage() {
                                     .from('leads')
                                     .update({ status: 'ruim' })
                                     .eq('id', leadData.id);
+                                badCount++;
                             }
                         }
                     }
                 }
-                setResults({ success: 0, ignored: govMatches.length - updatedCount, updated: updatedCount });
+                setResults({ 
+                    success: 0, 
+                    ignored: govMatches.length - (updatedCount + badCount + alreadyHadCount), 
+                    updated: updatedCount, 
+                    bad: badCount, 
+                    existing: alreadyHadCount 
+                });
                 setSelectedFile(null);
                 setUploading(false);
                 return;
@@ -277,7 +293,13 @@ export default function ImportPage() {
                         <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] leading-none mb-2 italic">Signal Sync Complete</p>
                         <div className="text-2xl font-black text-white italic tracking-tighter flex flex-col items-end">
                             {mode === 'gov' ? (
-                                <span>🚀 {results.updated} GOV VIRTUALIZED</span>
+                                <div className="space-y-1 flex flex-col items-end">
+                                    <span className="text-emerald-500">🚀 {results.updated} GOV VIRTUALIZED</span>
+                                    <span className="text-rose-500">🚫 {results.bad} MARCADOS COMO RUIM</span>
+                                    <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-none mt-1">
+                                        {results.existing} JÁ POSSUÍAM NÚMERO GOV
+                                    </span>
+                                </div>
                             ) : mode === 'rejected' ? (
                                 <span>🚫 {results.updated} MARCADOS COMO RUIM</span>
                             ) : (
