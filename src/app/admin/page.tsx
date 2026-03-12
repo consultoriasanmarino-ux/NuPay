@@ -37,7 +37,8 @@ export default function AdminDashboard() {
         ready: 0,
         finished: 0,
         withGov: 0,
-        noGov: 0
+        noGov: 0,
+        bad: 0
     })
     const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 })
     const [logs, setLogs] = useState<{ msg: string, type: 'success' | 'error' | 'info' }[]>([])
@@ -53,7 +54,8 @@ export default function AdminDashboard() {
             { count: ready },
             { count: finished },
             { count: withGov },
-            { count: noGov }
+            { count: noGov },
+            { count: bad }
         ] = await Promise.all([
             supabase.from('leads').select('*', { count: 'exact', head: true }),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto'),
@@ -61,7 +63,8 @@ export default function AdminDashboard() {
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'concluido'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'arquivado'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).not('num_gov', 'is', null),
-            supabase.from('leads').select('*', { count: 'exact', head: true }).is('num_gov', null)
+            supabase.from('leads').select('*', { count: 'exact', head: true }).is('num_gov', null).neq('status', 'ruim'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'ruim')
         ])
 
         setStats({
@@ -71,7 +74,8 @@ export default function AdminDashboard() {
             ready: ready || 0,
             finished: finished || 0,
             withGov: withGov || 0,
-            noGov: noGov || 0
+            noGov: noGov || 0,
+            bad: bad || 0
         })
         setLoading(false)
     }
@@ -101,6 +105,7 @@ export default function AdminDashboard() {
         let query = supabase
             .from('leads')
             .select('id, cpf, full_name, status')
+            .neq('status', 'ruim')
             .limit(1000)
 
         if (!consultAll) {
@@ -255,6 +260,7 @@ export default function AdminDashboard() {
         { label: 'Dados Pendentes', value: stats.incomplete, icon: Clock, color: 'text-amber-500' },
         { label: 'Faltam Nº Gov', value: stats.noGov, icon: AlertCircle, color: 'text-rose-500' },
         { label: 'Prontas (GOV OK)', value: stats.ready, icon: CheckCircle2, color: 'text-emerald-500' },
+        { label: 'Fichas Ruins', value: stats.bad, icon: XCircle, color: 'text-destructive' },
         { label: 'Com Ligadores', value: stats.assigned, icon: Zap, color: 'text-primary' },
         { label: 'Finalizadas', value: stats.finished, icon: Award, color: 'text-blue-500' },
     ]
@@ -290,7 +296,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bento Grid Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
                 {statCards.map((stat, idx) => (
                     <div key={stat.label} className="glass rounded-[32px] p-6 relative overflow-hidden group card-hover border-white/5 flex flex-col justify-between">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />

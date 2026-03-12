@@ -32,6 +32,7 @@ export default function LeadsPage() {
             case 'concluido': return 'CONCLUÍDO'
             case 'atribuido': return 'ATRIBUÍDO'
             case 'arquivado': return 'ARQUIVADO'
+            case 'ruim': return 'FICHA RUIM'
             default: return status.toUpperCase()
         }
     }
@@ -85,6 +86,7 @@ export default function LeadsPage() {
             .from('leads')
             .select('cpf')
             .is('num_gov', null)
+            .neq('status', 'ruim')
 
         if (error) {
             alert('Erro ao exportar: ' + error.message)
@@ -359,12 +361,14 @@ export default function LeadsPage() {
                                             lead.status === 'incompleto' ? "bg-amber-500/5 text-amber-500 border-amber-500/10" :
                                                 lead.status === 'consultado' ? "bg-primary/5 text-primary border-primary/10" :
                                                     lead.status === 'atribuido' ? "bg-blue-500/5 text-blue-400 border-blue-500/10" :
-                                                        "bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
+                                                        lead.status === 'ruim' ? "bg-destructive/5 text-destructive border-destructive/10" :
+                                                            "bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
                                         )}>
                                             <div className={cn("w-1.5 h-1.5 rounded-full",
                                                 lead.status === 'incompleto' ? "bg-amber-500" :
                                                     lead.status === 'consultado' ? "bg-primary" :
-                                                        lead.status === 'atribuido' ? "bg-blue-400" : "bg-emerald-500"
+                                                        lead.status === 'atribuido' ? "bg-blue-400" :
+                                                            lead.status === 'ruim' ? "bg-destructive" : "bg-emerald-500"
                                             )} />
                                             {getStatusLabel(lead.status)}
                                         </div>

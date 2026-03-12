@@ -22,7 +22,7 @@ import { supabase } from '@/lib/supabase'
 
 export default function ImportPage() {
     const [dragActive, setDragActive] = useState(false)
-    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov'>('bot')
+    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'rejected'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
     const [results, setResults] = useState<{ success: number, ignored: number, updated?: number, new?: number, existing?: number } | null>(null)
@@ -96,7 +96,7 @@ export default function ImportPage() {
                     fullName = nameMatch2 ? nameMatch2[1].trim().toUpperCase() : 'NOME_AUSENTE';
                     if (binMatch2) card_bin = binMatch2[1].trim().slice(0, 6);
                 }
-            } else if (mode === 'cpf') {
+            } else if (mode === 'cpf' || mode === 'rejected') {
                 const cpfMatch = line.match(/[\d.-]{11,14}/);
                 if (cpfMatch) cpf = cpfMatch[0];
             } else if (mode === 'gov') {
@@ -157,7 +157,7 @@ export default function ImportPage() {
 
                         if (govPhone) {
                             // SÓ muda o status se a ficha ainda estiver pendente (não atribuída)
-                            const shouldUpdateStatus = ['incompleto', 'consultado', 'processando'].includes(leadData.status);
+                            const shouldUpdateStatus = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
                             
                             const updateData: any = { num_gov: govPhone };
                             if (shouldUpdateStatus) {
@@ -169,11 +169,46 @@ export default function ImportPage() {
                                 .update(updateData)
                                 .eq('id', leadData.id);
                             updatedCount++;
+                        } else {
+                            // SE não encontrou o número gov, marca como ficha ruim
+                            // Mas só se o status permitir (não estiver atribuída/concluída por outro motivo)
+                            const canMarkAsRuim = ['incompleto', 'consultado', 'processando'].includes(leadData.status);
+                            if (canMarkAsRuim) {
+                                await supabase
+                                    .from('leads')
+                                    .update({ status: 'ruim' })
+                                    .eq('id', leadData.id);
+                            }
                         }
                     }
                 }
                 setResults({ success: 0, ignored: govMatches.length - updatedCount, updated: updatedCount });
                 setSelectedFile(null);
+                setUploading(false);
+                return;
+            }
+
+            if (mode === 'rejected') {
+                if (leads.length === 0) {
+                    alert("SIGNAL FAILURE: NO CPFS FOUND");
+                    setUploading(false);
+                    return;
+                }
+
+                const cpfsToReject = leads.map(l => l.cpf);
+                
+                // Update status to 'ruim' for all these CPFs
+                const { error: updateError } = await supabase
+                    .from('leads')
+                    .update({ status: 'ruim' })
+                    .in('cpf', cpfsToReject);
+
+                if (updateError) {
+                    alert(`DB SIGNAL DROP: ${updateError.message}`);
+                } else {
+                    setResults({ success: leads.length, ignored: 0, updated: leads.length });
+                    setSelectedFile(null);
+                }
                 setUploading(false);
                 return;
             }
@@ -243,6 +278,8 @@ export default function ImportPage() {
                         <div className="text-2xl font-black text-white italic tracking-tighter flex flex-col items-end">
                             {mode === 'gov' ? (
                                 <span>🚀 {results.updated} GOV VIRTUALIZED</span>
+                            ) : mode === 'rejected' ? (
+                                <span>🚫 {results.updated} MARCADOS COMO RUIM</span>
                             ) : (
                                 <>
                                     <span>+{results.new} NOVO RECORDS</span>
@@ -257,11 +294,12 @@ export default function ImportPage() {
             </div>
 
             {/* Mode Selectors - Bento Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { id: 'cpf', icon: FileType, title: 'Modo 1: Lista CPF', desc: 'Injeção de Base Bruta', color: 'text-amber-500' },
                     { id: 'bot', icon: Upload, title: 'Modo 2: Extrator Bot', desc: 'Parsers de Log Bin/Val', color: 'text-primary' },
-                    { id: 'gov', icon: UserCheck, title: 'Modo 3: Núms GOV', desc: 'CPF-XX Validation', color: 'text-emerald-500' }
+                    { id: 'gov', icon: UserCheck, title: 'Modo 3: Núms GOV', desc: 'CPF-XX Validation', color: 'text-emerald-500' },
+                    { id: 'rejected', icon: AlertCircle, title: 'Modo 4: Recusados', desc: 'Marcar como Ficha Ruim', color: 'text-destructive' }
                 ].map((item) => (
                     <button
                         key={item.id}

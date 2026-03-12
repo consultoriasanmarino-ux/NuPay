@@ -7,7 +7,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Lead = {
     id: string
-    status: 'incompleto' | 'processando' | 'consultado' | 'concluido' | 'atribuido' | 'arquivado'
+    status: 'incompleto' | 'processando' | 'consultado' | 'concluido' | 'atribuido' | 'arquivado' | 'ruim'
     cpf: string
     full_name?: string
     birth_date?: string
