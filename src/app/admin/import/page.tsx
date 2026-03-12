@@ -179,15 +179,20 @@ export default function ImportPage() {
                                 .eq('id', leadData.id);
                             updatedCount++;
                         } else {
-                            // SE não encontrou o número gov, marca como ficha ruim
-                            // Mas só se o status permitir (não estiver atribuída/concluída por outro motivo)
-                            const canMarkAsRuim = ['incompleto', 'consultado', 'processando'].includes(leadData.status);
+                            // SE não encontrou o número gov, tenta marcar como ficha ruim
+                            // Só não marca se já estiver finalizada (concluido/arquivado) para não bagunçar histórico
+                            const canMarkAsRuim = !['concluido', 'arquivado'].includes(leadData.status);
                             if (canMarkAsRuim) {
-                                await supabase
+                                const { error: markError } = await supabase
                                     .from('leads')
                                     .update({ status: 'ruim' })
                                     .eq('id', leadData.id);
-                                badCount++;
+
+                                if (markError) {
+                                    console.error('Erro ao marcar como ruim:', markError.message);
+                                } else {
+                                    badCount++;
+                                }
                             }
                         }
                     }
