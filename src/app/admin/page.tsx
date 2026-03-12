@@ -36,6 +36,8 @@ export default function AdminDashboard() {
         assigned: 0,
         ready: 0,
         finished: 0,
+        success: 0,
+        failed: 0,
         withGov: 0,
         noGov: 0,
         bad: 0
@@ -53,6 +55,8 @@ export default function AdminDashboard() {
             { count: assigned },
             { count: ready },
             { count: finished },
+            { count: success },
+            { count: failed },
             { count: withGov },
             { count: noGov },
             { count: bad }
@@ -61,7 +65,9 @@ export default function AdminDashboard() {
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'atribuido'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'concluido'),
-            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'arquivado'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).in('status', ['arquivado', 'pago', 'recusado']),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'pago'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'recusado'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).not('num_gov', 'is', null),
             supabase.from('leads').select('*', { count: 'exact', head: true }).in('status', ['incompleto', 'consultado']).is('num_gov', null),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'ruim')
@@ -73,6 +79,8 @@ export default function AdminDashboard() {
             assigned: assigned || 0,
             ready: ready || 0,
             finished: finished || 0,
+            success: success || 0,
+            failed: failed || 0,
             withGov: withGov || 0,
             noGov: noGov || 0,
             bad: bad || 0
@@ -256,13 +264,13 @@ export default function AdminDashboard() {
     }
 
     const statCards = [
-        { label: 'Total de Leads', value: stats.total, icon: Database, color: 'text-primary' },
-        { label: 'Dados Pendentes', value: stats.incomplete, icon: Clock, color: 'text-amber-500' },
+        { label: 'Total de Leads', value: stats.total, icon: Database, color: 'text-zinc-500' },
         { label: 'Faltam Nº Gov', value: stats.noGov, icon: AlertCircle, color: 'text-rose-500' },
         { label: 'Prontas (GOV OK)', value: stats.ready, icon: CheckCircle2, color: 'text-emerald-500' },
         { label: 'Fichas Ruins', value: stats.bad, icon: XCircle, color: 'text-destructive' },
-        { label: 'Com Ligadores', value: stats.assigned, icon: Zap, color: 'text-primary' },
-        { label: 'Finalizadas', value: stats.finished, icon: Award, color: 'text-blue-500' },
+        { label: 'Com Ligadores', value: stats.assigned, icon: Zap, color: 'text-violet-500' },
+        { label: 'Sucesso $', value: stats.success, icon: Award, color: 'text-emerald-500' },
+        { label: 'Falha/Recusa', value: stats.failed, icon: XCircle, color: 'text-rose-400' },
     ]
 
     return (
@@ -296,7 +304,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bento Grid Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((stat, idx) => (
                     <div key={stat.label} className="glass rounded-[32px] p-6 relative overflow-hidden group card-hover border-white/5 flex flex-col justify-between">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />

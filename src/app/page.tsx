@@ -97,7 +97,7 @@ export default function LigadorDashboard() {
       .from('leads')
       .select('*')
       .eq('owner_id', ligadorId)
-      .eq('status', activeTab === 'pendentes' ? 'atribuido' : 'arquivado')
+      .in('status', activeTab === 'pendentes' ? ['atribuido'] : ['arquivado', 'pago', 'recusado'])
       .order('updated_at', { ascending: false })
 
     if (!error && data) {
@@ -119,11 +119,11 @@ export default function LigadorDashboard() {
     }
   }, [router, fetchLeads])
 
-  const handleFinalize = async (leadId: string) => {
+  const handleFinalize = async (leadId: string, status: 'pago' | 'recusado') => {
     setSaving(true)
     const { error } = await supabase
       .from('leads')
-      .update({ status: 'arquivado', updated_at: new Date().toISOString() })
+      .update({ status: status, updated_at: new Date().toISOString() })
       .eq('id', leadId)
 
     if (!error) {
@@ -314,6 +314,16 @@ export default function LigadorDashboard() {
                     </span>
                     {lead.num_gov && (
                       <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-semibold border border-emerald-500/20">GOV ✓</span>
+                    )}
+                    {activeTab === 'finalizadas' && (
+                      <span className={cn(
+                        "text-[9px] px-2 py-0.5 rounded-full font-bold border uppercase",
+                        lead.status === 'pago' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : 
+                        lead.status === 'recusado' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                        "bg-white/5 text-zinc-400 border-white/10"
+                      )}>
+                        {lead.status === 'pago' ? 'Sucesso' : lead.status === 'recusado' ? 'Falha' : 'Finalizada'}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -564,21 +574,37 @@ export default function LigadorDashboard() {
                 Voltar
               </button>
               {activeTab === 'pendentes' && (
-                <button
-                  onClick={() => handleFinalize(selectedLead.id)}
-                  disabled={saving}
-                  className="flex-[2] py-4 rounded-2xl text-white text-sm font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' }}
-                >
-                  {saving ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      Finalizar Atendimento
-                    </>
-                  )}
-                </button>
+                <>
+                  <button
+                    onClick={() => handleFinalize(selectedLead.id, 'recusado')}
+                    disabled={saving}
+                    className="flex-1 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-sm font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {saving ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <X className="w-5 h-5" />
+                        Falha
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleFinalize(selectedLead.id, 'pago')}
+                    disabled={saving}
+                    className="flex-[2] py-4 rounded-2xl text-white text-sm font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    style={{ background: 'linear-gradient(135deg, #10B981, #059669)', boxShadow: '0 8px 24px rgba(16,185,129,0.3)' }}
+                  >
+                    {saving ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        Sucesso
+                      </>
+                    )}
+                  </button>
+                </>
               )}
             </div>
           </div>

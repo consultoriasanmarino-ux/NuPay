@@ -32,6 +32,8 @@ export default function LeadsPage() {
             case 'concluido': return 'CONCLUÍDO'
             case 'atribuido': return 'ATRIBUÍDO'
             case 'arquivado': return 'ARQUIVADO'
+            case 'pago': return 'SUCESSO $'
+            case 'recusado': return 'FALHA/RECUSA'
             case 'ruim': return 'FICHA RUIM'
             default: return status.toUpperCase()
         }
