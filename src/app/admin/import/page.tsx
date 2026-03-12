@@ -285,7 +285,7 @@ export default function ImportPage() {
                         <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
                             <CloudIcon className="w-8 h-8 text-primary shadow-glow" />
                         </div>
-                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Protocolo Data-In</h2>
+                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Protocolo Data-In</h2>
                     </div>
                     <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
                         <Terminal className="w-4 h-4" />

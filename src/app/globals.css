@@ -197,21 +197,22 @@ body {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  background: rgba(18, 18, 21, 0.9);
+  background: rgba(18, 18, 21, 0.95);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.5rem;
-  padding: 0.25rem 0.5rem;
-  width: min(500px, calc(100vw - 2rem));
+  border-radius: 1.75rem;
+  padding: 0.35rem;
+  width: min(500px, calc(100vw - 3rem));
   position: fixed;
-  bottom: 0.75rem;
+  bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   overflow-x: auto;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .menu::-webkit-scrollbar { display: none; }
 

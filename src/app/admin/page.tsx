@@ -275,14 +275,14 @@ export default function AdminDashboard() {
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 selection:bg-primary/20">
-            {/* Admin Header - AI Native */}
+            {/* Admin Header - NuPay Native */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8">
                 <div className="space-y-3">
                     <div className="flex items-center gap-5">
                         <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl">
                             <Cpu className="w-8 h-8 text-primary shadow-glow" />
                         </div>
-                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Painel Operacional</h2>
+                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Painel Operacional</h2>
                     </div>
                     <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
                         <Globe className="w-4 h-4" />

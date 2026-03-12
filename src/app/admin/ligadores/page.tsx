@@ -216,7 +216,7 @@ export default function LigadoresPage() {
                         <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl">
                             <Users className="w-8 h-8 text-primary" />
                         </div>
-                        <h2 className="text-4xl xl:text-5xl font-black tracking-tighter uppercase italic leading-none">Painel dos Ligadores</h2>
+                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Painel dos Ligadores</h2>
                     </div>
                     <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
                         <BarChart3 className="w-4 h-4 text-primary" />

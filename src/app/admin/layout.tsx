@@ -140,7 +140,7 @@ export default function AdminLayout({
 
             {/* Main Area */}
             <div className={cn(
-                "transition-all duration-500 ease-out min-h-screen flex flex-col",
+                "transition-all duration-500 ease-out min-h-screen flex flex-col overflow-x-hidden",
                 isSidebarOpen ? "lg:pl-72" : "pl-0"
             )}>
                 {/* Header */}

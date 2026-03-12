@@ -146,7 +146,7 @@ export default function UnassignPage() {
                         <div className="p-4 rounded-[28px] bg-amber-500/10 border border-amber-500/20 shadow-2xl scale-110">
                             <UserMinus className="w-8 h-8 text-amber-500 shadow-glow-amber" />
                         </div>
-                        <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">Desatribuir Sinais</h2>
+                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Desatribuir Sinais</h2>
                     </div>
                     <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
                         <Smartphone className="w-4 h-4 text-primary" />
