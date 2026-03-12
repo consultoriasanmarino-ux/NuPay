@@ -63,7 +63,7 @@ export default function AdminDashboard() {
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'concluido'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'arquivado'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).not('num_gov', 'is', null),
-            supabase.from('leads').select('*', { count: 'exact', head: true }).is('num_gov', null).neq('status', 'ruim'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).in('status', ['incompleto', 'consultado']).is('num_gov', null),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'ruim')
         ])
 
