@@ -22,7 +22,8 @@ import {
   TrendingUp,
   Phone,
   Clock,
-  Star
+  Star,
+  History
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase, Lead } from '@/lib/supabase'
@@ -483,8 +484,8 @@ export default function LigadorDashboard() {
         activeTab={activeTab}
         setActiveTab={setActiveTab as any}
         items={[
-          { id: 'pendentes', label: 'Pendentes', icon: Clock },
-          { id: 'finalizadas', label: 'Finalizadas', icon: CheckCircle2 }
+          { id: 'pendentes', label: 'Fichas', icon: Clock },
+          { id: 'finalizadas', label: 'Histórico', icon: History }
         ]}
       />
     </div>
