@@ -79,9 +79,9 @@ export default function AdminLayout({
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-[60] w-72 border-r border-white/5 transition-all duration-500 ease-out lg:translate-x-0 overflow-y-auto",
-                    "bg-[#0a0a0c]",
-                    !isSidebarOpen && "-translate-x-full"
+                    "fixed inset-y-0 left-0 z-[60] w-72 border-r border-white/5 transition-all duration-500 ease-out overflow-y-auto bg-[#0a0a0c]",
+                    "hidden lg:block",
+                    !isSidebarOpen && "lg:-translate-x-full"
                 )}
             >
                 <div className="flex flex-col h-full p-6">
@@ -148,10 +148,18 @@ export default function AdminLayout({
                     <div className="flex items-center gap-4 flex-1">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 rounded-lg hover:bg-white/5 transition-all active:scale-90"
+                            className="p-2 rounded-lg hover:bg-white/5 transition-all active:scale-90 hidden lg:flex"
                         >
                             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
+
+                        {/* Mobile Branding */}
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-white text-[10px]" style={{ background: 'linear-gradient(135deg, #8A05BE, #A020D0)' }}>
+                                nu
+                            </div>
+                            <span className="font-black text-base tracking-tighter italic uppercase">NuPay</span>
+                        </div>
 
                         <div className="relative flex-1 max-w-md hidden xl:block">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
