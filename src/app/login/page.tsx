@@ -84,16 +84,16 @@ export default function LigadorLoginPage() {
         <PulseBeams beams={loginBeams}>
             <div className="w-full max-w-sm space-y-10 relative z-10">
                 {/* Logo */}
-                <div className="text-center space-y-4" style={{ animation: 'fadeSlideUp 0.6s ease-out both' }}>
+                <div className="text-center space-y-6" style={{ animation: 'fadeSlideUp 0.6s ease-out both' }}>
                     <div className="relative inline-block">
-                        <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto shadow-xl" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 12px 32px rgba(130,10,209,0.3)' }}>
-                            <span className="text-3xl font-black text-white">N</span>
+                        <div className="w-24 h-24 rounded-[32px] flex items-center justify-center mx-auto shadow-2xl transition-transform hover:scale-105" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 20px 48px rgba(130,10,209,0.4)' }}>
+                            <span className="text-4xl font-black text-white italic">nu</span>
                         </div>
-                        <div className="absolute inset-0 blur-[50px] rounded-full" style={{ background: 'rgba(130,10,209,0.2)' }} />
+                        <div className="absolute inset-0 blur-[60px] rounded-full" style={{ background: 'rgba(130,10,209,0.3)' }} />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-white">Nu-Pay</h1>
-                        <p className="text-sm text-zinc-500 mt-1">Acesso do Ligador</p>
+                        <h1 className="text-5xl font-black tracking-tighter text-white italic">NuPay</h1>
+                        <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mt-3">Acesso Operacional</p>
                     </div>
                 </div>
 

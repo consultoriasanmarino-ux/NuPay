@@ -86,16 +86,16 @@ export default function AdminLayout({
             >
                 <div className="flex flex-col h-full p-6">
                     {/* Logo */}
-                    <div className="flex items-center gap-4 px-3 mb-10 group">
+                    <div className="flex items-center gap-4 px-3 mb-10 group mt-2">
                         <div
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white text-lg"
-                            style={{ background: 'linear-gradient(135deg, #8A05BE, #A020D0)' }}
+                            className="w-12 h-12 rounded-[14px] flex items-center justify-center font-black text-white text-base shadow-xl"
+                            style={{ background: 'linear-gradient(135deg, #8A05BE, #A020D0)', boxShadow: '0 8px 16px rgba(138, 5, 190, 0.2)' }}
                         >
-                            N
+                            nu
                         </div>
                         <div>
-                            <h1 className="font-black text-xl tracking-tight uppercase leading-none">Nu-Pay</h1>
-                            <p className="text-[9px] font-medium uppercase tracking-[0.3em] mt-0.5" style={{ color: '#8A05BE' }}>Painel Admin</p>
+                            <h1 className="font-black text-2xl tracking-tighter uppercase leading-none italic">NuPay</h1>
+                            <p className="text-[9px] font-black uppercase tracking-[0.3em] mt-1" style={{ color: '#8A05BE' }}>PAINEL ADMIN</p>
                         </div>
                     </div>
 
@@ -221,7 +221,10 @@ export default function AdminLayout({
           { id: '/admin', label: 'Painel', icon: LayoutDashboard },
           { id: '/admin/leads', label: 'Leads', icon: Database },
           { id: '/admin/import', label: 'Import', icon: Upload },
-          { id: '/admin/ligadores', label: 'Ligs', icon: Users }
+          { id: '/admin/fichas', label: 'Fichas', icon: UserSquare2 },
+          { id: '/admin/unassign', label: 'Desatrib.', icon: UserMinus },
+          { id: '/admin/ligadores', label: 'Ligs', icon: Users },
+          { id: '/admin/settings', label: 'Config', icon: Settings }
         ]}
       />
     </div>

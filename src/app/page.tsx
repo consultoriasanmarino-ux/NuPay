@@ -179,12 +179,12 @@ export default function LigadorDashboard() {
         <div className="flex items-center justify-between px-5 py-4 md:px-8 md:py-5">
           {/* Logo + User */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center font-black text-white text-sm shadow-lg" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' }}>
-              N
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-[14px] flex items-center justify-center font-black text-white text-base shadow-xl" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 16px rgba(130,10,209,0.2)' }}>
+              nu
             </div>
             <div>
-              <h1 className="font-bold text-base md:text-lg leading-none tracking-tight">Nu-Pay</h1>
-              <p className="text-[10px] font-medium mt-0.5" style={{ color: '#820AD1' }}>{userName}</p>
+              <h1 className="font-black text-xl md:text-2xl leading-none tracking-tighter italic">NuPay</h1>
+              <p className="text-[9px] font-black uppercase tracking-widest mt-0.5" style={{ color: '#820AD1' }}>{userName}</p>
             </div>
           </div>
 
@@ -215,25 +215,25 @@ export default function LigadorDashboard() {
             <button
               onClick={() => setActiveTab('pendentes')}
               className={cn(
-                "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
                 activeTab === 'pendentes'
-                  ? "text-white shadow-lg"
+                  ? "text-white shadow-xl"
                   : "text-zinc-500 hover:text-white"
               )}
-              style={activeTab === 'pendentes' ? { background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 24px rgba(130,10,209,0.3)' } : {}}
+              style={activeTab === 'pendentes' ? { background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 16px rgba(130,10,209,0.2)' } : {}}
             >
-              Pendentes ({leads.length})
+              Fichas ({leads.length})
             </button>
             <button
               onClick={() => setActiveTab('finalizadas')}
               className={cn(
-                "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300",
+                "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
                 activeTab === 'finalizadas'
-                  ? "bg-white/10 text-white shadow-lg"
+                  ? "bg-white/10 text-white shadow-xl"
                   : "text-zinc-500 hover:text-white"
               )}
             >
-              Finalizadas
+              Histórico
             </button>
           </div>
         </div>
@@ -283,47 +283,53 @@ export default function LigadorDashboard() {
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {filteredLeads.map((lead, idx) => (
               <div
                 key={lead.id}
                 onClick={() => setSelectedLead(lead)}
-                className="bg-white/[0.03] border border-white/5 rounded-[24px] p-5 flex items-center gap-4 active:scale-[0.98] transition-all duration-200 cursor-pointer hover:bg-violet-500/5 hover:border-violet-500/10 group relative overflow-hidden"
+                className="bg-white/[0.03] border border-white/5 rounded-[32px] p-5 flex flex-col items-center text-center gap-3 active:scale-[0.96] transition-all duration-200 cursor-pointer hover:bg-violet-500/5 hover:border-violet-500/10 group relative"
+                style={{ animationDelay: `${idx * 40}ms`, animation: 'fadeSlideUp 0.4s ease-out both' }}
               >
                 {/* Avatar */}
-                <div className="w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform" style={{ background: 'rgba(130,10,209,0.08)', borderColor: 'rgba(130,10,209,0.1)' }}>
-                  <UserCircle2 className="w-7 h-7" style={{ color: '#9B30D9' }} />
+                <div className="w-16 h-16 rounded-[24px] border flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform mb-1" style={{ background: 'rgba(130,10,209,0.08)', borderColor: 'rgba(130,10,209,0.1)' }}>
+                  <UserCircle2 className="w-8 h-8" style={{ color: '#9B30D9' }} />
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0 space-y-1.5">
-                  <h4 className="font-bold text-sm md:text-base truncate leading-tight group-hover:text-violet-300 transition-colors uppercase tracking-tight">
-                    {lead.full_name || 'Sem nome'}
+                <div className="w-full space-y-1">
+                  <h4 className="font-black text-[13px] uppercase tracking-tighter truncate leading-tight group-hover:text-violet-300 transition-colors">
+                    {lead.full_name?.split(' ')[0] || 'Cliente'}
                   </h4>
-                  <div className="flex items-center gap-3 text-[11px] text-zinc-500 font-medium">
-                    <span>CPF: {lead.cpf?.slice(0, 7)}...</span>
+                  <p className="text-[10px] text-zinc-600 font-mono tracking-tighter">
+                    {lead.cpf?.slice(0, 3)}..{lead.cpf?.slice(-2)}
+                  </p>
+                  
+                  <div className="pt-2">
+                    <p className="text-[11px] font-black italic text-emerald-400">
+                      {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }) : '--'}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-emerald-400">
-                      {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '--'}
-                    </span>
-                    {lead.num_gov && (
-                      <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full font-black border border-emerald-500/20 uppercase tracking-tighter">GOV ✓</span>
-                    )}
-                    {activeTab === 'finalizadas' && (
+
+                  {lead.num_gov && (
+                    <div className="mt-1">
+                      <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-black border border-emerald-500/20 uppercase tracking-tighter">GOV ✓</span>
+                    </div>
+                  )}
+
+                  {activeTab === 'finalizadas' && (
+                    <div className="mt-1">
                       <span className={cn(
-                        "text-[9px] px-2.5 py-1 rounded-full font-black border uppercase tracking-tighter",
+                        "text-[8px] px-2 py-0.5 rounded-full font-black border uppercase tracking-tighter",
                         lead.status === 'pago' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : 
                         lead.status === 'recusado' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
                         "bg-white/5 text-zinc-400 border-white/10"
                       )}>
-                        {lead.status === 'pago' ? 'Sucesso' : lead.status === 'recusado' ? 'Falha' : 'Finalizada'}
+                        {lead.status === 'pago' ? 'Sucesso' : lead.status === 'recusado' ? 'Falha' : 'OK'}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-
-                <ChevronRight className="w-5 h-5 text-zinc-800" />
               </div>
             ))}
           </div>

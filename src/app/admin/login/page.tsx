@@ -60,15 +60,15 @@ export default function AdminLoginPage() {
     return (
         <PulseBeams beams={adminBeams}>
             <div className="w-full max-w-sm space-y-8 relative z-10" style={{ animation: 'fadeUp 0.6s ease-out' }}>
-                <div className="text-center space-y-3">
+                <div className="text-center space-y-4">
                     <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border"
-                        style={{ background: 'rgba(138, 5, 190, 0.1)', borderColor: 'rgba(138, 5, 190, 0.2)' }}
+                        className="w-20 h-20 rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-2xl"
+                        style={{ background: 'linear-gradient(135deg, #8A05BE, #A020D0)', boxShadow: '0 16px 40px rgba(138, 5, 190, 0.3)' }}
                     >
-                        <ShieldAlert className="w-8 h-8" style={{ color: '#8A05BE' }} />
+                        <span className="text-3xl font-black text-white italic">nu</span>
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Área Restrita</h1>
-                    <p className="text-sm text-zinc-500">Insira o PIN de 6 dígitos para acessar.</p>
+                    <h1 className="text-3xl font-black tracking-tighter text-white italic uppercase">NuPay Admin</h1>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Insira o PIN de 6 dígitos para acessar</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
