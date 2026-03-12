@@ -338,7 +338,7 @@ export default function LigadorDashboard() {
 
       {/* ===== DETAIL MODAL ===== */}
       {selectedLead && (
-        <div className="fixed inset-0 z-[100] bg-[#0a0a0f] overflow-y-auto overscroll-contain animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed inset-0 z-[10000] bg-[#0a0a0f] overflow-y-auto overscroll-contain animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="min-h-full flex flex-col">
             {/* Modal Header */}
             <div className="relative px-6 pt-8 pb-10">

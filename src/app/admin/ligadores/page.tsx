@@ -400,7 +400,7 @@ export default function LigadoresPage() {
 
             {/* Modal - Novo Ligador */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-300">
                     <div className="glass w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border-white/10">
                         <div className="px-8 py-8 border-b border-white/5 flex justify-between items-center bg-secondary/20">
                             <div className="flex items-center gap-4">

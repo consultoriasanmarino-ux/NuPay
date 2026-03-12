@@ -435,7 +435,7 @@ export default function LeadsPage() {
 
             {/* Modal de Detalhes */}
             {selectedLead && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 lg:p-12 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-500">
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-300">
                     <div className="glass w-full max-w-4xl rounded-[64px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 max-h-[95vh] flex flex-col border-white/10">
                         {/* Header do Modal */}
                         <div className="px-12 py-12 border-b border-white/5 flex justify-between items-start bg-secondary/20 relative overflow-hidden">
