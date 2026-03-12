@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Lock, ArrowRight, Loader2, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { PulseBeams } from '@/components/PulseBeams'
 
 export default function LigadorLoginPage() {
     const [username, setUsername] = useState('')
@@ -44,11 +45,43 @@ export default function LigadorLoginPage() {
         }
     }
 
-    return (
-        <div className="min-h-[100dvh] bg-[#0a0a0f] flex flex-col items-center justify-center p-6 selection:bg-violet-500/20">
-            {/* Background Glow */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] blur-[120px] rounded-full pointer-events-none" style={{ background: 'rgba(130,10,209,0.06)' }} />
+    const loginBeams = [
+        {
+            path: "M0 100 L858 100",
+            gradientConfig: {
+                initial: { x1: "0%", x2: "20%", y1: 100, y2: 100 },
+                animate: { x1: ["0%", "100%"], x2: ["20%", "120%"], y1: 100, y2: 100 },
+                transition: { duration: 4, repeat: Infinity, ease: "linear" }
+            }
+        },
+        {
+            path: "M0 350 L858 350",
+            gradientConfig: {
+                initial: { x1: "80%", x2: "100%", y1: 350, y2: 350 },
+                animate: { x1: ["100%", "0%"], x2: ["80%", "-20%"], y1: 350, y2: 350 },
+                transition: { duration: 5, repeat: Infinity, ease: "linear", delay: 1 }
+            }
+        },
+        {
+            path: "M150 0 L150 434",
+            gradientConfig: {
+                initial: { x1: "150", x2: "150", y1: "0%", y2: "20%" },
+                animate: { x1: "150", x2: "150", y1: ["0%", "100%"], y2: ["20%", "120%"] },
+                transition: { duration: 3, repeat: Infinity, ease: "linear", delay: 0.5 }
+            }
+        },
+        {
+            path: "M700 0 L700 434",
+            gradientConfig: {
+                initial: { x1: "700", x2: "700", y1: "80%", y2: "100%" },
+                animate: { x1: "700", x2: "700", y1: ["100%", "0%"], y2: ["80%", "-20%"] },
+                transition: { duration: 6, repeat: Infinity, ease: "linear", delay: 2 }
+            }
+        }
+    ]
 
+    return (
+        <PulseBeams beams={loginBeams}>
             <div className="w-full max-w-sm space-y-10 relative z-10">
                 {/* Logo */}
                 <div className="text-center space-y-4" style={{ animation: 'fadeSlideUp 0.6s ease-out both' }}>
@@ -130,6 +163,6 @@ export default function LigadorLoginPage() {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
-        </div>
+        </PulseBeams>
     )
 }

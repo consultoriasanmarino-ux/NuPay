@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { InteractiveMenu } from '@/components/InteractiveMenu'
 
 export default function AdminLayout({
     children,
@@ -193,7 +194,7 @@ export default function AdminLayout({
                     </div>
                 </header>
 
-                <main className="flex-1 p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
+                <main className="flex-1 p-6 pb-32 lg:p-8 max-w-[1600px] mx-auto w-full">
                     {children}
                 </main>
 
@@ -210,7 +211,19 @@ export default function AdminLayout({
                         </div>
                     </div>
                 </footer>
-            </div>
-        </div>
-    )
+      </div>
+
+      {/* Admin Mobile Menu */}
+      <InteractiveMenu 
+        activeTab={pathname}
+        setActiveTab={(href) => router.push(href)}
+        items={[
+          { id: '/admin', label: 'Painel', icon: LayoutDashboard },
+          { id: '/admin/leads', label: 'Leads', icon: Database },
+          { id: '/admin/import', label: 'Import', icon: Upload },
+          { id: '/admin/ligadores', label: 'Ligs', icon: Users }
+        ]}
+      />
+    </div>
+  )
 }
