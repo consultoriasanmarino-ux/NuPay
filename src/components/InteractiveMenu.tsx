@@ -28,7 +28,7 @@ const InteractiveMenu: React.FC<InteractiveMenuProps> = ({
 }) => {
   return (
     <nav
-      className={cn("menu", className)}
+      className={cn("menu w-[92%] max-w-[450px] justify-around py-3 md:py-2 px-2", className)}
       role="navigation"
     >
       {items.map((item) => {
@@ -38,15 +38,21 @@ const InteractiveMenu: React.FC<InteractiveMenuProps> = ({
         return (
           <button
             key={item.label}
-            className={cn("menu__item", isActive && "active")}
+            className={cn(
+              "menu__item relative flex-1 gap-1 px-2", 
+              isActive && "active"
+            )}
             onClick={() => setActiveTab(item.id)}
           >
-            <IconComponent className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
-            <span className="text-[8px] font-mono tracking-widest uppercase mt-1">
+            <IconComponent className={cn("w-5 h-5 transition-all duration-300", isActive ? "text-primary scale-110" : "text-muted-foreground")} />
+            <span className={cn(
+              "text-[7px] md:text-[8px] font-mono tracking-[0.1em] md:tracking-widest uppercase transition-opacity duration-300",
+              isActive ? "opacity-100 font-extrabold text-primary" : "opacity-40"
+            )}>
               {item.label}
             </span>
             {isActive && (
-              <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary glow-primary" />
+              <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary glow-primary animate-pulse" />
             )}
           </button>
         );

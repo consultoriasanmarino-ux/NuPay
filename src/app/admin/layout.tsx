@@ -201,7 +201,7 @@ export default function AdminLayout({
                     </div>
                 </header>
 
-                <main className="flex-1 p-8 pb-32 lg:p-12 max-w-[1600px] mx-auto w-full animate-in fade-in duration-700">
+                <main className="flex-1 p-4 md:p-8 lg:p-12 max-w-[1600px] mx-auto w-full animate-in fade-in duration-700">
                     {children}
                 </main>
 

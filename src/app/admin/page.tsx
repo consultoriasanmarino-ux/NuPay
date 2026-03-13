@@ -274,19 +274,19 @@ export default function AdminDashboard() {
     ]
 
     return (
-        <div className="space-y-16 animate-in fade-in duration-1000 selection:bg-primary/20 p-8 md:p-12">
+        <div className="space-y-8 md:space-y-16 p-4 md:p-12 animate-in fade-in duration-1000 selection:bg-primary/20">
             {/* Admin Header - NuPay Native */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10 stagger-1">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 rounded-[28px] glass glow-primary border border-primary/30 flex items-center justify-center shadow-2xl rotate-3 hover:rotate-0 transition-transform group">
-                            <Cpu className="w-9 h-9 text-primary group-hover:text-magenta transition-colors" />
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 md:gap-10 stagger-1">
+                <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-[20px] md:rounded-[28px] glass glow-primary border border-primary/30 flex items-center justify-center shadow-2xl rotate-3 hover:rotate-0 transition-transform group shrink-0">
+                            <Cpu className="w-6 h-6 md:w-9 md:h-9 text-primary group-hover:text-magenta transition-colors" />
                         </div>
-                        <h2 className="text-5xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Painel Operacional</h2>
+                        <h2 className="text-3xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Painel Operacional</h2>
                     </div>
-                    <p className="text-zinc-500 font-bold text-lg italic flex items-center gap-4">
-                        <Globe className="w-5 h-5 text-emerald-400 animate-pulse" />
-                        <span className="font-mono text-[11px] tracking-[0.4em] uppercase opacity-70">Monitoramento Terminal e Sincronização OwnData</span>
+                    <p className="text-zinc-500 font-bold text-sm md:text-lg italic flex items-center gap-3 md:gap-4">
+                        <Globe className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 animate-pulse" />
+                        <span className="font-mono text-[9px] md:text-[11px] tracking-[0.2em] md:tracking-[0.4em] uppercase opacity-70">Monitoramento Terminal e OwnData</span>
                     </p>
                 </div>
 
@@ -325,21 +325,21 @@ export default function AdminDashboard() {
             </div>
 
             {/* Main Processor Bento Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 stagger-3">
-                <div className="lg:col-span-8 glass shadow-[0_64px_150px_rgba(0,0,0,0.8)] rounded-[64px] p-16 flex flex-col space-y-12 relative overflow-hidden border border-white/10">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 stagger-3">
+                <div className="lg:col-span-8 glass shadow-[0_64px_150px_rgba(0,0,0,0.8)] rounded-[32px] md:rounded-[64px] p-6 md:p-16 flex flex-col space-y-8 md:space-y-12 relative overflow-hidden border border-white/10">
+                    <div className="absolute top-0 right-0 w-[400px] md:w-[500px] h-[400px] md:h-[500px] bg-primary/10 blur-[100px] md:blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-8">
-                            <div className="w-24 h-24 rounded-[32px] glass glow-primary border border-primary/20 flex items-center justify-center relative group">
-                                <Activity className={cn("w-12 h-12 text-primary transition-all duration-1000", processing && !isPaused ? "animate-pulse" : "")} />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between relative z-10 gap-8">
+                        <div className="flex items-center gap-5 md:gap-8 overflow-hidden">
+                            <div className="w-16 h-16 md:w-24 md:h-24 rounded-[20px] md:rounded-[32px] glass glow-primary border border-primary/20 flex items-center justify-center relative group shrink-0">
+                                <Activity className={cn("w-8 h-8 md:w-12 md:h-12 text-primary transition-all duration-1000", processing && !isPaused ? "animate-pulse" : "")} />
                                 {processing && !isPaused && (
-                                    <div className="absolute inset-0 border-4 border-primary/20 rounded-[32px] animate-ping opacity-20" />
+                                    <div className="absolute inset-0 border-4 border-primary/20 rounded-[20px] md:rounded-[32px] animate-ping opacity-20" />
                                 )}
                             </div>
-                            <div className="space-y-2">
-                                <h3 className="text-4xl font-display uppercase tracking-tight text-white italic">Protocolo OwnData</h3>
-                                <p className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Sincronização Circular de Ativos</p>
+                            <div className="space-y-1 md:space-y-2 truncate">
+                                <h3 className="text-2xl md:text-4xl font-display uppercase tracking-tight text-white italic truncate leading-none">Protocolo OwnData</h3>
+                                <p className="text-[9px] md:text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.2em] md:tracking-[0.4em] italic leading-none">Sincronização Circular</p>
                             </div>
                         </div>
 
@@ -347,33 +347,33 @@ export default function AdminDashboard() {
                             <button
                                 onClick={togglePause}
                                 className={cn(
-                                    "flex items-center gap-4 px-10 py-5 rounded-[32px] font-mono font-bold text-[11px] uppercase tracking-[0.3em] transition-all active:scale-95 shadow-2xl border italic",
+                                    "flex items-center justify-center gap-3 md:gap-4 px-8 md:px-10 h-14 md:h-20 rounded-[20px] md:rounded-[32px] font-mono font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.3em] transition-all active:scale-95 shadow-2xl border italic",
                                     isPaused ? "bg-emerald-500 border-emerald-400 text-white shadow-glow-emerald" : "bg-white/5 border-white/10 text-zinc-400 hover:text-white"
                                 )}
                             >
-                                {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
-                                {isPaused ? 'Retomar Fluxo' : 'Suspender'}
+                                {isPaused ? <Play className="w-4 md:w-5 h-4 md:h-5 fill-current" /> : <Pause className="w-4 md:w-5 h-4 md:h-5 fill-current" />}
+                                {isPaused ? 'Retomar' : 'Suspender'}
                             </button>
                         )}
                     </div>
 
                     {!processing ? (
-                        <div className="flex flex-col items-center justify-center py-20 space-y-12 text-center relative z-10 animate-in fade-in duration-1000">
-                            <div className="space-y-5">
-                                <h4 className="text-5xl font-display uppercase italic tracking-tight text-white leading-none">Terminal Disponível</h4>
-                                <p className="text-zinc-500 text-lg font-bold max-w-lg italic leading-relaxed mx-auto">
-                                    Inicie o enriquecimento terminal: Score, Renda, Localização e Vínculos Governamentais.
+                        <div className="flex flex-col items-center justify-center py-10 md:py-20 space-y-8 md:space-y-12 text-center relative z-10 animate-in fade-in duration-1000">
+                            <div className="space-y-4 md:space-y-5">
+                                <h4 className="text-3xl md:text-5xl font-display uppercase italic tracking-tight text-white leading-none">Terminal Pronto</h4>
+                                <p className="text-zinc-500 text-sm md:text-lg font-bold max-w-lg italic leading-relaxed mx-auto px-4">
+                                    Inicie o enriquecimento terminal: Score, Renda, Localização e Vínculos.
                                 </p>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-6">
+                            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-2xl px-4 md:px-0">
                                 <button
                                     onClick={() => handleConsult(false)}
                                     disabled={loading}
-                                    className="group relative glass glow-primary-sm py-8 px-16 rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.2em] flex items-center gap-5 text-xl font-display text-white border border-primary/20 overflow-hidden"
+                                    className="flex-1 group relative glass glow-primary-sm py-6 md:py-8 px-6 md:px-16 rounded-[24px] md:rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.1em] md:tracking-[0.2em] flex items-center justify-center gap-3 md:gap-5 text-lg md:text-xl font-display text-white border border-primary/20 overflow-hidden"
                                 >
                                      <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <Zap className="w-8 h-8 group-hover:rotate-12 transition-transform duration-500 text-primary" />
-                                    <span>Priorizar Pendentes</span>
+                                    <Zap className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-12 transition-transform duration-500 text-primary" />
+                                    <span>Priorizar</span>
                                 </button>
                                 <button
                                     onClick={() => {
@@ -382,55 +382,55 @@ export default function AdminDashboard() {
                                         }
                                     }}
                                     disabled={loading}
-                                    className="group relative glass-deep hover:bg-amber-500/10 py-8 px-16 rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.2em] flex items-center gap-5 text-xl font-display text-amber-500 border border-amber-500/20"
+                                    className="flex-1 group relative glass-deep hover:bg-amber-500/10 py-6 md:py-8 px-6 md:px-16 rounded-[24px] md:rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.1em] md:tracking-[0.2em] flex items-center justify-center gap-3 md:gap-5 text-lg md:text-xl font-display text-amber-500 border border-amber-500/20"
                                 >
-                                    <RefreshCcw className="w-8 h-8 group-hover:rotate-180 transition-transform duration-1000" />
+                                    <RefreshCcw className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-180 transition-transform duration-1000" />
                                     <span>Reset Global</span>
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-12 animate-in zoom-in-95 duration-700 relative z-10">
-                            <div className="glass-deep p-12 rounded-[56px] border border-white/5 shadow-inner backdrop-blur-3xl relative overflow-hidden group">
-                                <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/5 blur-[80px] rounded-full group-hover:bg-primary/10 transition-colors pointer-events-none" />
+                        <div className="space-y-8 md:space-y-12 animate-in zoom-in-95 duration-700 relative z-10">
+                            <div className="glass-deep p-6 md:p-12 rounded-[32px] md:rounded-[56px] border border-white/5 shadow-inner backdrop-blur-3xl relative overflow-hidden group">
+                                <div className="absolute -right-10 md:-right-20 -top-10 md:-top-20 w-32 md:w-64 h-32 md:h-64 bg-primary/5 blur-[40px] md:blur-[80px] rounded-full group-hover:bg-primary/10 transition-colors pointer-events-none" />
                                 
-                                <div className="flex justify-between items-end mb-10">
-                                    <div className="flex items-center gap-6">
-                                        <div className={cn("w-4 h-4 rounded-full shadow-glow", isPaused ? "bg-amber-500 shadow-amber-500/50" : "bg-primary animate-pulse shadow-primary/50")} />
-                                        <div className="space-y-2">
-                                            <p className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] italic text-zinc-600 leading-none pb-1">
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-8 md:mb-10">
+                                    <div className="flex items-center gap-4 md:gap-6">
+                                        <div className={cn("w-3 h-3 md:w-4 md:h-4 rounded-full shadow-glow", isPaused ? "bg-amber-500 shadow-amber-500/50" : "bg-primary animate-pulse shadow-primary/50")} />
+                                        <div className="space-y-1 md:space-y-2">
+                                            <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.2em] md:tracking-[0.4em] italic text-zinc-600 leading-none pb-1">
                                                 {isPaused ? 'OPERAÇÃO EM PAUSA' : 'PROCESSAMENTO ATIVO'}
                                             </p>
-                                            <p className="text-3xl font-display italic uppercase tracking-tighter leading-none text-white">{progress.current} <span className="text-zinc-700 mx-2 text-xl font-mono">/</span> {progress.total}</p>
+                                            <p className="text-2xl md:text-3xl font-display italic uppercase tracking-tighter leading-none text-white">{progress.current} <span className="text-zinc-700 mx-1 text-base md:text-xl font-mono">/</span> {progress.total}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-5xl font-display text-white italic tracking-tighter leading-none glow-primary-sm">{Math.round((progress.current / progress.total) * 100)}%</p>
-                                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-700 pt-3 italic">Indexação</p>
+                                    <div className="md:text-right">
+                                        <p className="text-4xl md:text-5xl font-display text-white italic tracking-tighter leading-none glow-primary-sm">{Math.round((progress.current / progress.total) * 100)}%</p>
+                                        <p className="text-[8px] md:text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-700 pt-2 md:pt-3 italic">Indexação</p>
                                     </div>
                                 </div>
 
-                                <div className="w-full h-3 bg-[#05010a] rounded-full overflow-hidden border border-white/10 relative p-1 mb-12 ring-8 ring-white/[0.02]">
+                                <div className="w-full h-2 md:h-3 bg-[#05010a] rounded-full overflow-hidden border border-white/10 relative p-1 mb-10 md:mb-12 ring-4 md:ring-8 ring-white/[0.02]">
                                     <div
                                         className="h-full bg-gradient-to-r from-primary via-magenta to-primary bg-[length:200%_auto] animate-shimmer rounded-full transition-all duration-700 shadow-glow-primary"
                                         style={{ width: `${(progress.current / progress.total) * 100}%` }}
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-10">
-                                    <div className="glass-deep p-10 rounded-[48px] border border-emerald-500/10 flex flex-col items-center group/card overflow-hidden relative shadow-2xl hover:bg-emerald-500/[0.02] transition-colors">
-                                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/card:scale-125 transition-transform duration-1000 pointer-events-none">
-                                            <CheckCircle2 className="w-24 h-24 text-emerald-500" />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-10">
+                                    <div className="glass-deep p-6 md:p-10 rounded-[24px] md:rounded-[48px] border border-emerald-500/10 flex flex-col items-center group/card overflow-hidden relative shadow-2xl hover:bg-emerald-500/[0.02] transition-colors">
+                                        <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover/card:scale-125 transition-transform duration-1000 pointer-events-none">
+                                            <CheckCircle2 className="w-16 md:w-24 h-16 md:h-24 text-emerald-500" />
                                         </div>
-                                        <p className="text-[11px] font-mono font-bold uppercase text-emerald-500 tracking-[0.4em] mb-4 italic leading-none relative z-10">Sucesso Circular</p>
-                                        <p className="text-6xl font-display text-emerald-400 italic leading-none pt-2 glow-emerald-sm relative z-10">+{progress.success}</p>
+                                        <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase text-emerald-500 tracking-[0.2em] md:tracking-[0.4em] mb-2 md:mb-4 italic leading-none relative z-10">Sucesso Circular</p>
+                                        <p className="text-4xl md:text-6xl font-display text-emerald-400 italic leading-none pt-2 glow-emerald-sm relative z-10">+{progress.success}</p>
                                     </div>
-                                    <div className="glass-deep p-10 rounded-[48px] border border-destructive/10 flex flex-col items-center group/card overflow-hidden relative shadow-2xl hover:bg-destructive/[0.02] transition-colors">
-                                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/card:scale-125 transition-transform duration-1000 pointer-events-none">
-                                            <AlertCircle className="w-24 h-24 text-destructive" />
+                                    <div className="glass-deep p-6 md:p-10 rounded-[24px] md:rounded-[48px] border border-destructive/10 flex flex-col items-center group/card overflow-hidden relative shadow-2xl hover:bg-destructive/[0.02] transition-colors">
+                                        <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover/card:scale-125 transition-transform duration-1000 pointer-events-none">
+                                            <AlertCircle className="w-16 md:w-24 h-16 md:h-24 text-destructive" />
                                         </div>
-                                        <p className="text-[11px] font-mono font-bold uppercase text-destructive tracking-[0.4em] mb-4 italic leading-none relative z-10">Falhas de Sinal</p>
-                                        <p className="text-6xl font-display text-destructive italic leading-none pt-2 glow-destructive-sm relative z-10">-{progress.failed}</p>
+                                        <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase text-destructive tracking-[0.2em] md:tracking-[0.4em] mb-2 md:mb-4 italic leading-none relative z-10">Falhas de Sinal</p>
+                                        <p className="text-4xl md:text-6xl font-display text-destructive italic leading-none pt-2 glow-destructive-sm relative z-10">-{progress.failed}</p>
                                     </div>
                                 </div>
                             </div>
