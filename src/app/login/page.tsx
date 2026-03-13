@@ -82,68 +82,67 @@ export default function LigadorLoginPage() {
 
     return (
         <PulseBeams beams={loginBeams}>
-            <div className="w-full max-w-sm space-y-10 relative z-10">
+            <div className="w-full max-w-sm space-y-12 relative z-10 p-8">
                 {/* Logo */}
-                <div className="text-center space-y-6" style={{ animation: 'fadeSlideUp 0.6s ease-out both' }}>
+                <div className="text-center space-y-8 animate-in fade-in duration-1000 stagger-1">
                     <div className="relative inline-block">
-                        <div className="w-24 h-24 rounded-[32px] flex items-center justify-center mx-auto shadow-2xl transition-transform hover:scale-105" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 20px 48px rgba(130,10,209,0.4)' }}>
-                            <span className="text-4xl font-black text-white italic">nu</span>
+                        <div className="w-24 h-24 rounded-[32px] glass glow-primary flex items-center justify-center mx-auto shadow-2xl transition-all hover:scale-105 border-primary/20 rotate-3 hover:rotate-0">
+                            <span className="text-4xl font-display text-primary font-bold">nu</span>
                         </div>
-                        <div className="absolute inset-0 blur-[60px] rounded-full" style={{ background: 'rgba(130,10,209,0.3)' }} />
                     </div>
-                    <div>
-                        <h1 className="text-5xl font-black tracking-tighter text-white italic">NuPay</h1>
-                        <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mt-3">Acesso Operacional</p>
+                    <div className="space-y-2">
+                        <h1 className="text-6xl font-display tracking-tight text-white uppercase italic">NuPay</h1>
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-cyan-400">Security Access Layer</p>
                     </div>
                 </div>
 
                 {/* Form */}
-                <div style={{ animation: 'fadeSlideUp 0.6s ease-out 0.15s both' }}>
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-500 ml-1">Usuário</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 stagger-2">
+                    <form onSubmit={handleLogin} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 ml-2">Operator Identity</label>
+                            <div className="relative group">
+                                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-cyan-400 transition-colors" />
                                 <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="Seu nome de usuário"
-                                    className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-violet-500/30 focus:ring-2 focus:ring-violet-500/10 transition-all placeholder:text-zinc-700"
+                                    placeholder="USUÁRIO"
+                                    className="w-full glass-deep border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-xs font-mono font-bold outline-none focus:border-cyan-500/30 transition-all placeholder:text-zinc-800"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-500 ml-1">Senha</label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 ml-2">Access Key</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-magenta transition-colors" />
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-violet-500/30 focus:ring-2 focus:ring-violet-500/10 transition-all placeholder:text-zinc-700"
+                                    className="w-full glass-deep border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-xs font-mono font-bold outline-none focus:border-magenta/30 transition-all placeholder:text-zinc-800"
                                 />
                             </div>
                         </div>
 
                         {loginError && (
-                            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl text-red-400 text-sm font-medium text-center animate-in shake-1 duration-500">
-                                {loginError}
+                            <div className="bg-destructive/10 border border-destructive/20 p-5 rounded-2xl text-destructive text-[10px] font-mono font-bold uppercase tracking-widest text-center animate-in shake-1 duration-500">
+                                Access Denied: {loginError}
                             </div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg active:scale-[0.97] disabled:opacity-50 text-sm mt-6"
-                            style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 12px 32px rgba(130,10,209,0.3)' }}
+                            className="w-full glass-card py-5 rounded-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-white hover:bg-primary group overflow-hidden relative"
                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary-light opacity-0 group-hover:opacity-10 transition-opacity" />
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>
-                                    Entrar
-                                    <ArrowRight className="w-4 h-4" />
+                                    Authorize Access
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </>
                             )}
                         </button>
@@ -151,18 +150,15 @@ export default function LigadorLoginPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-center gap-2 opacity-30" style={{ animation: 'fadeSlideUp 0.6s ease-out 0.3s both' }}>
-                    <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-[11px] text-zinc-500 font-medium">Conexão protegida</span>
+                <div className="flex items-center justify-center gap-4 opacity-50 animate-in fade-in duration-1000 stagger-3">
+                    <div className="w-8 h-px bg-white/5" />
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-widest">Secure Terminal</span>
+                    </div>
+                    <div className="w-8 h-px bg-white/5" />
                 </div>
             </div>
-
-            <style jsx global>{`
-                @keyframes fadeSlideUp {
-                    from { opacity: 0; transform: translateY(16px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
         </PulseBeams>
     )
 }

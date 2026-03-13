@@ -173,28 +173,47 @@ export default function LigadorDashboard() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#0a0a0f] text-white flex flex-col overflow-x-hidden" style={{ '--nu-purple': '#820AD1', '--nu-purple-light': '#9B30D9', '--nu-purple-dark': '#6B07AB' } as any}>
-      {/* ===== MOBILE-FIRST HEADER ===== */}
-      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-[#0a0a0f]/90 border-b border-white/5">
-        <div className="flex items-center justify-between px-5 py-4 md:px-8 md:py-5">
-          {/* Logo + User */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-[14px] flex items-center justify-center font-black text-white text-base shadow-xl" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 16px rgba(130,10,209,0.2)' }}>
+    <div className="min-h-screen selection:bg-primary/20">
+      {/* ===== HEADER ===== */}
+      <header className="sticky top-0 z-50 glass-deep border-b border-white/5 px-6 py-4 md:px-12 md:py-6">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl glass glow-primary flex items-center justify-center font-display text-primary text-xl font-bold border-primary/20 rotate-3 hover:rotate-0 transition-transform cursor-pointer">
               nu
             </div>
-            <div>
-              <h1 className="font-black text-xl md:text-2xl leading-none tracking-tighter italic">NuPay</h1>
-              <p className="text-[9px] font-black uppercase tracking-widest mt-0.5" style={{ color: '#820AD1' }}>{userName}</p>
+            <div className="hidden sm:block">
+              <h1 className="font-display text-2xl tracking-tight leading-none text-white">NuPay</h1>
+              <p className="text-[9px] font-mono font-bold uppercase tracking-[0.3em] text-cyan-400 mt-1">{userName}</p>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex glass-deep p-1 rounded-2xl border-white/5 mr-4 hidden md:flex">
+              <button
+                onClick={() => setActiveTab('pendentes')}
+                className={cn(
+                  "px-6 py-2.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest transition-all",
+                  activeTab === 'pendentes' ? "bg-primary text-white shadow-glow" : "text-zinc-500 hover:text-white"
+                )}
+              >
+                Fichas ({leads.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('finalizadas')}
+                className={cn(
+                  "px-6 py-2.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest transition-all",
+                  activeTab === 'finalizadas' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-white"
+                )}
+              >
+                Histórico
+              </button>
+            </div>
+
             <button
               onClick={() => fetchLeads()}
-              className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-violet-500/10 active:scale-90 transition-all"
+              className="w-11 h-11 rounded-2xl glass-deep flex items-center justify-center hover:bg-white/10 active:scale-90 transition-all border-white/5"
             >
-              <RefreshCcw className={cn("w-4 h-4 text-zinc-400", loading && "animate-spin")} style={loading ? { color: '#820AD1' } : {}} />
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-400", loading && "animate-spin text-primary")} />
             </button>
             <button
               onClick={() => {
@@ -202,284 +221,244 @@ export default function LigadorDashboard() {
                 localStorage.removeItem('nupay_ligador_id')
                 router.push('/login')
               }}
-              className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/10 active:scale-90 transition-all"
+              className="w-11 h-11 rounded-2xl glass-deep flex items-center justify-center hover:bg-destructive/20 active:scale-90 transition-all border-white/5 group"
             >
-              <LogOut className="w-4 h-4 text-zinc-400" />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs Desktop - Hidden on Mobile because of InteractiveMenu */}
-        <div className="hidden md:block px-8 pb-3">
-          <div className="flex p-1 bg-white/5 rounded-2xl w-full">
-            <button
-              onClick={() => setActiveTab('pendentes')}
-              className={cn(
-                "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
-                activeTab === 'pendentes'
-                  ? "text-white shadow-xl"
-                  : "text-zinc-500 hover:text-white"
-              )}
-              style={activeTab === 'pendentes' ? { background: 'linear-gradient(135deg, #820AD1, #6B07AB)', boxShadow: '0 8px 16px rgba(130,10,209,0.2)' } : {}}
-            >
-              Fichas ({leads.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('finalizadas')}
-              className={cn(
-                "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300",
-                activeTab === 'finalizadas'
-                  ? "bg-white/10 text-white shadow-xl"
-                  : "text-zinc-500 hover:text-white"
-              )}
-            >
-              Histórico
+              <LogOut className="w-4 h-4 text-zinc-400 group-hover:text-destructive transition-colors" />
             </button>
           </div>
         </div>
       </header>
 
       {/* ===== SEARCH BAR ===== */}
-      <div className="px-5 py-4 md:px-8">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+      <div className="px-6 py-6 md:px-12">
+        <div className="max-w-6xl mx-auto relative group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-cyan-400 transition-colors" />
           <input
             type="text"
             placeholder="Buscar por nome ou CPF..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/5 outline-none transition-all text-sm placeholder:text-zinc-700 focus:border-[#820AD1]/30 focus:ring-1 focus:ring-[#820AD1]/20"
+            className="w-full pl-14 pr-6 py-4.5 rounded-2xl glass-deep border border-white/5 outline-none transition-all text-sm font-mono uppercase tracking-widest placeholder:text-zinc-700 focus:border-cyan-500/30"
           />
         </div>
       </div>
 
       {/* ===== CONTENT ===== */}
-      <main className="flex-1 px-5 pb-32 md:px-8 md:max-w-2xl md:mx-auto md:w-full">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-2 flex items-center justify-center" style={{ borderColor: 'rgba(130,10,209,0.2)' }}>
-                <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#820AD1' }} />
+      <main className="flex-1 px-6 pb-32 md:px-12">
+        <div className="max-w-6xl mx-auto">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-24 space-y-6">
+              <Loader2 className="w-12 h-12 animate-spin text-cyan-400 glow-cyan rounded-full" />
+              <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.5em] animate-pulse">Sincronizando Fichas...</p>
+            </div>
+          ) : filteredLeads.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-8 animate-in fade-in duration-700">
+              <div className="w-24 h-24 rounded-[32px] glass-deep flex items-center justify-center border-white/5">
+                <PhoneCall className="w-10 h-10 text-zinc-800" />
               </div>
-              <div className="absolute inset-0 blur-[40px] rounded-full" style={{ background: 'rgba(130,10,209,0.2)' }} />
-            </div>
-            <p className="text-sm text-zinc-500 font-medium tracking-tight">Carregando fichas...</p>
-          </div>
-        ) : filteredLeads.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in duration-500">
-            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
-              <PhoneCall className="w-10 h-10 text-zinc-700" />
-            </div>
-            <div className="text-center space-y-2 px-6">
-              <h3 className="text-xl font-bold tracking-tight italic">FILA VAZIA</h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">Nenhuma ficha aguardando. Aguarde uma nova atribuição.</p>
-            </div>
-            <button
-              onClick={() => fetchLeads()}
-              className="px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl text-white"
-              style={{ background: '#820AD1', boxShadow: '0 8px 32px rgba(130,10,209,0.3)' }}
-            >
-              Atualizar
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredLeads.map((lead, idx) => (
-              <div
-                key={lead.id}
-                onClick={() => setSelectedLead(lead)}
-                className="bg-white/[0.03] border border-white/5 rounded-[32px] p-5 flex flex-col items-center text-center gap-3 active:scale-[0.96] transition-all duration-200 cursor-pointer hover:bg-violet-500/5 hover:border-violet-500/10 group relative"
-                style={{ animationDelay: `${idx * 40}ms`, animation: 'fadeSlideUp 0.4s ease-out both' }}
+              <div className="text-center space-y-3">
+                <h3 className="text-3xl font-display uppercase tracking-tight text-white italic">Fila Vazia</h3>
+                <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest leading-relaxed">Nenhuma ficha pendente no momento.</p>
+              </div>
+              <button
+                onClick={() => fetchLeads()}
+                className="px-10 py-5 rounded-2xl glass-card text-xs font-mono font-bold text-primary uppercase tracking-[0.3em] hover:text-white"
               >
-                {/* Avatar */}
-                <div className="w-16 h-16 rounded-[24px] border flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform mb-1" style={{ background: 'rgba(130,10,209,0.08)', borderColor: 'rgba(130,10,209,0.1)' }}>
-                  <UserCircle2 className="w-8 h-8" style={{ color: '#9B30D9' }} />
-                </div>
-
-                {/* Info */}
-                <div className="w-full space-y-1">
-                  <h4 className="font-black text-[13px] uppercase tracking-tighter truncate leading-tight group-hover:text-violet-300 transition-colors">
-                    {lead.full_name?.split(' ')[0] || 'Cliente'}
-                  </h4>
-                  <p className="text-[10px] text-zinc-600 font-mono tracking-tighter">
-                    {lead.cpf?.slice(0, 3)}..{lead.cpf?.slice(-2)}
-                  </p>
+                Atualizar Fila
+              </button>
+            </div>
+          ) : (
+            <div className="bento-grid">
+              {filteredLeads.map((lead, idx) => (
+                <div
+                  key={lead.id}
+                  onClick={() => setSelectedLead(lead)}
+                  className={cn(
+                    "glass-card p-6 flex flex-col items-center text-center gap-6 cursor-pointer group relative overflow-hidden",
+                    `stagger-${(idx % 5) + 1} animate-in fade-in slide-in-from-bottom-4`
+                  )}
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-2xl rounded-full" />
                   
-                  <div className="pt-2">
-                    <p className="text-[11px] font-black italic text-emerald-400">
-                      {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }) : '--'}
-                    </p>
+                  {/* Avatar */}
+                  <div className="w-20 h-20 rounded-[28px] glass glow-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform member-badge">
+                    <UserCircle2 className="w-10 h-10 text-primary-light" />
                   </div>
 
-                  {lead.num_gov && (
-                    <div className="mt-1">
-                      <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-black border border-emerald-500/20 uppercase tracking-tighter">GOV ✓</span>
+                  {/* Info */}
+                  <div className="w-full space-y-2 relative z-10">
+                    <h4 className="font-display text-xl tracking-tight text-white group-hover:text-cyan-400 transition-colors uppercase italic">
+                      {lead.full_name?.split(' ')[0] || 'Cliente'}
+                    </h4>
+                    <p className="text-[10px] text-zinc-600 font-mono tracking-[0.2em] uppercase">
+                      CPF {lead.cpf?.slice(0, 3)}..{lead.cpf?.slice(-2)}
+                    </p>
+                    
+                    <div className="pt-4 border-t border-white/5 mt-4">
+                      <p className="text-2xl font-display italic text-emerald-400 leading-none">
+                        {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }) : '---'}
+                      </p>
+                      <p className="text-[8px] font-mono text-zinc-700 uppercase tracking-[0.3em] mt-2">Renda Estimada</p>
                     </div>
-                  )}
 
-                  {activeTab === 'finalizadas' && (
-                    <div className="mt-1">
-                      <span className={cn(
-                        "text-[8px] px-2 py-0.5 rounded-full font-black border uppercase tracking-tighter",
-                        lead.status === 'pago' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : 
-                        lead.status === 'recusado' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
-                        "bg-white/5 text-zinc-400 border-white/10"
-                      )}>
-                        {lead.status === 'pago' ? 'Sucesso' : lead.status === 'recusado' ? 'Falha' : 'OK'}
-                      </span>
-                    </div>
-                  )}
+                    {lead.num_gov && (
+                      <div className="mt-4">
+                        <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-4 py-1.5 rounded-full font-mono border border-emerald-500/20 uppercase tracking-widest italic glow-emerald">GOV VINCULADO</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* ===== DETAIL MODAL ===== */}
       {selectedLead && (
-        <div className="fixed inset-0 z-[10000] bg-[#0a0a0f] overflow-y-auto overscroll-contain animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="min-h-full flex flex-col">
-            {/* Modal Header */}
-            <div className="relative px-6 pt-8 pb-10">
-              <button
-                onClick={() => setSelectedLead(null)}
-                className="absolute top-5 right-5 w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 active:scale-90 transition-all z-20"
-              >
-                <X className="w-6 h-6 text-zinc-400" />
-              </button>
+        <div className="fixed inset-0 z-[10000] bg-background/90 backdrop-blur-3xl overflow-y-auto overscroll-contain animate-in fade-in duration-500">
+          <div className="min-h-full flex flex-col p-6 animate-in zoom-in-95 duration-500">
+            <div className="max-w-4xl mx-auto w-full glass-deep rounded-[48px] overflow-hidden border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+              {/* Modal Header */}
+              <div className="relative px-8 pt-12 pb-14 border-b border-white/5 bg-white/[0.01]">
+                <button
+                  onClick={() => setSelectedLead(null)}
+                  className="absolute top-8 right-8 w-12 h-12 rounded-2xl glass-deep hover:bg-destructive transition-all flex items-center justify-center z-20 border-white/5"
+                >
+                  <X className="w-6 h-6 text-zinc-400" />
+                </button>
 
-              <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-[32px] flex items-center justify-center shadow-2xl mb-6 ring-8 ring-primary/5" style={{ background: 'linear-gradient(135deg, #820AD1, #6B07AB)' }}>
-                  <UserCircle2 className="w-12 h-12 text-white" />
-                </div>
-                <h3 className="text-3xl font-black tracking-tighter leading-tight uppercase italic max-w-[300px]">
-                  {selectedLead.full_name || 'Sem Nome'}
-                </h3>
-                <p className="text-xs text-zinc-500 mt-2 font-mono tracking-widest uppercase">CPF: {selectedLead.cpf}</p>
-
-                {selectedLead.score && (
-                  <div className="mt-4 flex items-center gap-2 px-5 py-2 rounded-full font-black italic bg-primary/10 border border-primary/20 text-primary uppercase text-[10px] tracking-widest shadow-lg">
-                    <Star className="w-4 h-4 fill-primary" />
-                    Score {selectedLead.score}
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  <div className="w-28 h-28 rounded-[36px] glass glow-primary flex items-center justify-center shadow-2xl mb-8 border-primary/20">
+                    <UserCircle2 className="w-14 h-14 text-primary-light" />
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="px-6 pb-12 space-y-6">
-              <div className="grid grid-cols-3 gap-3">
-                 <div className="bg-white/5 rounded-3xl p-5 text-center border border-white/5">
-                   <p className="text-xl font-black italic text-emerald-400">R$ {Number(selectedLead.income || 0).toLocaleString('pt-BR')}</p>
-                   <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mt-1">Renda</p>
-                 </div>
-                 <div className="bg-white/5 rounded-3xl p-5 text-center border border-white/5">
-                   <p className="text-xl font-black italic">{selectedLead.age || '--'}</p>
-                   <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mt-1">Idade</p>
-                 </div>
-                 <div className="bg-white/5 rounded-3xl p-5 text-center border border-white/5">
-                   <p className="text-sm font-black italic uppercase truncate">{selectedLead.state || 'UF'}</p>
-                   <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mt-1">Estado</p>
-                 </div>
+                  <h3 className="text-4xl font-display uppercase tracking-tight leading-none text-white italic max-w-[400px]">
+                    {selectedLead.full_name || 'Registro Ativo'}
+                  </h3>
+                  <div className="flex items-center gap-4 mt-4">
+                    <p className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest">IDENTIFICAÇÃO: <span className="text-cyan-400">{selectedLead.cpf}</span></p>
+                    <div className="w-1 h-1 rounded-full bg-zinc-800" />
+                    <p className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest">IDADE: <span className="text-white">{selectedLead.age || '??'} ANOS</span></p>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-emerald-500 overflow-hidden relative rounded-[32px] p-8 shadow-2xl group transition-all" style={{ background: 'linear-gradient(135deg, #10B981, #059669)', boxShadow: '0 20px 40px rgba(16,185,129,0.2)' }}>
-                <div className="relative z-10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-2">TELEFONE GOVERNO</p>
-                  <p className="text-4xl md:text-5xl font-black text-white italic tracking-tighter">
-                    {selectedLead.num_gov ? selectedLead.num_gov.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') : 'NÃO INFO'}
-                  </p>
-                </div>
-                <Smartphone className="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12" />
-              </div>
+              {/* Modal Body */}
+              <div className="p-8 md:p-12 space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Score e Renda */}
+                  <div className="glass-card p-10 space-y-8 border-cyan-500/10">
+                    <div className="flex justify-between items-end">
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Score Crédito</p>
+                        <p className="text-5xl font-display italic text-cyan-400 glow-cyan leading-none">{selectedLead.score || '--'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-widest mb-2">Estado</p>
+                        <p className="text-2xl font-display text-white italic uppercase tracking-widest">{selectedLead.state || 'UF'}</p>
+                      </div>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-cyan-400 shadow-glow" style={{ width: `${(Number(selectedLead.score || 0) / 1000) * 100}%` }} />
+                    </div>
+                  </div>
 
-              <div className="bg-white/5 border border-white/5 rounded-[32px] p-6 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                    <MessageSquare className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h5 className="font-black italic uppercase text-xs tracking-widest">Script de Abordagem</h5>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 ml-1">Valor do Gasto</label>
-                    <input
-                      type="text"
-                      value={msgValor}
-                      onChange={e => setMsgValor(e.target.value)}
-                      className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-4 text-sm font-black italic outline-none focus:border-primary/30 transition-all text-center"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 ml-1">Data da Compra</label>
-                    <input
-                      type="text"
-                      value={msgData}
-                      onChange={e => setMsgData(e.target.value)}
-                      className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-4 text-sm font-black italic outline-none focus:border-primary/30 transition-all text-center"
-                    />
+                  {/* Número Gov */}
+                  <div className="glass-card p-10 border-emerald-500/10 bg-emerald-500/5 relative overflow-hidden group">
+                    <Smartphone className="absolute -right-6 -bottom-6 w-32 h-32 text-emerald-500/10 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
+                    <div className="relative z-10 space-y-4">
+                      <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-500 italic">Telefone Vinculado GOV</p>
+                      <p className="text-4xl font-display text-white tracking-tighter leading-none glow-emerald">
+                        {selectedLead.num_gov || 'NÃO LOCALIZADO'}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-black/60 rounded-2xl p-5 border border-white/5 italic text-zinc-400 text-xs leading-relaxed whitespace-pre-line">
-                  {buildMessage()}
-                </div>
+                {/* Script Section */}
+                <div className="glass-card p-10 border-white/5 space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl glass glow-primary flex items-center justify-center border-primary/20">
+                      <MessageSquare className="w-6 h-6 text-primary" />
+                    </div>
+                    <h5 className="text-lg font-display uppercase italic tracking-tight text-white">Script de Segurança</h5>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={handleCopyMessage}
-                    className="py-4 rounded-2xl border-2 text-xs font-black uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-3"
-                    style={{ borderColor: 'rgba(130,10,209,0.3)', color: '#9B30D9' }}
-                  >
-                    {msgCopied ? 'Copiado ✓' : 'Copiar Texto'}
-                  </button>
-                  {selectedLead.num_gov && (
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-600 block px-2">Valor Transação</label>
+                      <input
+                        type="text"
+                        value={msgValor}
+                        onChange={e => setMsgValor(e.target.value)}
+                        className="w-full glass-deep border border-white/5 rounded-2xl py-5 px-6 text-sm font-mono font-bold italic outline-none focus:border-primary/40 transition-all text-center"
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-600 block px-2">Data Registro</label>
+                      <input
+                        type="text"
+                        value={msgData}
+                        onChange={e => setMsgData(e.target.value)}
+                        className="w-full glass-deep border border-white/5 rounded-2xl py-5 px-6 text-sm font-mono font-bold italic outline-none focus:border-primary/40 transition-all text-center"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white/[0.02] rounded-3xl p-8 border border-white/5 italic text-zinc-400 text-sm leading-relaxed whitespace-pre-line font-mono tracking-tight selection:bg-primary/30">
+                    {buildMessage()}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                     <button
-                      onClick={() => {
-                        const msg = encodeURIComponent(buildMessage())
-                        window.open(`https://wa.me/55${selectedLead.num_gov?.replace(/\D/g, '')}?text=${msg}`, '_blank')
-                      }}
-                      className="py-4 bg-emerald-500 rounded-2xl font-black uppercase text-white shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-xs flex items-center justify-center gap-3"
+                      onClick={handleCopyMessage}
+                      className="py-5 rounded-2xl glass glow-primary border-primary/30 text-xs font-mono font-bold uppercase tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-3 text-primary-light hover:bg-primary hover:text-white"
                     >
-                      <Phone className="w-4 h-4 fill-white" />
-                      WhatsApp
+                      {msgCopied ? 'Copiado para Área!' : 'Copiar Abordagem'}
                     </button>
+                    {selectedLead.num_gov && (
+                      <button
+                        onClick={() => {
+                          const msg = encodeURIComponent(buildMessage())
+                          window.open(`https://wa.me/55${selectedLead.num_gov?.replace(/\D/g, '')}?text=${msg}`, '_blank')
+                        }}
+                        className="py-5 bg-emerald-500 rounded-2xl font-mono font-bold uppercase tracking-widest text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)] active:scale-95 transition-all text-xs flex items-center justify-center gap-3 hover:translate-y-[-2px]"
+                      >
+                        <Phone className="w-4 h-4 fill-white" />
+                        Abrir WhatsApp
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row gap-6">
+                  <button
+                    onClick={() => setSelectedLead(null)}
+                    className="flex-1 py-6 rounded-3xl glass-deep border-white/10 text-[10px] font-mono font-bold uppercase tracking-[0.4em] hover:bg-white/5 transition-all"
+                  >
+                    Recuar
+                  </button>
+                  {activeTab === 'pendentes' && (
+                    <div className="flex-[2] flex gap-4">
+                      <button
+                        onClick={() => handleFinalize(selectedLead.id as string, 'recusado')}
+                        disabled={saving}
+                        className="flex-1 py-6 rounded-3xl glass-deep border-destructive/20 text-destructive text-[10px] font-mono font-bold uppercase tracking-[0.4em] hover:bg-destructive hover:text-white transition-all flex items-center justify-center gap-2"
+                      >
+                        {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Falha'}
+                      </button>
+                      <button
+                        onClick={() => handleFinalize(selectedLead.id as string, 'pago')}
+                        disabled={saving}
+                        className="flex-[2] py-6 rounded-3xl bg-emerald-500 text-white text-[10px] font-mono font-bold uppercase tracking-[0.4em] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-[0_15px_40px_rgba(16,185,129,0.4)] hover:translate-y-[-2px]"
+                      >
+                        {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar Sucesso'}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Footer */}
-            <div className="sticky bottom-0 px-6 py-6 bg-[#0a0a0f] border-t border-white/5 flex gap-4">
-               <button
-                  onClick={() => setSelectedLead(null)}
-                  className="px-8 py-5 rounded-[24px] bg-white/5 border border-white/5 text-xs font-black uppercase tracking-widest active:scale-95 transition-all"
-                >
-                  Voltar
-                </button>
-                {activeTab === 'pendentes' && (
-                  <>
-                    <button
-                      onClick={() => handleFinalize(selectedLead.id, 'recusado')}
-                      disabled={saving}
-                      className="flex-1 py-5 rounded-[24px] bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-black uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Falha ✕'}
-                    </button>
-                    <button
-                      onClick={() => handleFinalize(selectedLead.id, 'pago')}
-                      disabled={saving}
-                      className="flex-[2] py-5 rounded-[24px] text-white text-xs font-black uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 shadow-2xl shadow-emerald-500/20"
-                      style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
-                    >
-                      {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sucesso ✓'}
-                    </button>
-                  </>
-                )}
             </div>
           </div>
         </div>

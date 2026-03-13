@@ -21,16 +21,15 @@ export interface InteractiveMenuProps {
 
 const InteractiveMenu: React.FC<InteractiveMenuProps> = ({ 
   items, 
-  accentColor = "#8A05BE",
+  accentColor = "var(--primary)",
   activeTab,
   setActiveTab,
   className
 }) => {
   return (
     <nav
-      className={cn("menu md:hidden", className)}
+      className={cn("menu", className)}
       role="navigation"
-      style={{ '--primary': accentColor } as React.CSSProperties}
     >
       {items.map((item) => {
         const isActive = item.id === activeTab;
@@ -42,12 +41,13 @@ const InteractiveMenu: React.FC<InteractiveMenuProps> = ({
             className={cn("menu__item", isActive && "active")}
             onClick={() => setActiveTab(item.id)}
           >
-            <div className="menu__icon">
-              <IconComponent className="icon w-6 h-6" />
-            </div>
-            <strong className={cn("menu__text", isActive && "active")}>
+            <IconComponent className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
+            <span className="text-[8px] font-mono tracking-widest uppercase mt-1">
               {item.label}
-            </strong>
+            </span>
+            {isActive && (
+              <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary glow-primary" />
+            )}
           </button>
         );
       })}
