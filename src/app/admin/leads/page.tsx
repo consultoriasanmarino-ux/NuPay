@@ -22,7 +22,9 @@ export default function LeadsPage() {
     const [filters, setFilters] = useState({
         income: '',
         score: '',
-        age: ''
+        age: '',
+        sortBy: 'created_at',
+        sortOrder: 'desc' as 'asc' | 'desc'
     })
 
     const getStatusLabel = (status: string) => {
@@ -48,7 +50,7 @@ export default function LeadsPage() {
             .from('leads')
             .select('*', { count: 'exact' })
             .range(start, end)
-            .order('created_at', { ascending: false })
+            .order(filters.sortBy || 'created_at', { ascending: filters.sortOrder === 'asc' })
 
         let cleanSearch = searchTerm
         if (/[\d.-]{11,14}/.test(searchTerm)) {
@@ -292,7 +294,31 @@ export default function LeadsPage() {
                     />
                 </div>
 
-                <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar">
+                <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar items-center">
+                    {/* Ordenação Global */}
+                    <div className="flex items-center gap-4 bg-primary/10 border border-primary/20 h-14 px-6 rounded-[24px] shrink-0">
+                        <Filter className="w-4 h-4 text-primary" />
+                        <select
+                            value={filters.sortBy}
+                            onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-white min-w-[120px]"
+                        >
+                            <option value="created_at" className="bg-[#0c0c0e]">Recentes</option>
+                            <option value="income" className="bg-[#0c0c0e]">Renda</option>
+                            <option value="score" className="bg-[#0c0c0e]">Score</option>
+                            <option value="age" className="bg-[#0c0c0e]">Idade</option>
+                        </select>
+                        <div className="w-px h-6 bg-white/10 mx-1" />
+                        <select
+                            value={filters.sortOrder}
+                            onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value as 'asc' | 'desc' }))}
+                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-cyan-400 font-bold"
+                        >
+                            <option value="desc" className="bg-[#0c0c0e]">Maior → Menor</option>
+                            <option value="asc" className="bg-[#0c0c0e]">Menor → Maior</option>
+                        </select>
+                    </div>
+
                     {[
                         { label: 'Renda', key: 'income', options: [{ v: 'greater', l: 'Alta (>5k)' }, { v: 'less', l: 'Média (<5k)' }] },
                         { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Alto (>700)' }, { v: 'less', l: 'Baixo (<700)' }] },
@@ -316,7 +342,13 @@ export default function LeadsPage() {
                     <button
                         onClick={() => {
                             setSearchTerm('')
-                            setFilters({ income: '', score: '', age: '' })
+                            setFilters({ 
+                                income: '', 
+                                score: '', 
+                                age: '',
+                                sortBy: 'created_at',
+                                sortOrder: 'desc'
+                            })
                         }}
                         className="flex items-center gap-3 px-8 h-14 rounded-[24px] bg-secondary/40 border border-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive transition-all"
                     >
