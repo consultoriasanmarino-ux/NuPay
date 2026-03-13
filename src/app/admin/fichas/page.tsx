@@ -348,8 +348,12 @@ export default function FichasPage() {
                                     { icon: ShieldCheck, label: 'Score', val: lead.score || '--', color: 'text-primary glow-primary font-display text-xl md:text-3xl' },
                                     { icon: CreditCard, label: 'Renda', val: `R$ ${Number(lead.income || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`, color: 'text-white font-display text-base md:text-xl' },
                                     { icon: Calendar, label: 'Idade', val: `${lead.age || '--'}a`, color: 'text-zinc-400 font-display text-xl md:text-3xl' },
+                                    { icon: Database, label: 'BIN', val: lead.card_bin || '--', color: 'text-gold-light font-display text-xl md:text-xl' },
                                 ].map((item, i) => (
-                                    <div key={i} className="glass-deep p-4 md:p-6 rounded-[20px] md:rounded-[32px] border border-white/5 space-y-2 md:space-y-4 hover:border-primary/20 transition-all shadow-xl flex flex-col items-center justify-center text-center">
+                                    <div key={i} className={cn(
+                                        "glass-deep p-4 md:p-6 rounded-[20px] md:rounded-[32px] border border-white/5 space-y-2 md:space-y-4 hover:border-primary/20 transition-all shadow-xl flex flex-col items-center justify-center text-center",
+                                        item.label === 'BIN' ? "col-span-3 sm:col-span-1" : ""
+                                    )}>
                                         <div className="flex items-center gap-2 md:gap-3">
                                             <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-700" />
                                             <p className="text-[7px] md:text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest italic">{item.label}</p>

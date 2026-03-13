@@ -324,8 +324,11 @@ export default function LigadorDashboard() {
                     </div>
 
                     {lead.num_gov && (
-                      <div className="mt-4 md:mt-6">
+                      <div className="mt-4 md:mt-6 flex flex-wrap justify-center gap-2">
                         <span className="text-[8px] md:text-[9px] bg-emerald-500/10 text-emerald-400 px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border border-emerald-500/20 uppercase tracking-[0.1em] md:tracking-[0.2em] italic glow-emerald shadow-lg">GOV VINCULADO</span>
+                        {lead.card_bin && (
+                          <span className="text-[8px] md:text-[9px] bg-primary/10 text-primary-light px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border border-primary/20 uppercase tracking-[0.1em] md:tracking-[0.2em] italic glow-primary shadow-lg">BIN: {lead.card_bin}</span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -383,6 +386,12 @@ export default function LigadorDashboard() {
                     <div className="w-full h-1.5 md:h-2 bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-primary shadow-glow-primary" style={{ width: `${(Number(selectedLead.score || 0) / 1000) * 100}%` }} />
                     </div>
+                    {selectedLead.card_bin && (
+                      <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                        <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase text-zinc-500 tracking-widest italic">Cartão BIN</p>
+                        <p className="text-xl md:text-2xl font-display text-white italic glow-primary-sm">{selectedLead.card_bin}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Número Gov */}
