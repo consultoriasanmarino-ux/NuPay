@@ -138,31 +138,33 @@ export default function UnassignPage() {
     )
 
     return (
-        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
+        <div className="space-y-16 animate-in fade-in duration-1000 selection:bg-primary/20 p-8 md:p-12">
             {/* Header Bento */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 rounded-[28px] bg-amber-500/10 border border-amber-500/20 shadow-2xl scale-110">
-                            <UserMinus className="w-8 h-8 text-amber-500 shadow-glow-amber" />
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-12 stagger-1">
+                <div className="space-y-5">
+                    <div className="flex items-center gap-8">
+                        <div className="w-16 h-16 rounded-[28px] glass glow-gold border border-gold/30 group rotate-3 hover:rotate-0 transition-transform flex items-center justify-center shadow-2xl">
+                            <Unlock className="w-9 h-9 text-gold group-hover:text-white transition-colors" />
                         </div>
-                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Desatribuir Sinais</h2>
+                        <h2 className="text-5xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Liberação de Sinais</h2>
                     </div>
-                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
-                        <Smartphone className="w-4 h-4 text-primary" />
-                        Protocolo de De-Atribuição e Re-Distribuição de Leads
+                    <p className="text-zinc-500 font-bold text-lg flex items-center gap-4 italic leading-none">
+                        <Smartphone className="w-5 h-5 text-primary animate-pulse" />
+                        <span className="font-mono text-[11px] tracking-[0.4em] uppercase opacity-70">Protocolo de Desatribuição e Re-Sincronização Circular</span>
                     </p>
                 </div>
 
                 {!selectedLigador && (
-                    <div className="relative w-full md:w-80 group">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-all duration-300" />
+                    <div className="relative w-full xl:w-[450px] group stagger-2">
+                        <div className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                            <Search className="w-5 h-5 text-zinc-600 group-focus-within:text-primary transition-colors" />
+                        </div>
                         <input
                             type="text"
-                            placeholder="Pesquisar Ligador..."
+                            placeholder="Buscar Operador na Matriz..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/40 transition-all italic placeholder:text-zinc-800"
+                            className="w-full h-24 glass-deep border border-white/10 rounded-[32px] pl-20 pr-10 text-[11px] font-mono font-bold uppercase tracking-[0.3em] outline-none focus:border-primary/40 shadow-2xl transition-all placeholder:text-zinc-800 italic"
                         />
                     </div>
                 )}
@@ -171,50 +173,53 @@ export default function UnassignPage() {
             {!selectedLigador ? (
                 // Ligadores List
                 loading ? (
-                    <div className="flex flex-col items-center justify-center py-40 space-y-6">
+                    <div className="flex flex-col items-center justify-center py-40 space-y-12 stagger-3">
                         <div className="relative">
-                            <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                            <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+                            <Loader2 className="w-20 h-20 text-primary animate-spin relative z-10" />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Escaneando Matriz de Operadores...</p>
+                        <p className="text-[12px] font-mono font-bold uppercase tracking-[0.6em] text-primary animate-pulse italic">Escaneando Matriz de Operadores...</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 stagger-3">
                         {filteredLigadores.length === 0 ? (
-                            <div className="col-span-full glass border-dashed border-white/5 rounded-[64px] p-32 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in-95 duration-700">
-                                <Users className="w-16 h-16 text-zinc-800" />
-                                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Nenhum Ligador Encontrado</h3>
+                            <div className="col-span-full glass shadow-[0_64px_150px_rgba(0,0,0,0.5)] border-dashed border-white/10 p-32 flex flex-col items-center justify-center text-center space-y-10 rounded-[64px] animate-in fade-in zoom-in duration-1000">
+                                <Users className="w-20 h-20 text-zinc-800" />
+                                <h3 className="text-5xl font-display uppercase italic tracking-tight text-white leading-none">Matriz Inativa</h3>
                             </div>
                         ) : (
-                            filteredLigadores.map(lig => (
+                            filteredLigadores.map((lig, idx) => (
                                 <button
                                     key={lig.id}
                                     onClick={() => fetchLeadsForLigador(lig)}
-                                    className="glass p-10 rounded-[56px] text-left group card-hover border-white/5 bg-secondary/10 relative overflow-hidden"
+                                    className={cn(
+                                        "glass p-12 rounded-[56px] text-left group border border-white/5 bg-[#0d0118]/40 relative overflow-hidden transition-all hover:bg-white/[0.02] shadow-[0_32px_80px_rgba(0,0,0,0.4)]",
+                                        `stagger-${(idx % 5) + 1} animate-in fade-in slide-in-from-bottom-8`
+                                    )}
                                 >
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+                                    <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-1000 pointer-events-none" />
 
-                                    <div className="flex items-center justify-between mb-8 relative z-10">
-                                        <div className="w-16 h-16 rounded-[24px] bg-secondary border border-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/20 transition-all duration-500">
-                                            <User className="w-8 h-8 text-zinc-600 group-hover:text-primary transition-colors" />
+                                    <div className="flex items-center justify-between mb-10 relative z-10">
+                                        <div className="w-20 h-20 rounded-[32px] glass-deep border border-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/40 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
+                                            <User className="w-10 h-10 text-zinc-600 group-hover:text-primary transition-colors" />
                                         </div>
                                         <div className={cn(
-                                            "px-5 py-2.5 rounded-full text-[10px] font-black uppercase italic tracking-widest border shadow-inner",
-                                            lig.leadCount > 0 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" : "bg-black/40 border-white/5 text-zinc-600"
+                                            "px-8 py-3 rounded-full text-[10px] font-mono font-bold uppercase italic tracking-[0.2em] border shadow-2xl",
+                                            lig.leadCount > 0 ? "bg-amber-500/10 border-amber-500/30 text-amber-500 glow-gold-sm" : "bg-zinc-900/40 border-white/5 text-zinc-700"
                                         )}>
-                                            {lig.leadCount} Fichas
+                                            {lig.leadCount} Sinais Capturados
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2 relative z-10">
-                                        <h4 className="text-2xl font-black uppercase italic tracking-tighter truncate leading-none group-hover:text-primary transition-colors">{lig.full_name}</h4>
-                                        <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest italic font-mono">@{lig.username}</p>
+                                    <div className="space-y-4 relative z-10">
+                                        <h4 className="text-4xl font-display uppercase italic tracking-tighter truncate leading-none text-white group-hover:text-primary transition-colors">{lig.full_name}</h4>
+                                        <p className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-[0.4em] italic leading-none">ID OPERADOR: <span className="text-zinc-500">@{lig.username}</span></p>
                                     </div>
 
                                     {lig.leadCount > 0 && (
-                                        <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-primary transition-colors italic">
-                                            <span>Abrir Protocolo</span>
-                                            <ChevronLeft className="w-4 h-4 rotate-180" />
+                                        <div className="mt-10 pt-10 border-t border-white/5 flex items-center justify-between text-[11px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-600 group-hover:text-primary transition-all italic leading-none">
+                                            <span>Visualizar Protocolos</span>
+                                            <ChevronLeft className="w-6 h-6 rotate-180 group-hover:translate-x-3 transition-transform" />
                                         </div>
                                     )}
                                 </button>
@@ -224,92 +229,99 @@ export default function UnassignPage() {
                 )
             ) : (
                 // Leads for Selected Ligador
-                <div className="space-y-10 animate-in slide-in-from-right-8 duration-700">
-                    <div className="flex flex-col md:flex-row items-center justify-between bg-black/40 p-8 rounded-[48px] border border-white/5 relative group shadow-2xl overflow-hidden backdrop-blur-3xl">
-                        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+                <div className="space-y-12 animate-in slide-in-from-right-12 duration-1000 stagger-2">
+                    <div className="bg-[#0d0118]/60 p-12 rounded-[64px] border border-white/10 relative group shadow-[0_64px_150px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-3xl flex flex-col xl:flex-row xl:items-center justify-between gap-10">
+                        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
 
-                        <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
+                        <div className="flex items-center gap-10 relative z-10">
                             <button
                                 onClick={() => setSelectedLigador(null)}
-                                className="w-16 h-16 rounded-[28px] bg-secondary hover:bg-zinc-800 transition-all flex items-center justify-center border border-white/5 shadow-2xl active:scale-90"
+                                className="w-20 h-20 rounded-[32px] glass-deep hover:bg-white/5 transition-all flex items-center justify-center border border-white/10 shadow-2xl active:scale-90 group/back"
                             >
-                                <ChevronLeft className="w-8 h-8" />
+                                <ChevronLeft className="w-10 h-10 group-hover:-translate-x-2 transition-transform" />
                             </button>
-                            <div className="space-y-1">
-                                <p className="text-[10px] font-black uppercase text-amber-500 tracking-[0.4em] mb-1.5 italic leading-none flex items-center gap-2">
-                                    <Zap className="w-3 h-3 animate-pulse" />
-                                    Gerenciando Node:
+                            <div className="space-y-4">
+                                <p className="text-[12px] font-mono font-bold uppercase text-amber-500 tracking-[0.6em] italic leading-none flex items-center gap-3">
+                                    <Zap className="w-4 h-4 animate-pulse fill-current" />
+                                    Gerenciando Node Operativo
                                 </p>
-                                <h4 className="text-4xl font-black uppercase italic tracking-tighter leading-none text-white">{selectedLigador.full_name}</h4>
+                                <h4 className="text-5xl font-display uppercase italic tracking-tighter leading-none text-white">{selectedLigador.full_name}</h4>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4 mt-8 md:mt-0 relative z-10">
-                            <div className="px-8 py-5 rounded-[24px] bg-secondary border border-white/5 flex flex-col items-end gap-1 shadow-inner">
-                                <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic leading-none">Sinais Capturados</p>
-                                <p className="text-2xl font-black italic text-white leading-none">{leads.length}</p>
+                        <div className="flex flex-wrap items-center gap-6 relative z-10">
+                            <div className="px-10 py-6 rounded-[32px] glass-deep border border-white/5 flex flex-col items-end gap-3 shadow-inner bg-black/20">
+                                <p className="text-[10px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic leading-none">Sinais Processados</p>
+                                <p className="text-4xl font-display italic text-white leading-none">{leads.length}</p>
                             </div>
                             <button
                                 onClick={handleUnassignAll}
                                 disabled={processing || leads.length === 0}
-                                className="px-10 py-5 rounded-[24px] bg-destructive text-white font-black uppercase italic tracking-tighter text-sm flex items-center gap-4 hover:scale-[1.03] transition-all active:scale-95 disabled:opacity-30 border-b-4 border-black/20 shadow-2xl relative overflow-hidden group/btnall"
+                                className="h-24 px-12 rounded-[32px] bg-destructive text-white font-mono font-bold uppercase italic tracking-[0.2em] text-[11px] flex items-center gap-6 hover:bg-rose-600 transition-all active:scale-95 disabled:opacity-30 shadow-[0_16px_40px_rgba(225,29,72,0.3)] group/btnall border border-destructive/20"
                             >
-                                <Trash2 className="w-6 h-6 group-hover/btnall:rotate-12 transition-transform" />
-                                Liberar Tudo (Flash)
+                                <Trash2 className="w-7 h-7 group-hover:rotate-12 transition-transform" />
+                                Liberar Terminal Completo
                             </button>
                         </div>
                     </div>
 
                     {loadingLeads ? (
-                        <div className="flex flex-col items-center justify-center py-40 space-y-6">
-                            <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary italic">Sincronizando Cadeia de Sinais...</p>
+                        <div className="flex flex-col items-center justify-center py-40 space-y-12 stagger-3">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+                                <Loader2 className="w-20 h-20 text-primary animate-spin relative z-10" />
+                            </div>
+                            <p className="text-[12px] font-mono font-bold uppercase tracking-[0.6em] text-primary italic">Sincronizando Cadeia de Sinais...</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 stagger-3">
                             {leads.length === 0 ? (
-                                <div className="col-span-full py-40 flex flex-col items-center justify-center gap-8 opacity-30 italic">
-                                    <Activity className="w-20 h-20 animate-pulse text-zinc-800" />
-                                    <p className="text-2xl font-black uppercase italic tracking-widest">Nenhum Sinal Atribuído no Momento</p>
+                                <div className="col-span-full py-60 flex flex-col items-center justify-center gap-12 text-center opacity-40 italic">
+                                    <Activity className="w-32 h-32 animate-pulse text-zinc-800" />
+                                    <p className="text-4xl font-display uppercase italic tracking-[0.2em]">Terminal em Standby</p>
                                 </div>
                             ) : (
-                                leads.map(lead => (
-                                    <div key={lead.id} className="glass p-8 rounded-[48px] border-white/5 hover:border-amber-500/20 transition-all group relative overflow-hidden card-hover">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                leads.map((lead, idx) => (
+                                    <div key={lead.id} className={cn(
+                                        "glass p-12 rounded-[56px] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.02] shadow-[0_32px_80px_rgba(0,0,0,0.4)]",
+                                        `stagger-${(idx % 5) + 1} animate-in fade-in slide-in-from-bottom-8`
+                                    )}>
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-1000 pointer-events-none" />
 
-                                        <div className="flex items-center justify-between mb-8 relative z-10">
-                                            <div className="w-16 h-16 rounded-[24px] bg-secondary flex items-center justify-center border border-white/5 shadow-2xl group-hover:bg-amber-500/10 group-hover:border-amber-500/20 transition-all">
-                                                <Signal className="w-8 h-8 text-zinc-600 group-hover:text-amber-500" />
+                                        <div className="flex items-center justify-between mb-10 relative z-10">
+                                            <div className="w-20 h-20 rounded-[32px] glass-deep flex items-center justify-center border border-white/5 shadow-2xl group-hover:bg-amber-500/10 group-hover:border-amber-500/30 group-hover:rotate-12 transition-all duration-500">
+                                                <Signal className="w-10 h-10 text-zinc-600 group-hover:text-amber-500" />
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/5 px-5 py-2 rounded-full border border-amber-500/10 italic">Ativo no Radar</p>
+                                            <div className="flex items-center gap-3 text-amber-500">
+                                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse border-4 border-amber-500/20 shadow-glow-amber-sm" />
+                                                <p className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] px-6 py-2.5 rounded-full bg-amber-500/10 border border-amber-500/20 italic">Radar Ativo</p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-5 relative z-10">
-                                            <div className="space-y-1.5">
-                                                <h5 className="text-2xl font-black uppercase italic tracking-tighter truncate leading-none group-hover:text-white transition-colors">{lead.full_name || 'PENDENTE'}</h5>
-                                                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest italic font-mono">CPF: {lead.cpf}</p>
+                                        <div className="space-y-8 relative z-10">
+                                            <div className="space-y-3">
+                                                <h5 className="text-3xl font-display uppercase italic tracking-tighter truncate leading-none text-white group-hover:text-amber-500 transition-colors">{lead.full_name || 'PENDENTE'}</h5>
+                                                <p className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-[0.4em] italic font-mono">REGISTRO: <span className="text-zinc-500">{lead.cpf}</span></p>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="bg-black/40 p-4 rounded-3xl border border-white/5">
-                                                    <p className="text-[8px] font-black text-zinc-600 uppercase mb-1">IQ Signal</p>
-                                                    <p className="text-xl font-black italic">{lead.score || '--'}</p>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="glass-deep p-6 rounded-[32px] border border-white/5 space-y-3">
+                                                    <p className="text-[9px] font-mono font-bold text-zinc-600 uppercase italic tracking-widest leading-none">IQ Score</p>
+                                                    <p className="text-3xl font-display italic text-white leading-none">{lead.score || '--'}</p>
                                                 </div>
-                                                <div className="bg-black/40 p-4 rounded-3xl border border-white/5">
-                                                    <p className="text-[8px] font-black text-zinc-600 uppercase mb-1">Renda Est.</p>
-                                                    <p className="text-base font-black italic text-emerald-500">R$ {Number(lead.income || 0).toLocaleString('pt-BR')}</p>
+                                                <div className="glass-deep p-6 rounded-[32px] border border-white/5 space-y-3">
+                                                    <p className="text-[9px] font-mono font-bold text-zinc-600 uppercase italic tracking-widest leading-none">Renda Est.</p>
+                                                    <p className="text-2xl font-display italic text-emerald-500 leading-none">R$ {Number(lead.income || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</p>
                                                 </div>
                                             </div>
 
                                             <button
                                                 onClick={() => handleUnassignLead(lead.id)}
                                                 disabled={processing}
-                                                className="w-full h-16 mt-4 rounded-[24px] bg-secondary border border-white/5 text-zinc-400 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all font-black text-[10px] uppercase tracking-[0.2em] italic flex items-center justify-center gap-4 active:scale-95 group/release"
+                                                className="w-full h-20 mt-4 rounded-[32px] glass-deep border border-white/10 text-zinc-500 hover:bg-destructive/10 hover:text-rose-500 hover:border-destructive/30 transition-all font-mono font-bold text-[10px] uppercase tracking-[0.4em] italic flex items-center justify-center gap-5 active:scale-95 disabled:opacity-20 shadow-2xl group/release"
                                             >
-                                                <Unlock className="w-5 h-5 group-hover/release:scale-110 transition-transform" />
-                                                Liberar para a Base
+                                                <Unlock className="w-6 h-6 group-hover/release:scale-110 transition-transform" />
+                                                Devolver à Base
                                             </button>
                                         </div>
                                     </div>

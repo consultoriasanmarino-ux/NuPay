@@ -176,205 +176,218 @@ export default function LeadsPage() {
     }, [page, searchTerm, filters])
 
     return (
-        <div className="space-y-12 p-8 max-w-[1600px] mx-auto animate-in fade-in duration-1000">
+        <div className="space-y-16 p-8 md:p-12 max-w-[1600px] mx-auto animate-in fade-in duration-1000">
             {/* Cabeçalho */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10 stagger-1">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 rounded-[28px] glass glow-primary border-primary/30 group">
-                            <LayoutGrid className="w-8 h-8 text-primary group-hover:text-cyan-400 transition-colors" />
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-12 stagger-1">
+                <div className="space-y-5">
+                    <div className="flex items-center gap-8">
+                        <div className="w-16 h-16 rounded-[28px] glass glow-primary border border-primary/30 group rotate-3 hover:rotate-0 transition-transform flex items-center justify-center">
+                            <LayoutGrid className="w-9 h-9 text-primary group-hover:text-magenta transition-colors" />
                         </div>
-                        <h2 className="text-4xl md:text-6xl font-display uppercase tracking-tight leading-none bg-gradient-to-r from-white via-white to-primary/50 bg-clip-text text-transparent">Base de Leads</h2>
+                        <h2 className="text-5xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Base de Leads</h2>
                     </div>
-                    <p className="text-muted-foreground font-medium text-lg flex items-center gap-3">
-                        <Activity className="w-4 h-4 text-cyan-400 animate-pulse" />
-                        <span className="font-mono text-sm tracking-wider uppercase opacity-70">Controle operacional em tempo real</span>
+                    <p className="text-zinc-500 font-bold text-lg flex items-center gap-4 italic">
+                        <Activity className="w-5 h-5 text-primary animate-pulse" />
+                        <span className="font-mono text-[11px] tracking-[0.4em] uppercase opacity-70">Sistema Terminal de Controle Operacional</span>
                     </p>
                 </div>
 
                 <div className="flex flex-wrap gap-4">
                     <button
                         onClick={handleRepairSystem}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl glass-card text-emerald-400 text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:text-white hover:bg-emerald-500 transition-all active:scale-95 glow-emerald stagger-1"
+                        className="flex items-center gap-3 px-10 py-5 rounded-[32px] glass glow-emerald border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-emerald-500 hover:text-white transition-all active:scale-95 stagger-1"
                     >
                         <Zap className="w-4 h-4 fill-current" />
                         Reparar Sistema
                     </button>
                     <button
                         onClick={handleFixStatus}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl glass-card text-gold text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:text-white hover:bg-gold/40 transition-all active:scale-95 glow-gold stagger-2"
+                        className="flex items-center gap-3 px-10 py-5 rounded-[32px] glass glow-gold border border-gold/20 text-gold text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-gold/40 hover:text-white transition-all active:scale-95 stagger-2"
                     >
                         <ShieldCheck className="w-4 h-4" />
                         Normalizar Status
                     </button>
                     <button
                         onClick={handleExportMissingGov}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl glass-card text-cyan-400 text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:text-white hover:bg-cyan-500/40 transition-all active:scale-95 glow-cyan stagger-3"
+                        className="flex items-center gap-3 px-10 py-5 rounded-[32px] glass glow-cyan border border-cyan-500/20 text-cyan-400 text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-cyan-500/40 hover:text-white transition-all active:scale-95 stagger-3"
                     >
                         <Download className="w-4 h-4" />
                         Exportar CPFs
                     </button>
                     <button
                         onClick={handleClearBase}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl glass-card text-destructive text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:text-white hover:bg-destructive transition-all active:scale-95 stagger-4"
+                        className="flex items-center gap-3 px-10 py-5 rounded-[32px] glass-deep border border-destructive/20 text-destructive text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-destructive hover:text-white transition-all active:scale-95 stagger-4 shadow-xl"
                     >
                         <Trash2 className="w-4 h-4" />
                         Limpar Base
                     </button>
                     <button
                         onClick={fetchLeads}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl glass-deep border-white/10 text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-white/10 transition-all active:scale-95 stagger-5"
+                        className="w-14 h-14 rounded-[28px] glass-deep border border-white/10 flex items-center justify-center hover:bg-primary/20 hover:border-primary/40 transition-all active:scale-95 stagger-5 group"
                     >
-                        <RefreshCcw className={cn("w-4 h-4 transition-transform duration-700", loading && "animate-spin")} />
-                        Atualizar
+                        <RefreshCcw className={cn("w-5 h-5 text-zinc-500 group-hover:text-primary transition-colors", loading && "animate-spin text-primary")} />
                     </button>
                 </div>
             </div>
 
             {/* Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-2">
-                <div className="glass-card p-8 group overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full" />
-                    <div className="space-y-1 relative z-10">
-                        <span className="text-[10px] font-mono uppercase text-zinc-500 tracking-[0.3em]">Total Leads</span>
-                        <p className="text-5xl font-display italic tracking-tighter leading-none text-white">{totalCount.toLocaleString()}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 stagger-2">
+                <div className="glass-card p-10 group overflow-hidden relative rounded-[56px] border border-white/5 shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] rounded-full group-hover:bg-primary/20 transition-colors" />
+                    <div className="space-y-2 relative z-10">
+                        <span className="text-[11px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic">Total Leads</span>
+                        <p className="text-6xl font-display italic tracking-tighter leading-none text-white glow-primary-sm">{totalCount.toLocaleString()}</p>
                     </div>
-                    <div className="mt-6 flex items-center gap-2">
-                        <div className="status-dot bg-primary text-primary" />
-                        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Base Ativa</span>
-                    </div>
-                </div>
-                <div className="glass-card p-8 group overflow-hidden relative border-amber-500/10">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-3xl rounded-full" />
-                    <div className="space-y-1 relative z-10">
-                        <span className="text-[10px] font-mono uppercase text-amber-500/70 tracking-[0.3em]">Pendentes</span>
-                        <p className="text-5xl font-display italic tracking-tighter leading-none text-amber-500">{incompleteCount.toLocaleString()}</p>
-                    </div>
-                    <div className="mt-6 flex items-center gap-2">
-                        <div className="status-dot bg-amber-500 text-amber-500 animate-pulse" />
-                        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Aguardando GOV</span>
+                    <div className="mt-8 flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-glow-primary animate-pulse" />
+                        <span className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-widest italic">Base Sincronizada</span>
                     </div>
                 </div>
-                <div className="glass-card p-8 group overflow-hidden relative border-cyan-500/10">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-3xl rounded-full" />
-                    <div className="space-y-1 relative z-10">
-                        <span className="text-[10px] font-mono uppercase text-cyan-400/70 tracking-[0.3em]">Eficiência</span>
-                        <p className="text-5xl font-display italic tracking-tighter leading-none text-cyan-400">
+                <div className="glass-card p-10 group overflow-hidden relative rounded-[56px] border border-amber-500/10 shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-[60px] rounded-full group-hover:bg-amber-500/20 transition-colors" />
+                    <div className="space-y-2 relative z-10">
+                        <span className="text-[11px] font-mono font-bold uppercase text-amber-500/70 tracking-[0.4em] italic leading-none">Pendentes</span>
+                        <p className="text-6xl font-display italic tracking-tighter leading-none text-amber-500 glow-amber-sm">{incompleteCount.toLocaleString()}</p>
+                    </div>
+                    <div className="mt-8 flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-glow-amber animate-pulse" />
+                        <span className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-widest italic">Aguardando GOV</span>
+                    </div>
+                </div>
+                <div className="glass-card p-10 group overflow-hidden relative rounded-[56px] border border-cyan-500/10 shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-[60px] rounded-full group-hover:bg-cyan-500/20 transition-colors" />
+                    <div className="space-y-2 relative z-10">
+                        <span className="text-[11px] font-mono font-bold uppercase text-cyan-400/70 tracking-[0.4em] italic">Eficiência</span>
+                        <p className="text-6xl font-display italic tracking-tighter leading-none text-cyan-400 glow-cyan-sm">
                             {totalCount > 0 ? Math.round(((totalCount - incompleteCount) / totalCount) * 100) : 0}%
                         </p>
                     </div>
-                    <div className="mt-6 flex items-center gap-2">
-                        <div className="status-dot bg-cyan-400 text-cyan-400" />
-                        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Taxa de Conversão</span>
+                    <div className="mt-8 flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-glow-cyan" />
+                        <span className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-widest italic">Taxa de Conversão</span>
                     </div>
                 </div>
-                <div className="glass-card p-8 group overflow-hidden relative border-magenta/10">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-magenta/5 blur-3xl rounded-full" />
-                    <div className="space-y-1 relative z-10">
-                        <span className="text-[10px] font-mono uppercase text-magenta/70 tracking-[0.3em]">Projeção</span>
-                        <p className="text-5xl font-display italic tracking-tighter leading-none text-magenta">HIGH</p>
+                <div className="glass-card p-10 group overflow-hidden relative rounded-[56px] border border-magenta/10 shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-magenta/10 blur-[60px] rounded-full group-hover:bg-magenta/20 transition-colors" />
+                    <div className="space-y-2 relative z-10">
+                        <span className="text-[11px] font-mono font-bold uppercase text-magenta/70 tracking-[0.4em] italic">Previsão</span>
+                        <p className="text-6xl font-display italic tracking-tighter leading-none text-magenta glow-magenta-sm uppercase">Ultra</p>
                     </div>
-                    <div className="mt-6 flex items-center gap-2">
-                        <div className="status-dot bg-magenta text-magenta animate-pulse" />
-                        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Volume Estimado</span>
+                    <div className="mt-8 flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-magenta shadow-glow-magenta animate-pulse" />
+                        <span className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-widest italic">Volume Terminal</span>
                     </div>
                 </div>
             </div>
 
-            {/* Filtros */}
-            <div className="flex flex-col lg:flex-row gap-6 items-center stagger-3">
-                <div className="relative flex-1 group w-full">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-cyan-400 transition-colors" />
+            {/* Filtros e Ordenação */}
+            <div className="flex flex-col lg:flex-row gap-8 items-stretch stagger-3">
+                <div className="relative flex-1 group w-full lg:w-auto">
+                    <div className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                        <Search className="w-5 h-5 text-zinc-600 group-focus-within:text-primary transition-colors" />
+                    </div>
                     <input
                         type="text"
                         placeholder="Pesquisar por Nome ou CPF..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full glass-deep border border-white/5 rounded-2xl py-5 pl-14 pr-8 text-[11px] font-mono uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-cyan-500/30 transition-all"
+                        className="w-full h-24 glass-deep border border-white/10 rounded-[32px] pl-20 pr-10 text-[11px] font-mono font-bold uppercase tracking-[0.3em] outline-none focus:border-primary/40 shadow-2xl transition-all placeholder:text-zinc-800 italic"
                     />
                 </div>
 
-                <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar items-center">
+                <div className="flex flex-col sm:flex-row gap-6 items-center">
                     {/* Ordenação Global */}
-                    <div className="flex items-center gap-4 bg-primary/10 border border-primary/20 h-14 px-6 rounded-[24px] shrink-0">
-                        <Filter className="w-4 h-4 text-primary" />
-                        <select
-                            value={filters.sortBy}
-                            onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-white min-w-[120px]"
-                        >
-                            <option value="created_at" className="bg-[#0c0c0e]">Recentes</option>
-                            <option value="income" className="bg-[#0c0c0e]">Renda</option>
-                            <option value="score" className="bg-[#0c0c0e]">Score</option>
-                            <option value="age" className="bg-[#0c0c0e]">Idade</option>
-                        </select>
-                        <div className="w-px h-6 bg-white/10 mx-1" />
-                        <select
-                            value={filters.sortOrder}
-                            onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value as 'asc' | 'desc' }))}
-                            className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-cyan-400 font-bold"
-                        >
-                            <option value="desc" className="bg-[#0c0c0e]">Maior → Menor</option>
-                            <option value="asc" className="bg-[#0c0c0e]">Menor → Maior</option>
-                        </select>
-                    </div>
-
-                    {[
-                        { label: 'Renda', key: 'income', options: [{ v: 'greater', l: 'Alta (>5k)' }, { v: 'less', l: 'Média (<5k)' }] },
-                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Alto (>700)' }, { v: 'less', l: 'Baixo (<700)' }] },
-                        { label: 'Idade', key: 'age', options: [{ v: 'greater', l: 'Acima 40' }, { v: 'less', l: 'Abaixo 40' }] }
-                    ].map((f) => (
-                        <div key={f.key} className="flex items-center gap-4 bg-secondary/20 border border-white/5 h-14 px-6 rounded-[24px] shrink-0">
-                            <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">{f.label}:</span>
+                    <div className="flex items-center gap-6 glass border border-primary/20 h-24 px-10 rounded-[32px] shadow-glow-sm bg-primary/5">
+                        <div className="w-10 h-10 rounded-xl glass-deep flex items-center justify-center">
+                            <Filter className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-mono font-bold text-zinc-600 uppercase tracking-widest italic">Critério</span>
                             <select
-                                value={(filters as any)[f.key]}
-                                onChange={(e) => setFilters(prev => ({ ...prev, [f.key]: e.target.value }))}
-                                className="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer text-white min-w-[100px]"
+                                value={filters.sortBy}
+                                onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                                className="bg-transparent text-[11px] font-mono font-bold uppercase outline-none cursor-pointer text-white min-w-[140px] italic"
                             >
-                                <option value="" className="bg-[#0c0c0e]">TODOS</option>
-                                {f.options.map(opt => (
-                                    <option key={opt.v} value={opt.v} className="bg-[#0c0c0e]">{opt.l}</option>
-                                ))}
+                                <option value="created_at" className="bg-[#0d0118]">📅 RECENTES</option>
+                                <option value="income" className="bg-[#0d0118]">💰 POR RENDA</option>
+                                <option value="score" className="bg-[#0d0118]">🎯 POR SCORE</option>
+                                <option value="age" className="bg-[#0d0118]">👤 POR IDADE</option>
                             </select>
                         </div>
-                    ))}
+                        <div className="w-px h-10 bg-white/10 mx-2" />
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-mono font-bold text-zinc-600 uppercase tracking-widest italic">Direção</span>
+                            <select
+                                value={filters.sortOrder}
+                                onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value as 'asc' | 'desc' }))}
+                                className="bg-transparent text-[11px] font-mono font-bold uppercase outline-none cursor-pointer text-primary-light italic glow-primary-sm"
+                            >
+                                <option value="desc" className="bg-[#0d0118]">MAIOR → MENOR</option>
+                                <option value="asc" className="bg-[#0d0118]">MENOR → MAIOR</option>
+                            </select>
+                        </div>
+                    </div>
 
-                    <button
-                        onClick={() => {
-                            setSearchTerm('')
-                            setFilters({ 
-                                income: '', 
-                                score: '', 
-                                age: '',
-                                sortBy: 'created_at',
-                                sortOrder: 'desc'
-                            })
-                        }}
-                        className="flex items-center gap-3 px-8 h-14 rounded-[24px] bg-secondary/40 border border-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive transition-all"
-                    >
-                        <X className="w-4 h-4" /> Limpar
-                    </button>
+                    <div className="flex gap-4 overflow-x-auto custom-scrollbar items-center">
+                        {[
+                            { label: 'RENDA', key: 'income', options: [{ v: 'greater', l: 'ALTA (>5K)' }, { v: 'less', l: 'MÉDIA (<5K)' }] },
+                            { label: 'SCORE', key: 'score', options: [{ v: 'greater', l: 'ALTO (>700)' }, { v: 'less', l: 'BAIXO (<700)' }] }
+                        ].map((f) => (
+                            <div key={f.key} className="flex items-center gap-5 glass-deep border border-white/10 h-24 px-8 rounded-[32px] shrink-0 shadow-xl">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] font-mono font-bold uppercase text-zinc-600 tracking-widest italic">{f.label}</span>
+                                    <select
+                                        value={(filters as any)[f.key]}
+                                        onChange={(e) => setFilters(prev => ({ ...prev, [f.key]: e.target.value }))}
+                                        className="bg-transparent text-[10px] font-mono font-bold uppercase outline-none cursor-pointer text-white min-w-[120px] italic"
+                                    >
+                                        <option value="" className="bg-[#0d0118]">TODOS</option>
+                                        {f.options.map(opt => (
+                                            <option key={opt.v} value={opt.v} className="bg-[#0d0118]">{opt.l}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        ))}
+
+                        <button
+                            onClick={() => {
+                                setSearchTerm('')
+                                setFilters({ 
+                                    income: '', 
+                                    score: '', 
+                                    age: '',
+                                    sortBy: 'created_at',
+                                    sortOrder: 'desc'
+                                })
+                            }}
+                            className="flex items-center gap-4 px-10 h-24 rounded-[32px] bg-white/5 border border-white/10 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive transition-all italic shadow-2xl group"
+                        >
+                            <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                            REINICIAR
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Tabela de Leads */}
-            <div className="glass overflow-hidden shadow-2xl relative border-white/10 rounded-3xl stagger-4">
+            <div className="glass shadow-[0_32px_100px_rgba(0,0,0,0.5)] relative border-white/10 rounded-[48px] stagger-4 overflow-hidden border">
                 {loading && (
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-20 flex flex-col items-center justify-center p-12 text-center">
-                        <Loader2 className="w-16 h-16 text-cyan-400 animate-spin mb-6 glow-cyan rounded-full" />
-                        <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-cyan-400 animate-pulse italic">Sincronizando Banco...</p>
+                    <div className="absolute inset-0 bg-[#0d0118]/80 backdrop-blur-2xl z-20 flex flex-col items-center justify-center p-12 text-center">
+                        <Loader2 className="w-20 h-20 text-primary animate-spin mb-8 glow-primary rounded-full" />
+                        <p className="text-[12px] font-mono font-bold uppercase tracking-[0.5em] text-primary animate-pulse italic">Sincronizando Banco de Dados...</p>
                     </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto overscroll-none">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-white/[0.02] border-b border-white/5">
+                        <thead className="bg-[#ffffff]/[0.02] border-b border-white/10">
                             <tr>
-                                <th className="px-10 py-6 text-[10px] font-mono uppercase text-zinc-500 tracking-[0.4em]">Identificação</th>
-                                <th className="px-10 py-6 text-[10px] font-mono uppercase text-zinc-500 tracking-[0.4em]">Finanças</th>
-                                <th className="px-10 py-6 text-[10px] font-mono uppercase text-zinc-500 tracking-[0.4em]">Estado</th>
-                                <th className="px-10 py-6 text-[10px] font-mono uppercase text-zinc-500 tracking-[0.4em] text-center">Status</th>
-                                <th className="px-10 py-6 text-right text-[10px] font-mono uppercase text-zinc-500 tracking-[0.4em]">Operação</th>
+                                <th className="px-12 py-8 text-[11px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic">Identificação Terminal</th>
+                                <th className="px-12 py-8 text-[11px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic">Análise Financeira</th>
+                                <th className="px-12 py-8 text-[11px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic">Origem</th>
+                                <th className="px-12 py-8 text-[11px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic text-center">Status</th>
+                                <th className="px-12 py-8 text-right text-[11px] font-mono font-bold uppercase text-zinc-600 tracking-[0.4em] italic">Operação</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -382,70 +395,70 @@ export default function LeadsPage() {
                                 <tr 
                                     key={lead.id} 
                                     className={cn(
-                                        "hover:bg-white/[0.02] group transition-all duration-300 cursor-pointer animate-in fade-in slide-in-from-right-4",
+                                        "hover:bg-[#ffffff]/[0.03] group transition-all duration-300 cursor-pointer animate-in fade-in slide-in-from-right-8",
                                         `stagger-${(idx % 5) + 1}`
                                     )} 
                                     onClick={() => setSelectedLead(lead)}
                                 >
-                                    <td className="px-10 py-8">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-12 h-12 rounded-xl glass-deep flex items-center justify-center font-mono text-[10px] text-zinc-600 border-white/5 group-hover:border-cyan-500/30 transition-all">
+                                    <td className="px-12 py-10">
+                                        <div className="flex items-center gap-8">
+                                            <div className="w-14 h-14 rounded-[20px] glass-deep flex items-center justify-center font-mono font-bold text-[11px] text-zinc-600 border border-white/5 group-hover:border-primary/40 group-hover:text-primary transition-all">
                                                 {lead.full_name?.substring(0, 2).toUpperCase() || '??'}
                                             </div>
-                                            <div className="space-y-1">
-                                                <p className="text-base font-display tracking-tight text-white group-hover:text-cyan-400 transition-colors">{lead.full_name || 'LEAD DESCONHECIDO'}</p>
-                                                <div className="flex items-center gap-3">
-                                                    <p className="text-[10px] font-mono text-zinc-600 tracking-wider">CPF: {lead.cpf}</p>
+                                            <div className="space-y-2">
+                                                <p className="text-xl font-display tracking-tight text-white group-hover:text-primary-light transition-colors italic leading-none">{lead.full_name || 'LEAD DESCONHECIDO'}</p>
+                                                <div className="flex items-center gap-4">
+                                                    <p className="text-[11px] font-mono font-bold text-zinc-600 tracking-widest uppercase">CPF: {lead.cpf}</p>
                                                     {lead.num_gov && (
-                                                        <span className="text-[8px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 italic">VINCULADO GOV</span>
+                                                        <span className="text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20 italic glow-emerald-sm">VINCULADO GOV</span>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8">
-                                        <div className="space-y-3">
-                                            <p className="text-lg font-display text-emerald-400 leading-none">
-                                                {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '---'}
+                                    <td className="px-12 py-10">
+                                        <div className="space-y-4">
+                                            <p className="text-2xl font-display italic text-emerald-400 leading-none glow-emerald-sm">
+                                                {lead.income ? Number(lead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }) : '---'}
                                             </p>
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-20 h-1 rounded-full bg-white/5 overflow-hidden border border-white/5">
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden border border-white/10">
                                                     <div className={cn(
-                                                        "h-full transition-all duration-1000 shadow-glow",
-                                                        (lead.score || 0) > 700 ? "bg-cyan-400" : (lead.score || 0) > 400 ? "bg-gold" : "bg-destructive"
+                                                        "h-full transition-all duration-1000 shadow-glow-primary",
+                                                        (lead.score || 0) > 700 ? "bg-primary" : (lead.score || 0) > 400 ? "bg-cyan-400" : "bg-destructive"
                                                     )} style={{ width: lead.score ? `${(lead.score / 1000) * 100}%` : '0%' }} />
                                                 </div>
-                                                <span className="text-[9px] font-mono text-zinc-600">{lead.score || '--'} SCR</span>
+                                                <span className="text-[10px] font-mono font-bold text-zinc-600 uppercase tracking-widest italic">{lead.score || '--'} SCR</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8">
-                                        <div className="flex items-center gap-3">
-                                            <MapPin className="w-3.5 h-3.5 text-zinc-700" />
-                                            <p className="font-mono text-[11px] text-zinc-400 uppercase tracking-tighter">{lead.city || '??'} / {lead.state || '??'}</p>
+                                    <td className="px-12 py-10">
+                                        <div className="flex items-center gap-4">
+                                            <MapPin className="w-4 h-4 text-zinc-700" />
+                                            <p className="font-mono font-bold text-[12px] text-zinc-500 uppercase tracking-tighter italic leading-none">{lead.city || '??'} <span className="text-zinc-800 mx-2">/</span> {lead.state || '??'}</p>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8 text-center">
+                                    <td className="px-12 py-10 text-center">
                                         <div className={cn(
-                                            "inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[9px] font-mono font-bold tracking-widest uppercase",
-                                            lead.status === 'incompleto' ? "bg-gold/5 text-gold border-gold/10" :
-                                                lead.status === 'consultado' ? "bg-primary/5 text-primary-light border-primary/10" :
-                                                    lead.status === 'atribuido' ? "bg-cyan-500/5 text-cyan-400 border-cyan-500/10" :
-                                                        lead.status === 'ruim' ? "bg-destructive/5 text-destructive border-destructive/10" :
-                                                            "bg-emerald-500/5 text-emerald-400 border-emerald-500/10"
+                                            "inline-flex items-center gap-3 px-6 py-2.5 rounded-full border text-[10px] font-mono font-bold tracking-[0.2em] uppercase italic bg-zinc-900/40",
+                                            lead.status === 'incompleto' ? "text-gold border-gold/20 shadow-glow-gold-sm" :
+                                                lead.status === 'consultado' ? "text-primary-light border-primary/20 shadow-glow-primary-sm" :
+                                                    lead.status === 'atribuido' ? "text-cyan-400 border-cyan-500/20 shadow-glow-cyan-sm" :
+                                                        lead.status === 'ruim' ? "text-destructive border-destructive/20" :
+                                                            "text-emerald-400 border-emerald-500/20 shadow-glow-emerald-sm"
                                         )}>
-                                            <div className={cn("status-dot",
-                                                lead.status === 'incompleto' ? "bg-gold" :
-                                                    lead.status === 'consultado' ? "bg-primary" :
-                                                        lead.status === 'atribuido' ? "bg-cyan-400" :
-                                                            lead.status === 'ruim' ? "bg-destructive" : "bg-emerald-400"
+                                            <div className={cn("w-2 h-2 rounded-full",
+                                                lead.status === 'incompleto' ? "bg-gold animate-pulse" :
+                                                    lead.status === 'consultado' ? "bg-primary animate-pulse" :
+                                                        lead.status === 'atribuido' ? "bg-cyan-400 animate-pulse" :
+                                                            lead.status === 'ruim' ? "bg-destructive" : "bg-emerald-400 animate-pulse"
                                             )} />
                                             {getStatusLabel(lead.status)}
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8 text-right">
-                                        <button className="w-10 h-10 rounded-xl glass-deep border-white/5 hover:border-cyan-500/30 hover:text-cyan-400 transition-all flex items-center justify-center">
-                                            <Eye className="w-4 h-4" />
+                                    <td className="px-12 py-10 text-right">
+                                        <button className="w-12 h-12 rounded-2xl glass-deep border border-white/5 hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center group/btn active:scale-90">
+                                            <Eye className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
                                         </button>
                                     </td>
                                 </tr>
@@ -463,132 +476,141 @@ export default function LeadsPage() {
             </div>
 
             {/* Paginação */}
-            <div className="flex flex-col md:flex-row items-center justify-between p-8 glass-card stagger-5">
-                <div className="space-y-1">
-                    <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Métricas de Dados</p>
-                    <p className="text-xl font-display text-white">{totalCount.toLocaleString()} <span className="opacity-40">registros totais</span></p>
+            <div className="flex flex-col md:flex-row items-center justify-between p-10 glass shadow-2xl rounded-[48px] stagger-5 border-white/5 bg-[#0d0118]/50">
+                <div className="space-y-2">
+                    <p className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-600 italic">Métricas Operacionais</p>
+                    <p className="text-3xl font-display text-white italic leading-none">{totalCount.toLocaleString()} <span className="text-zinc-700 text-sm font-bold mx-2 italic uppercase">Registros Cruzados</span></p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6 mt-6 md:mt-0">
                     <button
                         onClick={(e) => { e.stopPropagation(); setPage(p => Math.max(1, p - 1)); }}
                         disabled={page === 1 || loading}
-                        className="p-4 rounded-xl glass-deep border-white/5 text-zinc-500 hover:text-white disabled:opacity-20 transition-all"
+                        className="w-14 h-14 rounded-2xl glass-deep border border-white/10 text-zinc-600 hover:text-primary hover:border-primary/40 disabled:opacity-10 transition-all flex items-center justify-center active:scale-90"
                     >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-6 h-6" />
                     </button>
 
-                    <div className="bg-white/5 border border-white/5 rounded-xl px-6 py-4">
-                        <span className="text-xs font-mono font-bold text-cyan-400 tracking-tighter">PAGE {page}</span>
-                        <span className="mx-3 opacity-20">/</span>
-                        <span className="text-xs font-mono text-zinc-600">{Math.ceil(totalCount / 50) || 1}</span>
+                    <div className="glass-deep border border-white/10 rounded-[28px] px-10 py-4 shadow-inner">
+                        <span className="text-[11px] font-mono font-bold text-primary-light tracking-[0.3em] uppercase italic">Página {page}</span>
+                        <span className="mx-4 text-white/50 text-[11px] font-bold">/</span>
+                        <span className="text-[11px] font-mono font-bold text-zinc-700 uppercase italic">{Math.ceil(totalCount / 50) || 1}</span>
                     </div>
 
                     <button
                         onClick={(e) => { e.stopPropagation(); setPage(p => p + 1); }}
                         disabled={page * 50 >= totalCount || loading}
-                        className="p-4 rounded-xl glass-deep border-white/5 text-zinc-500 hover:text-white disabled:opacity-20 transition-all"
+                        className="w-14 h-14 rounded-2xl glass-deep border border-white/10 text-zinc-600 hover:text-primary hover:border-primary/40 disabled:opacity-10 transition-all flex items-center justify-center active:scale-90"
                     >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-6 h-6" />
                     </button>
                 </div>
             </div>
 
             {/* Modal de Detalhes */}
             {selectedLead && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-300">
-                    <div className="glass w-full max-w-5xl rounded-[48px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 max-h-[90vh] flex flex-col border-white/10">
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-[#000000]/80 backdrop-blur-3xl animate-in fade-in duration-500">
+                    <div className="glass w-full max-w-6xl rounded-[64px] overflow-hidden shadow-[0_64px_150px_rgba(0,0,0,1)] animate-in zoom-in-95 slide-in-from-bottom-20 duration-700 max-h-[92vh] flex flex-col border border-white/10 relative">
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        
                         {/* Header do Modal */}
-                        <div className="px-12 py-10 border-b border-white/5 flex justify-between items-center bg-white/[0.01] relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
-                            <div className="flex items-center gap-8 relative z-10">
-                                <div className="w-20 h-20 rounded-3xl glass glow-primary flex items-center justify-center border-primary/20">
-                                    <UserCheck className="w-10 h-10 text-primary" />
+                        <div className="px-16 py-12 border-b border-white/5 flex justify-between items-center bg-[#ffffff]/0.01 relative z-10">
+                            <div className="flex items-center gap-10">
+                                <div className="w-24 h-24 rounded-[32px] glass glow-primary flex items-center justify-center border border-primary/30 group">
+                                    <UserCheck className="w-12 h-12 text-primary group-hover:text-magenta transition-colors" />
                                 </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-4xl font-display uppercase tracking-tight text-white">{selectedLead.full_name || 'DETALHES DO LEAD'}</h3>
-                                    <p className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest">REGISTRO: <span className="text-cyan-400">{selectedLead.id}</span></p>
+                                <div className="space-y-2">
+                                    <h3 className="text-5xl font-display uppercase tracking-tight text-white italic">{selectedLead.full_name || 'DETALHES DO REGISTRO'}</h3>
+                                    <p className="text-[12px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic">REGISTRO TERMINAL: <span className="text-primary-light">{selectedLead.id}</span></p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setSelectedLead(null)}
-                                className="w-12 h-12 rounded-2xl glass-deep hover:bg-destructive transition-all flex items-center justify-center group"
+                                className="w-16 h-16 rounded-[28px] glass-deep hover:bg-destructive hover:text-white border border-white/5 transition-all flex items-center justify-center group/close"
                             >
-                                <X className="w-6 h-6 group-hover:scale-110" />
+                                <X className="w-8 h-8 group-hover/close:rotate-90 transition-transform" />
                             </button>
                         </div>
 
                         {/* Corpo do Modal */}
-                        <div className="p-12 overflow-y-auto flex-1 custom-scrollbar relative">
+                        <div className="px-16 py-12 overflow-y-auto flex-1 custom-scrollbar relative z-10">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                <section className="space-y-10">
+                                <section className="space-y-12">
                                     {/* Score e Renda */}
-                                    <div className="glass-card p-10 space-y-8 border-cyan-500/10">
-                                        <div className="flex justify-between items-end">
-                                            <div className="space-y-2">
-                                                <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Índice de Crédito</p>
-                                                <p className="text-5xl font-display italic text-cyan-400 glow-cyan leading-none">{selectedLead.score || '--'}</p>
+                                    <div className="glass-card p-12 space-y-10 rounded-[48px] border border-primary/20 bg-primary/5 shadow-2xl relative overflow-hidden group">
+                                        <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/20 blur-[50px] rounded-full group-hover:bg-primary/30 transition-colors" />
+                                        <div className="flex justify-between items-end relative z-10">
+                                            <div className="space-y-3">
+                                                <p className="text-[11px] font-mono font-bold uppercase text-zinc-500 tracking-[0.4em] italic">Score de Crédito</p>
+                                                <p className="text-7xl font-display italic text-primary-light glow-primary leading-none">{selectedLead.score || '--'}</p>
                                             </div>
-                                            <div className="text-right space-y-2">
-                                                <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Renda Estimada</p>
-                                                <p className="text-3xl font-display text-white italic">R$ {Number(selectedLead.income || 0).toLocaleString('pt-BR')}</p>
+                                            <div className="text-right space-y-3">
+                                                <p className="text-[11px] font-mono font-bold uppercase text-zinc-500 tracking-[0.4em] italic">Ticket de Renda</p>
+                                                <p className="text-4xl font-display text-white italic leading-none">{selectedLead.income ? Number(selectedLead.income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '---'}</p>
                                             </div>
                                         </div>
-                                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-cyan-400 glow-cyan" style={{ width: `${(Number(selectedLead.score || 0) / 1000) * 100}%` }} />
+                                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                                            <div className="h-full bg-primary shadow-glow-primary transition-all duration-1000" style={{ width: `${(Number(selectedLead.score || 0) / 1000) * 100}%` }} />
                                         </div>
                                     </div>
 
                                     {/* Localização */}
-                                    <div className="glass-card p-10 border-white/5 space-y-6">
-                                        <div className="flex items-center gap-4 text-zinc-500">
-                                            <MapPin className="w-5 h-5" />
-                                            <span className="text-[10px] font-mono uppercase tracking-widest">Geolocalização</span>
+                                    <div className="glass-card p-12 border border-white/10 rounded-[48px] space-y-8 shadow-2xl">
+                                        <div className="flex items-center gap-5 text-zinc-600">
+                                            <MapPin className="w-6 h-6" />
+                                            <span className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] italic">Geoverificação</span>
                                         </div>
-                                        <div className="space-y-2">
-                                            <p className="text-4xl font-display tracking-tight text-white uppercase">{selectedLead.city || 'DESCONHECIDO'}</p>
-                                            <p className="text-base font-mono text-cyan-400/70 tracking-tighter">ESTADO DE {selectedLead.state || 'UF'}</p>
+                                        <div className="space-y-3">
+                                            <p className="text-5xl font-display tracking-tight text-white uppercase italic">{selectedLead.city || 'DESCONHECIDO'}</p>
+                                            <p className="text-xl font-mono font-bold text-primary-light/70 tracking-tighter italic uppercase underline underline-offset-8 decoration-primary/30">ESTADO DE {selectedLead.state || 'UF'}</p>
                                         </div>
                                     </div>
                                 </section>
 
-                                <section className="space-y-10">
+                                <section className="space-y-12">
                                     {/* Cartão e Gov */}
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="glass-card p-8 border-primary/20 bg-primary/5">
-                                            <CreditCard className="w-6 h-6 text-primary mb-6" />
-                                            <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-2">BIN</p>
-                                            <p className="text-2xl font-mono text-white tracking-widest mb-4">{selectedLead.card_bin || '------'}</p>
-                                            <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-2">VALIDADE</p>
-                                            <p className="text-xl font-mono text-white">{selectedLead.card_expiry || '--/--'}</p>
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="glass-card p-10 border border-secondary/30 bg-secondary/10 rounded-[40px] shadow-2xl group transition-all hover:bg-secondary/20">
+                                            <CreditCard className="w-8 h-8 text-secondary mb-8 group-hover:scale-110 transition-transform" />
+                                            <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.3em] mb-3 italic">BIN DO CARTÃO</p>
+                                            <p className="text-3xl font-mono text-white tracking-[0.2em] mb-6">{selectedLead.card_bin || '------'}</p>
+                                            <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.3em] mb-3 italic">EXPIRAS EM</p>
+                                            <p className="text-2xl font-mono text-white font-bold italic">{selectedLead.card_expiry || '--/--'}</p>
                                         </div>
-                                        <div className="glass-card p-8 border-emerald-500/20 bg-emerald-500/5">
-                                            <Smartphone className="w-6 h-6 text-emerald-400 mb-6" />
-                                            <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-2">NÚMERO GOV</p>
-                                            <p className="text-2xl font-mono text-emerald-400 text-neon-emerald tracking-wide break-all">
+                                        <div className="glass-card p-10 border border-emerald-500/20 bg-emerald-500/5 rounded-[40px] shadow-2xl group transition-all hover:bg-emerald-500/10">
+                                            <Smartphone className="w-8 h-8 text-emerald-400 mb-8 group-hover:scale-110 transition-transform" />
+                                            <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.3em] mb-3 italic">NÚMERO GOV</p>
+                                            <p className="text-3xl font-mono text-emerald-400 glow-emerald font-bold tracking-tight break-all leading-tight italic">
                                                 {selectedLead.num_gov || 'NÃO VINCULADO'}
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Telefones */}
-                                    <div className="glass-card p-10 border-white/5">
-                                        <div className="flex items-center gap-4 text-zinc-500 mb-8">
-                                            <Activity className="w-5 h-5" />
-                                            <span className="text-[10px] font-mono uppercase tracking-widest">Contatos Cruzados</span>
+                                    <div className="glass-card p-12 border border-white/10 rounded-[48px] shadow-2xl overflow-hidden relative group">
+                                         <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-zinc-900/50 blur-[50px] rounded-full" />
+                                        <div className="flex items-center gap-5 text-zinc-600 mb-10 relative z-10">
+                                            <Activity className="w-6 h-6" />
+                                            <span className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] italic">Vínculos de Contato</span>
                                         </div>
-                                        <div className="grid grid-cols-1 gap-4">
+                                        <div className="grid grid-cols-1 gap-4 relative z-10">
                                             {selectedLead.phones?.length > 0 ? selectedLead.phones.map((p, i) => (
                                                 <div key={i} className={cn(
-                                                    "px-6 py-4 rounded-xl glass-deep flex items-center justify-between border-white/5",
-                                                    p === selectedLead.num_gov && "border-emerald-500/30 bg-emerald-500/10"
+                                                    "px-8 py-5 rounded-[24px] glass-deep flex items-center justify-between border border-white/5 group/phone transition-all hover:border-primary/20",
+                                                    p === selectedLead.num_gov && "border-emerald-500/40 bg-emerald-500/10 glow-emerald-sm"
                                                 )}>
-                                                    <span className="font-mono text-sm tracking-widest text-zinc-300">{p}</span>
-                                                    {p === selectedLead.num_gov && (
-                                                        <span className="text-[8px] font-mono font-bold text-emerald-400 uppercase tracking-[0.2em]">Gov Principal</span>
+                                                    <span className="font-mono text-lg font-bold tracking-widest text-zinc-300 italic">{p}</span>
+                                                    {p === selectedLead.num_gov ? (
+                                                        <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-[0.3em] italic bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20">Principal</span>
+                                                    ) : (
+                                                        <span className="text-[9px] font-mono font-bold text-zinc-700 uppercase tracking-[0.2em] italic opacity-0 group-hover/phone:opacity-100 transition-opacity">Secundário</span>
                                                     )}
                                                 </div>
-                                            )) : <span className="text-xs font-mono text-zinc-700 italic">Contatos não disponíveis.</span>}
+                                            )) : (
+                                                <div className="py-8 text-center glass-deep rounded-[24px] border border-dashed border-white/10">
+                                                    <p className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-widest italic">Nenhum vínculo detectado</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </section>
@@ -596,12 +618,15 @@ export default function LeadsPage() {
                         </div>
 
                         {/* Footer do Modal */}
-                        <div className="px-12 py-8 border-t border-white/5 bg-white/[0.02] flex gap-6">
+                        <div className="px-16 py-10 border-t border-white/5 bg-[#ffffff]/0.02 flex gap-8 relative z-10">
                             <button
                                 onClick={() => setSelectedLead(null)}
-                                className="flex-1 py-5 rounded-2xl glass-deep border-white/10 text-[10px] font-mono font-bold uppercase tracking-[0.3em] hover:bg-white/5 transition-all active:scale-95"
+                                className="flex-1 py-7 rounded-[32px] glass-deep border border-white/10 text-[11px] font-mono font-bold uppercase tracking-[0.5em] hover:bg-primary/10 hover:border-primary/40 hover:text-primary-light transition-all active:scale-95 italic shadow-2xl"
                             >
-                                Encerrar Visualização
+                                <span className="flex items-center justify-center gap-4">
+                                    Encerrar Sessão de Detalhes
+                                    <ChevronDown className="w-5 h-5 opacity-50" />
+                                </span>
                             </button>
                         </div>
                     </div>

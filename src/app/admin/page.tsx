@@ -274,50 +274,50 @@ export default function AdminDashboard() {
     ]
 
     return (
-        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 selection:bg-primary/20">
+        <div className="space-y-16 animate-in fade-in duration-1000 selection:bg-primary/20 p-8 md:p-12">
             {/* Admin Header - NuPay Native */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8">
-                <div className="space-y-3">
-                    <div className="flex items-center gap-5">
-                        <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl">
-                            <Cpu className="w-8 h-8 text-primary shadow-glow" />
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10 stagger-1">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-[28px] glass glow-primary border border-primary/30 flex items-center justify-center shadow-2xl rotate-3 hover:rotate-0 transition-transform group">
+                            <Cpu className="w-9 h-9 text-primary group-hover:text-magenta transition-colors" />
                         </div>
-                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Painel Operacional</h2>
+                        <h2 className="text-5xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Painel Operacional</h2>
                     </div>
-                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
-                        <Globe className="w-4 h-4" />
-                        Radar de Sincronização em Tempo Real OwnData
+                    <p className="text-zinc-500 font-bold text-lg italic flex items-center gap-4">
+                        <Globe className="w-5 h-5 text-emerald-400 animate-pulse" />
+                        <span className="font-mono text-[11px] tracking-[0.4em] uppercase opacity-70">Monitoramento Terminal e Sincronização OwnData</span>
                     </p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="flex p-1 bg-secondary/20 rounded-[28px] border border-white/5 backdrop-blur-3xl shadow-2xl">
+                <div className="flex items-center gap-5">
+                    <div className="flex p-1.5 glass-deep rounded-[40px] border border-white/5 backdrop-blur-3xl shadow-2xl">
                         <button
                             onClick={fetchStats}
-                            className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-secondary border border-white/10 hover:bg-zinc-800 transition-all active:scale-95 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group"
+                            className="flex items-center gap-4 px-10 py-5 rounded-[32px] glass hover:bg-white/5 border border-white/10 transition-all active:scale-95 text-[11px] font-mono font-bold uppercase tracking-[0.2em] shadow-xl group italic"
                         >
-                            <RefreshCcw className={cn("w-4 h-4 transition-transform group-hover:rotate-180 duration-700", loading && "animate-spin")} />
-                            Atualizar Base
+                            <RefreshCcw className={cn("w-5 h-5 transition-transform group-hover:rotate-180 duration-1000 text-primary", loading && "animate-spin")} />
+                            Sincronizar Protocolos
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Bento Grid Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 stagger-2">
                 {statCards.map((stat, idx) => (
-                    <div key={stat.label} className="glass rounded-[32px] p-6 relative overflow-hidden group card-hover border-white/5 flex flex-col justify-between">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />
-                        <div className="flex items-center justify-between mb-4 relative z-10">
-                            <div className={cn("p-3 rounded-2xl bg-black/40 border border-white/5 shadow-2xl transition-transform group-hover:scale-110 duration-500", stat.color)}>
-                                <stat.icon className="w-5 h-5" />
+                    <div key={stat.label} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] rounded-[40px] p-8 relative overflow-hidden group card-hover border border-white/5 flex flex-col justify-between hover:bg-white/[0.02] transition-all">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 blur-[50px] rounded-full group-hover:bg-primary/20 transition-colors pointer-events-none" />
+                        <div className="flex items-center justify-between mb-6 relative z-10">
+                            <div className={cn("w-12 h-12 rounded-[22px] glass shadow-2xl flex items-center justify-center transition-all group-hover:scale-110 duration-500 border border-white/10", stat.color)}>
+                                <stat.icon className="w-5 h-5 transition-transform" />
                             </div>
-                            <Activity className="w-3 h-3 text-zinc-800 group-hover:animate-pulse transition-opacity" />
+                            <div className="w-2 h-2 rounded-full bg-primary/20 animate-ping group-hover:bg-primary/40 transition-colors" />
                         </div>
-                        <div className="relative z-10 space-y-1">
-                            <p className="text-[9px] font-black italic text-zinc-500 uppercase tracking-widest leading-none">{stat.label}</p>
-                            <h3 className="text-3xl font-black tracking-tighter italic leading-tight">
-                                {loading ? "..." : stat.value.toLocaleString()}
+                        <div className="relative z-10 space-y-2">
+                            <p className="text-[10px] font-mono font-bold italic text-zinc-600 uppercase tracking-[0.4em] leading-none mb-1">{stat.label}</p>
+                            <h3 className="text-4xl font-display italic leading-tight text-white tracking-tighter">
+                                {loading ? "---" : stat.value.toLocaleString()}
                             </h3>
                         </div>
                     </div>
@@ -325,21 +325,21 @@ export default function AdminDashboard() {
             </div>
 
             {/* Main Processor Bento Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-8 glass rounded-[64px] p-12 flex flex-col space-y-10 relative overflow-hidden shadow-2xl border-white/5">
-                    <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 stagger-3">
+                <div className="lg:col-span-8 glass shadow-[0_64px_150px_rgba(0,0,0,0.8)] rounded-[64px] p-16 flex flex-col space-y-12 relative overflow-hidden border border-white/10">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                     <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 rounded-[32px] bg-primary/10 flex items-center justify-center relative border border-primary/20 group ring-8 ring-primary/5">
-                                <Activity className={cn("w-10 h-10 text-primary transition-all duration-1000", processing && !isPaused ? "animate-pulse" : "")} />
+                        <div className="flex items-center gap-8">
+                            <div className="w-24 h-24 rounded-[32px] glass glow-primary border border-primary/20 flex items-center justify-center relative group">
+                                <Activity className={cn("w-12 h-12 text-primary transition-all duration-1000", processing && !isPaused ? "animate-pulse" : "")} />
                                 {processing && !isPaused && (
-                                    <div className="absolute inset-0 border-2 border-primary rounded-[32px] animate-ping opacity-20" />
+                                    <div className="absolute inset-0 border-4 border-primary/20 rounded-[32px] animate-ping opacity-20" />
                                 )}
                             </div>
-                            <div className="space-y-1">
-                                <h3 className="text-3xl font-black uppercase italic tracking-tighter leading-none decoration-primary/20 underline underline-offset-8">Consulta OwnData</h3>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.3em] italic">Enriquecimento Automático de Leads</p>
+                            <div className="space-y-2">
+                                <h3 className="text-4xl font-display uppercase tracking-tight text-white italic">Protocolo OwnData</h3>
+                                <p className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Sincronização Circular de Ativos</p>
                             </div>
                         </div>
 
@@ -347,109 +347,110 @@ export default function AdminDashboard() {
                             <button
                                 onClick={togglePause}
                                 className={cn(
-                                    "flex items-center gap-3 px-8 py-4 rounded-[24px] font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-2xl border italic",
-                                    isPaused ? "bg-emerald-500 border-emerald-400 text-white shadow-emerald-500/20" : "bg-black border-white/10 text-zinc-400 hover:text-white"
+                                    "flex items-center gap-4 px-10 py-5 rounded-[32px] font-mono font-bold text-[11px] uppercase tracking-[0.3em] transition-all active:scale-95 shadow-2xl border italic",
+                                    isPaused ? "bg-emerald-500 border-emerald-400 text-white shadow-glow-emerald" : "bg-white/5 border-white/10 text-zinc-400 hover:text-white"
                                 )}
                             >
-                                {isPaused ? <Play className="w-4 h-4 fill-white" /> : <Pause className="w-4 h-4 fill-white" />}
-                                {isPaused ? 'Resumir Protocolo' : 'Suspender Operação'}
+                                {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
+                                {isPaused ? 'Retomar Fluxo' : 'Suspender'}
                             </button>
                         )}
                     </div>
 
                     {!processing ? (
-                        <div className="flex flex-col items-center justify-center py-24 space-y-10 text-center relative z-10 animate-in fade-in duration-1000">
-                            <div className="space-y-4">
-                                <h4 className="text-4xl font-black uppercase italic tracking-tighter leading-none text-zinc-100">Pronto para Consulta</h4>
-                                <p className="text-zinc-500 text-lg font-medium max-w-lg italic leading-relaxed mx-auto">
-                                    Enriqueça os leads com dados da API: nome completo, score, renda, endereço e telefones.
+                        <div className="flex flex-col items-center justify-center py-20 space-y-12 text-center relative z-10 animate-in fade-in duration-1000">
+                            <div className="space-y-5">
+                                <h4 className="text-5xl font-display uppercase italic tracking-tight text-white leading-none">Terminal Disponível</h4>
+                                <p className="text-zinc-500 text-lg font-bold max-w-lg italic leading-relaxed mx-auto">
+                                    Inicie o enriquecimento terminal: Score, Renda, Localização e Vínculos Governamentais.
                                 </p>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex flex-col sm:flex-row gap-6">
                                 <button
                                     onClick={() => handleConsult(false)}
                                     disabled={loading}
-                                    className="group relative bg-primary hover:bg-primary/90 text-white font-black px-14 py-7 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(138,5,190,0.3)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl"
+                                    className="group relative glass glow-primary-sm py-8 px-16 rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.2em] flex items-center gap-5 text-xl font-display text-white border border-primary/20 overflow-hidden"
                                 >
-                                    <Zap className="w-7 h-7 group-hover:rotate-12 transition-transform duration-500 fill-white" />
-                                    Consultar Pendentes
-                                    <div className="absolute inset-0 rounded-[32px] border-2 border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                     <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Zap className="w-8 h-8 group-hover:rotate-12 transition-transform duration-500 text-primary" />
+                                    <span>Priorizar Pendentes</span>
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (confirm('Isso vai consultar TODOS os leads (inclusive atribuídos e finalizados). O nome será atualizado pelo da API. Continuar?')) {
+                                        if (confirm('Atenção: A sincronização global atualizará TODOS os registros da base. Confirmar protocolo?')) {
                                             handleConsult(true)
                                         }
                                     }}
                                     disabled={loading}
-                                    className="group relative bg-amber-500 hover:bg-amber-400 text-black font-black px-14 py-7 rounded-[32px] transition-all shadow-[0_20px_60px_rgba(245,158,11,0.2)] active:scale-95 uppercase italic tracking-tighter flex items-center gap-4 text-xl"
+                                    className="group relative glass-deep hover:bg-amber-500/10 py-8 px-16 rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.2em] flex items-center gap-5 text-xl font-display text-amber-500 border border-amber-500/20"
                                 >
-                                    <RefreshCcw className="w-7 h-7 group-hover:rotate-180 transition-transform duration-700" />
-                                    Consultar Todos
-                                    <div className="absolute inset-0 rounded-[32px] border-2 border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <RefreshCcw className="w-8 h-8 group-hover:rotate-180 transition-transform duration-1000" />
+                                    <span>Reset Global</span>
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-10 animate-in zoom-in-95 duration-700 relative z-10">
-                            <div className="bg-black/60 p-10 rounded-[48px] border border-white/5 shadow-inner backdrop-blur-3xl">
-                                <div className="flex justify-between items-end mb-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn("w-3 h-3 rounded-full shadow-glow", isPaused ? "bg-amber-500 shadow-amber-500/50" : "bg-primary animate-pulse shadow-primary/50")} />
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-zinc-500 leading-none">
-                                                {isPaused ? 'OPERAÇÃO SUSPENSA' : 'PROCESSANDO LEADS'}
+                        <div className="space-y-12 animate-in zoom-in-95 duration-700 relative z-10">
+                            <div className="glass-deep p-12 rounded-[56px] border border-white/5 shadow-inner backdrop-blur-3xl relative overflow-hidden group">
+                                <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/5 blur-[80px] rounded-full group-hover:bg-primary/10 transition-colors pointer-events-none" />
+                                
+                                <div className="flex justify-between items-end mb-10">
+                                    <div className="flex items-center gap-6">
+                                        <div className={cn("w-4 h-4 rounded-full shadow-glow", isPaused ? "bg-amber-500 shadow-amber-500/50" : "bg-primary animate-pulse shadow-primary/50")} />
+                                        <div className="space-y-2">
+                                            <p className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] italic text-zinc-600 leading-none pb-1">
+                                                {isPaused ? 'OPERAÇÃO EM PAUSA' : 'PROCESSAMENTO ATIVO'}
                                             </p>
-                                            <p className="text-xl font-black uppercase tracking-tighter italic leading-none">{progress.current} <span className="text-zinc-700">/ {progress.total}</span></p>
+                                            <p className="text-3xl font-display italic uppercase tracking-tighter leading-none text-white">{progress.current} <span className="text-zinc-700 mx-2 text-xl font-mono">/</span> {progress.total}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-3xl font-black text-white italic tracking-tighter leading-none">{Math.round((progress.current / progress.total) * 100)}%</p>
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700 pt-1">Progresso</p>
+                                        <p className="text-5xl font-display text-white italic tracking-tighter leading-none glow-primary-sm">{Math.round((progress.current / progress.total) * 100)}%</p>
+                                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-700 pt-3 italic">Indexação</p>
                                     </div>
                                 </div>
 
-                                <div className="w-full h-4 bg-[#050507] rounded-full overflow-hidden border border-white/5 relative p-1 mb-10 ring-4 ring-white/5">
+                                <div className="w-full h-3 bg-[#05010a] rounded-full overflow-hidden border border-white/10 relative p-1 mb-12 ring-8 ring-white/[0.02]">
                                     <div
-                                        className="h-full bg-gradient-to-r from-primary via-purple-400 to-primary bg-[length:200%_auto] animate-shimmer rounded-full transition-all duration-700 shadow-[0_0_20px_var(--primary-glow)]"
+                                        className="h-full bg-gradient-to-r from-primary via-magenta to-primary bg-[length:200%_auto] animate-shimmer rounded-full transition-all duration-700 shadow-glow-primary"
                                         style={{ width: `${(progress.current / progress.total) * 100}%` }}
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div className="bg-[#050507] p-8 rounded-[40px] border border-emerald-500/10 flex flex-col items-center group overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
-                                            <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+                                <div className="grid grid-cols-2 gap-10">
+                                    <div className="glass-deep p-10 rounded-[48px] border border-emerald-500/10 flex flex-col items-center group/card overflow-hidden relative shadow-2xl hover:bg-emerald-500/[0.02] transition-colors">
+                                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/card:scale-125 transition-transform duration-1000 pointer-events-none">
+                                            <CheckCircle2 className="w-24 h-24 text-emerald-500" />
                                         </div>
-                                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] mb-3 italic leading-none relative z-10">Sucesso</p>
-                                        <p className="text-5xl font-black text-emerald-500 italic leading-none pt-2 text-glow relative z-10">+{progress.success}</p>
+                                        <p className="text-[11px] font-mono font-bold uppercase text-emerald-500 tracking-[0.4em] mb-4 italic leading-none relative z-10">Sucesso Circular</p>
+                                        <p className="text-6xl font-display text-emerald-400 italic leading-none pt-2 glow-emerald-sm relative z-10">+{progress.success}</p>
                                     </div>
-                                    <div className="bg-[#050507] p-8 rounded-[40px] border border-destructive/10 flex flex-col items-center group overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
-                                            <AlertCircle className="w-16 h-16 text-destructive" />
+                                    <div className="glass-deep p-10 rounded-[48px] border border-destructive/10 flex flex-col items-center group/card overflow-hidden relative shadow-2xl hover:bg-destructive/[0.02] transition-colors">
+                                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/card:scale-125 transition-transform duration-1000 pointer-events-none">
+                                            <AlertCircle className="w-24 h-24 text-destructive" />
                                         </div>
-                                        <p className="text-[10px] font-black uppercase text-destructive tracking-[0.3em] mb-3 italic leading-none relative z-10">Erros</p>
-                                        <p className="text-5xl font-black text-destructive italic leading-none pt-2 text-glow relative z-10">-{progress.failed}</p>
+                                        <p className="text-[11px] font-mono font-bold uppercase text-destructive tracking-[0.4em] mb-4 italic leading-none relative z-10">Falhas de Sinal</p>
+                                        <p className="text-6xl font-display text-destructive italic leading-none pt-2 glow-destructive-sm relative z-10">-{progress.failed}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-4">
-                                    <div className="flex items-center gap-3 text-zinc-500">
-                                        <Terminal className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Log em Tempo Real</span>
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between px-10">
+                                    <div className="flex items-center gap-4 text-zinc-600">
+                                        <Terminal className="w-5 h-5" />
+                                        <span className="text-[11px] font-mono font-bold uppercase tracking-[0.5em] italic">Log de Terminal</span>
                                     </div>
-                                    <p className="text-[9px] font-black text-zinc-700 uppercase italic">Últimas 50 entradas</p>
+                                    <p className="text-[10px] font-mono font-bold text-zinc-800 uppercase italic tracking-widest">Acesso Restrito</p>
                                 </div>
-                                <div className="bg-black/60 border border-white/5 rounded-[40px] h-60 overflow-y-auto p-10 font-mono text-[11px] space-y-3.5 custom-scrollbar backdrop-blur-3xl shadow-inner scroll-smooth">
+                                <div className="glass shadow-inner rounded-[48px] h-72 overflow-y-auto p-12 font-mono text-[12px] space-y-4 custom-scrollbar bg-[#05010a]/60 border border-white/5 transition-all">
                                     {logs.map((log, idx) => (
                                         <div key={idx} className={cn(
-                                            "flex gap-4 animate-in fade-in slide-in-from-left-4 duration-500 p-3 rounded-2xl transition-colors",
-                                            log.type === 'success' ? "text-emerald-500 bg-emerald-500/5" : log.type === 'error' ? "text-destructive bg-destructive/5" : "text-zinc-500 border border-white/5"
+                                            "flex gap-6 animate-in fade-in slide-in-from-left-6 duration-700 p-4 rounded-[20px] transition-all hover:bg-white/[0.02] border border-transparent",
+                                            log.type === 'success' ? "text-emerald-400 bg-emerald-500/5 border-emerald-500/10" : log.type === 'error' ? "text-destructive bg-destructive/5 border-destructive/10" : "text-zinc-500 border-white/5"
                                         )}>
-                                            <span className="opacity-20 shrink-0 font-bold uppercase tracking-tighter">[{new Date().toLocaleTimeString().slice(0, 5)}]</span>
-                                            <p className="font-black leading-relaxed italic tracking-tight">{log.msg}</p>
+                                            <span className="opacity-30 shrink-0 font-bold tracking-widest text-[10px]">[{new Date().toLocaleTimeString().slice(0, 5)}]</span>
+                                            <p className="font-bold leading-relaxed italic tracking-tight">{log.msg}</p>
                                         </div>
                                     ))}
                                     <div ref={logsEndRef} />
@@ -459,29 +460,36 @@ export default function AdminDashboard() {
                     )}
                 </div>
 
-                <div className="lg:col-span-4 flex flex-col gap-8 h-full">
-                    <div className="glass rounded-[56px] p-10 flex flex-col items-center justify-center text-center space-y-6 hover:border-emerald-500/30 transition-all shadow-2xl group border-white/5 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl rounded-full" />
-                        <div className="w-24 h-24 rounded-[36px] bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700 ring-8 ring-emerald-500/5">
-                            <ShieldCheck className="w-12 h-12 text-emerald-500 shadow-glow" />
+                <div className="lg:col-span-4 flex flex-col gap-10 h-full stagger-4">
+                    <div className="glass shadow-[0_32px_100px_rgba(0,0,0,0.5)] rounded-[64px] p-12 flex flex-col items-center justify-center text-center space-y-8 hover:border-emerald-500/30 transition-all group border border-white/10 relative overflow-hidden bg-[#0d0118]/40">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/5 blur-[80px] rounded-full pointer-events-none" />
+                        <div className="w-28 h-28 rounded-[40px] glass glow-emerald flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-1000 ring-[12px] ring-emerald-500/5">
+                            <ShieldCheck className="w-14 h-14 text-emerald-500" />
                         </div>
-                        <div className="space-y-2 relative z-10">
-                            <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Segurança</h3>
-                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] bg-emerald-500/5 px-8 py-3 rounded-full border border-emerald-500/10 shadow-inner">STATUS: ATIVO</p>
+                        <div className="space-y-4 relative z-10">
+                            <h3 className="text-3xl font-display uppercase italic tracking-tight text-white leading-none">Criptografia</h3>
+                            <p className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-[0.4em] bg-emerald-500/10 px-10 py-4 rounded-full border border-emerald-500/20 shadow-inner italic">ESTADO: INTEGRAL</p>
                         </div>
                     </div>
 
-                    <div className="glass rounded-[56px] p-10 flex flex-col items-center justify-center text-center space-y-6 hover:border-primary/30 transition-all shadow-2xl group border-white/5 relative overflow-hidden flex-1">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full" />
-                        <div className="w-24 h-24 rounded-[36px] bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700 ring-8 ring-primary/5">
-                            <Globe className="w-12 h-12 text-primary shadow-glow" />
+                    <div className="glass shadow-[0_32px_100px_rgba(0,0,0,0.5)] rounded-[64px] p-12 flex flex-col items-center justify-center text-center space-y-10 hover:border-primary/30 transition-all group border border-white/10 relative overflow-hidden flex-1 bg-[#0d0118]/40">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
+                        <div className="w-28 h-28 rounded-[40px] glass glow-primary flex items-center justify-center border border-primary/20 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-1000 ring-[12px] ring-primary/5">
+                            <Globe className="w-14 h-14 text-primary" />
                         </div>
-                        <div className="space-y-3 relative z-10">
-                            <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Rede</h3>
-                            <div className="space-y-1">
-                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Latência: <span className="text-zinc-300">12ms</span></p>
-                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Protocolo: <span className="text-zinc-300">HTTPS/2</span></p>
-                                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest leading-none">Região: <span className="text-zinc-300">us-east-1</span></p>
+                        <div className="space-y-5 relative z-10 w-full">
+                            <h3 className="text-3xl font-display uppercase italic tracking-tight text-white leading-none">Conectividade</h3>
+                            <div className="space-y-3">
+                                {[
+                                    { l: 'Latência', v: '12ms', c: 'text-zinc-300' },
+                                    { l: 'Protocolo', v: 'HTTPS/2', c: 'text-zinc-300' },
+                                    { l: 'Servidor', v: 'Terminal-N1', c: 'text-primary' }
+                                ].map((row, r) => (
+                                    <div key={r} className="flex items-center justify-between border-b border-white/5 pb-3">
+                                        <span className="text-[10px] font-mono font-bold text-zinc-600 uppercase tracking-widest italic">{row.l}:</span>
+                                        <span className={cn("text-[11px] font-mono font-bold uppercase tracking-widest", row.c)}>{row.v}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>

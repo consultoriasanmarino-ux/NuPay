@@ -82,67 +82,69 @@ export default function LigadorLoginPage() {
 
     return (
         <PulseBeams beams={loginBeams}>
-            <div className="w-full max-w-sm space-y-12 relative z-10 p-8">
+            <div className="w-full max-w-sm space-y-16 relative z-10 p-12 glass shadow-[0_64px_150px_rgba(0,0,0,0.8)] rounded-[64px] border border-white/10 overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[80px] rounded-full group-hover:bg-primary/20 transition-colors" />
+
                 {/* Logo */}
-                <div className="text-center space-y-8 animate-in fade-in duration-1000 stagger-1">
+                <div className="text-center space-y-10 animate-in fade-in duration-1000 stagger-1 pt-4">
                     <div className="relative inline-block">
-                        <div className="w-24 h-24 rounded-[32px] glass glow-primary flex items-center justify-center mx-auto shadow-2xl transition-all hover:scale-105 border-primary/20 rotate-3 hover:rotate-0">
-                            <span className="text-4xl font-display text-primary font-bold">nu</span>
+                        <div className="w-28 h-28 rounded-[36px] glass glow-primary flex items-center justify-center mx-auto shadow-2xl transition-all hover:scale-105 border-primary/20 rotate-6 hover:rotate-0">
+                            <span className="text-5xl font-display text-primary font-bold">nu</span>
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <h1 className="text-6xl font-display tracking-tight text-white uppercase italic">NuPay</h1>
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-cyan-400">Security Access Layer</p>
+                    <div className="space-y-3">
+                        <h1 className="text-7xl font-display tracking-tight text-white uppercase italic leading-none">NuPay</h1>
+                        <p className="text-[11px] font-mono font-bold uppercase tracking-[0.5em] text-primary italic">Terminal de Operação</p>
                     </div>
                 </div>
 
                 {/* Form */}
-                <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 stagger-2">
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 ml-2">Operator Identity</label>
-                            <div className="relative group">
-                                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-cyan-400 transition-colors" />
+                <div className="animate-in fade-in slide-in-from-bottom-12 duration-1000 stagger-2 pb-4">
+                    <form onSubmit={handleLogin} className="space-y-8">
+                        <div className="space-y-3">
+                            <label className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-600 ml-6 italic">Identity</label>
+                            <div className="relative group/input">
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-700 group-focus-within/input:text-primary transition-colors" />
                                 <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="USUÁRIO"
-                                    className="w-full glass-deep border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-xs font-mono font-bold outline-none focus:border-cyan-500/30 transition-all placeholder:text-zinc-800"
+                                    placeholder="OPERADOR"
+                                    className="w-full glass-deep border border-white/10 rounded-[32px] py-6 pl-16 pr-8 text-xs font-mono font-bold outline-none focus:border-primary/40 focus:bg-primary/5 shadow-2xl transition-all placeholder:text-zinc-800 uppercase tracking-widest"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 ml-2">Access Key</label>
-                            <div className="relative group">
-                                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-magenta transition-colors" />
+                        <div className="space-y-3">
+                            <label className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-600 ml-6 italic">Access Key</label>
+                            <div className="relative group/input">
+                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-700 group-focus-within/input:text-magenta transition-colors" />
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full glass-deep border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-xs font-mono font-bold outline-none focus:border-magenta/30 transition-all placeholder:text-zinc-800"
+                                    className="w-full glass-deep border border-white/10 rounded-[32px] py-6 pl-16 pr-8 text-xs font-mono font-bold outline-none focus:border-magenta/40 focus:bg-magenta/5 shadow-2xl transition-all placeholder:text-zinc-800 tracking-widest"
                                 />
                             </div>
                         </div>
 
                         {loginError && (
-                            <div className="bg-destructive/10 border border-destructive/20 p-5 rounded-2xl text-destructive text-[10px] font-mono font-bold uppercase tracking-widest text-center animate-in shake-1 duration-500">
-                                Access Denied: {loginError}
+                            <div className="bg-destructive/10 border border-destructive/20 p-6 rounded-[24px] text-destructive text-[11px] font-mono font-bold uppercase tracking-widest text-center animate-in shake-1 duration-500 italic">
+                                Acesso Negado: {loginError}
                             </div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full glass-card py-5 rounded-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-white hover:bg-primary group overflow-hidden relative"
+                            className="w-full glass glow-primary-sm py-6 rounded-[32px] flex items-center justify-center gap-5 transition-all active:scale-[0.96] disabled:opacity-50 text-[11px] font-mono font-bold uppercase tracking-[0.4em] text-white hover:bg-primary/20 border border-primary/20 shadow-2xl group/btn overflow-hidden relative italic"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary-light opacity-0 group-hover:opacity-10 transition-opacity" />
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-magenta opacity-0 group-hover/btn:opacity-10 transition-opacity" />
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : (
                                 <>
-                                    Authorize Access
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    Autorizar Acesso
+                                    <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform text-primary" />
                                 </>
                             )}
                         </button>
@@ -150,13 +152,13 @@ export default function LigadorLoginPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-center gap-4 opacity-50 animate-in fade-in duration-1000 stagger-3">
-                    <div className="w-8 h-px bg-white/5" />
-                    <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
-                        <span className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-widest">Secure Terminal</span>
+                <div className="flex items-center justify-center gap-6 opacity-40 animate-in fade-in duration-1000 stagger-3 pb-4">
+                    <div className="w-12 h-px bg-white/10" />
+                    <div className="flex items-center gap-3">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <span className="text-[10px] text-zinc-600 font-mono font-bold uppercase tracking-[0.4em] italic leading-none">Terminal Seguro</span>
                     </div>
-                    <div className="w-8 h-px bg-white/5" />
+                    <div className="w-12 h-px bg-white/10" />
                 </div>
             </div>
         </PulseBeams>

@@ -208,65 +208,68 @@ export default function LigadoresPage() {
     }
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="space-y-16 animate-in fade-in duration-1000 selection:bg-primary/20 p-8 md:p-12">
             {/* Header */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8">
-                <div className="space-y-3">
-                    <div className="flex items-center gap-5">
-                        <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl">
-                            <Users className="w-8 h-8 text-primary" />
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10 stagger-1">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-[28px] glass glow-primary border border-primary/30 flex items-center justify-center shadow-2xl rotate-3 hover:rotate-0 transition-transform group">
+                            <Users className="w-9 h-9 text-primary group-hover:text-magenta transition-colors" />
                         </div>
-                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Painel dos Ligadores</h2>
+                        <h2 className="text-5xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Elite de Operadores</h2>
                     </div>
-                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
-                        <BarChart3 className="w-4 h-4 text-primary" />
-                        Monitoramento em tempo real das operações
+                    <p className="text-zinc-500 font-bold text-lg italic flex items-center gap-4">
+                        <BarChart3 className="w-5 h-5 text-emerald-400 animate-pulse" />
+                        <span className="font-mono text-[11px] tracking-[0.4em] uppercase opacity-70">Monitoramento Biométrico e Performance Operacional Axon</span>
                     </p>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+                <div className="flex flex-col md:flex-row items-center gap-5 w-full xl:w-auto">
                     <button
                         onClick={() => fetchLigadores()}
-                        className="p-4 rounded-2xl bg-secondary border border-white/5 hover:border-primary/20 hover:text-primary transition-all active:scale-95"
+                        className="w-16 h-16 shrink-0 rounded-[28px] glass border border-white/5 hover:border-primary/40 hover:text-primary transition-all active:scale-95 flex items-center justify-center shadow-xl group"
                     >
-                        <RefreshCcw className={cn("w-5 h-5", loading && "animate-spin")} />
+                        <RefreshCcw className={cn("w-6 h-6 transition-transform group-hover:rotate-180 duration-1000", loading && "animate-spin")} />
                     </button>
-                    <div className="relative flex-1 md:w-72 group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-colors" />
+                    <div className="relative flex-1 md:w-96 group">
+                        <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-primary transition-all" />
                         <input
                             type="text"
-                            placeholder="Buscar ligador..."
+                            placeholder="Buscar Identidade Terminal..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-secondary/30 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-medium outline-none focus:ring-1 focus:ring-primary/20 transition-all"
+                            className="w-full bg-[#0d0118]/40 border border-white/10 rounded-[32px] py-5.5 pl-16 pr-8 text-[11px] font-mono font-bold uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-zinc-700 italic"
                         />
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-primary text-white font-bold text-sm shadow-[0_12px_40px_rgba(138,5,190,0.3)] hover:scale-[1.03] transition-all active:scale-95"
+                        className="w-full md:w-auto h-16 px-12 rounded-[32px] bg-primary text-white font-display text-lg italic uppercase tracking-tighter shadow-[0_16px_40px_rgba(151,1,254,0.3)] hover:bg-magenta hover:scale-[1.03] transition-all active:scale-95 flex items-center justify-center gap-4 border border-primary/20"
                     >
-                        <Plus className="w-5 h-5" />
-                        Novo Ligador
+                        <Plus className="w-6 h-6" />
+                        Novo Operador
                     </button>
                 </div>
             </div>
 
             {/* Overview Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 stagger-2">
                 {[
-                    { label: 'Total Ligadores', value: ligadores.filter(l => l.role === 'ligador').length, icon: Users, color: 'text-primary', bg: 'bg-primary/5 border-primary/10' },
-                    { label: 'Fichas Ativas', value: totalPendentes, icon: Target, color: 'text-amber-400', bg: 'bg-amber-500/5 border-amber-500/10' },
-                    { label: 'Sucessos $', value: totalSucessos, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/5 border-emerald-500/10' },
-                    { label: 'Falhas/Recusas', value: totalFalhas, icon: X, color: 'text-rose-400', bg: 'bg-rose-500/5 border-rose-500/10' }
+                    { label: 'Unidade de Operação', value: ligadores.filter(l => l.role === 'ligador').length, icon: Users, color: 'text-primary', glow: 'glow-primary' },
+                    { label: 'Fichas em Sinc', value: totalPendentes, icon: Target, color: 'text-amber-400', glow: 'glow-gold' },
+                    { label: 'Capital Captado', value: totalSucessos, icon: CheckCircle2, color: 'text-emerald-400', glow: 'glow-emerald' },
+                    { label: 'Protocolos Falhos', value: totalFalhas, icon: X, color: 'text-rose-400', glow: 'glow-magenta' }
                 ].map((stat, i) => (
-                    <div key={i} className={cn("glass p-6 xl:p-8 rounded-[32px] border flex flex-col gap-4 hover:scale-[1.02] transition-all", stat.bg)}>
-                        <div className="flex items-center justify-between">
-                            <stat.icon className={cn("w-6 h-6", stat.color)} />
-                            <ArrowUpRight className="w-4 h-4 text-zinc-700" />
+                    <div key={i} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] p-10 rounded-[48px] border border-white/5 flex flex-col gap-6 hover:bg-white/[0.02] transition-all group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
+                        <div className="flex items-center justify-between relative z-10">
+                            <div className={cn("w-14 h-14 rounded-2xl glass flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 duration-500", stat.glow)}>
+                                <stat.icon className={cn("w-7 h-7", stat.color)} />
+                            </div>
+                            <ArrowUpRight className="w-5 h-5 text-zinc-800" />
                         </div>
-                        <div>
-                            <p className="text-3xl xl:text-4xl font-black italic tracking-tighter leading-none">{stat.value}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 mt-2">{stat.label}</p>
+                        <div className="relative z-10">
+                            <h4 className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] mb-2 leading-none italic">{stat.label}</h4>
+                            <p className="text-5xl font-display italic tracking-tighter leading-none text-white">{stat.value}</p>
                         </div>
                     </div>
                 ))}
@@ -274,102 +277,106 @@ export default function LigadoresPage() {
 
             {/* Ligadores Grid */}
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-32 space-y-6">
+                <div className="flex flex-col items-center justify-center py-40 space-y-12 stagger-4">
                     <div className="relative">
-                        <Loader2 className="w-14 h-14 text-primary animate-spin" />
-                        <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                        <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+                        <Loader2 className="w-20 h-20 text-primary animate-spin relative z-10" />
                     </div>
-                    <p className="text-sm font-bold text-primary animate-pulse">Carregando dados...</p>
+                    <p className="text-[12px] font-mono font-bold uppercase tracking-[0.6em] text-primary animate-pulse italic">Sincronizando Terminal de Operadores...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-10 stagger-4">
                     {filteredLigadores.length === 0 ? (
-                        <div className="lg:col-span-2 xl:col-span-3 glass border-dashed border-white/5 p-24 rounded-[48px] flex flex-col items-center justify-center text-center space-y-6">
-                            <div className="w-24 h-24 bg-secondary/30 rounded-[32px] border-2 border-dashed border-white/5 flex items-center justify-center text-zinc-700">
-                                <Users className="w-12 h-12" />
+                        <div className="lg:col-span-2 xl:col-span-3 glass shadow-[0_64px_150px_rgba(0,0,0,0.5)] border-dashed border-white/10 p-32 flex flex-col items-center justify-center text-center space-y-10 rounded-[64px] animate-in fade-in zoom-in duration-1000">
+                            <div className="w-40 h-40 bg-zinc-900/40 rounded-[56px] flex items-center justify-center border-2 border-dashed border-white/5 group relative overflow-hidden">
+                                <Users className="w-20 h-20 group-hover:text-primary transition-all duration-500 text-zinc-800 relative z-10 group-hover:scale-110" />
                             </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Nenhum Ligador</h3>
-                                <p className="text-zinc-500 max-w-sm mx-auto font-medium">Clique em "Novo Ligador" para cadastrar.</p>
+                            <div className="space-y-4">
+                                <h3 className="text-5xl font-display uppercase italic tracking-tight text-white leading-none">Unidade Vazia</h3>
+                                <p className="text-zinc-600 font-mono text-[11px] font-bold uppercase tracking-[0.4em] max-w-sm mx-auto leading-relaxed italic">Nenhum operador registrado no terminal.</p>
                             </div>
                         </div>
                     ) : (
                         filteredLigadores.map((ligador) => (
-                            <div key={ligador.id} className="glass rounded-[36px] xl:rounded-[48px] overflow-hidden group hover:border-primary/30 transition-all border-white/5">
+                            <div key={ligador.id} className="glass shadow-[0_32px_80px_rgba(0,0,0,0.4)] p-12 flex flex-col space-y-12 group relative overflow-hidden rounded-[56px] border border-white/5 transition-all hover:bg-white/[0.02]">
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 blur-[100px] rounded-full group-hover:bg-primary/20 transition-all duration-1000 pointer-events-none" />
+                                
                                 {/* Card Header */}
-                                <div className="p-6 xl:p-8 pb-0 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-secondary border border-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/20 transition-all">
-                                            <UserCircle2 className="w-7 h-7 text-zinc-500 group-hover:text-primary transition-colors" />
+                                <div className="flex items-center justify-between relative z-10">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-20 h-20 rounded-[32px] glass glow-primary border border-primary/20 flex items-center justify-center shadow-2xl group-hover:rotate-6 transition-transform">
+                                            <UserCircle2 className="w-10 h-10 text-primary" />
                                         </div>
                                         <div>
-                                            <h4 className="text-lg xl:text-xl font-black uppercase italic tracking-tight truncate leading-none group-hover:text-primary transition-colors">
+                                            <h4 className="text-2xl font-display tracking-tight text-white group-hover:text-primary transition-colors leading-none uppercase italic">
                                                 {ligador.full_name || 'SEM NOME'}
                                             </h4>
-                                            <p className="text-xs text-primary/60 font-mono mt-1">@{ligador.username}</p>
+                                            <p className="text-[11px] font-mono font-bold text-primary/60 uppercase tracking-[0.2em] mt-2 italic">@{ligador.username}</p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                    <div className="flex gap-3 relative z-20">
                                         <button
                                             onClick={() => handleDelete(ligador.id)}
-                                            className="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:text-red-400 hover:border-red-500/20 transition-all"
+                                            className="w-12 h-12 rounded-[18px] glass border border-white/10 flex items-center justify-center hover:bg-rose-500/20 hover:text-rose-400 hover:border-rose-500/40 transition-all active:scale-90"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="p-6 xl:p-8 grid grid-cols-2 gap-4">
-                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
-                                        <p className="text-3xl font-black italic leading-none text-amber-500 mb-2">{ligador.total_pendentes}</p>
-                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
-                                            <Clock className="w-3 h-3 text-amber-500" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Pendentes</p>
+                                <div className="grid grid-cols-2 gap-8 relative z-10">
+                                    <div className="glass-deep p-8 rounded-[40px] border border-white/5 flex flex-col items-center justify-center space-y-4 group/stat hover:bg-white/[0.04] transition-colors shadow-xl">
+                                        <p className="text-5xl font-display italic leading-none text-amber-500 glow-gold-sm">{ligador.total_pendentes}</p>
+                                        <div className="flex items-center gap-3 opacity-60">
+                                            <Clock className="w-4 h-4 text-amber-500" />
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-zinc-500 italic">Pendentes</p>
                                         </div>
                                     </div>
-                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
-                                        <p className="text-3xl font-black italic leading-none text-emerald-500 mb-2">{ligador.total_sucessos}</p>
-                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
-                                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Sucessos</p>
+                                    <div className="glass-deep p-8 rounded-[40px] border border-white/5 flex flex-col items-center justify-center space-y-4 group/stat hover:bg-white/[0.04] transition-colors shadow-xl">
+                                        <p className="text-5xl font-display italic leading-none text-emerald-500 glow-emerald-sm">{ligador.total_sucessos}</p>
+                                        <div className="flex items-center gap-3 opacity-60">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-zinc-500 italic">Sucessos</p>
                                         </div>
                                     </div>
-                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
-                                        <p className="text-3xl font-black italic leading-none text-rose-500 mb-2">{ligador.total_falhas}</p>
-                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
-                                            <X className="w-3 h-3 text-rose-500" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Falhas</p>
+                                    <div className="glass-deep p-8 rounded-[40px] border border-white/5 flex flex-col items-center justify-center space-y-4 group/stat hover:bg-white/[0.04] transition-colors shadow-xl">
+                                        <p className="text-5xl font-display italic leading-none text-rose-500 glow-magenta-sm">{ligador.total_falhas}</p>
+                                        <div className="flex items-center gap-3 opacity-60">
+                                            <X className="w-4 h-4 text-rose-500" />
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.4em] text-zinc-500 italic">Falhas</p>
                                         </div>
                                     </div>
-                                    <div className="bg-black/30 rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 group/stat">
-                                        <p className="text-3xl font-black italic leading-none text-zinc-400 mb-2">{ligador.total_atribuidas}</p>
-                                        <div className="flex items-center gap-1.5 opacity-40 group-hover/stat:opacity-100 transition-opacity">
-                                            <Target className="w-3 h-3 text-zinc-400" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total</p>
+                                    <div className="glass-deep p-8 rounded-[40px] border border-white/5 flex flex-col items-center justify-center space-y-4 group/stat hover:bg-white/[0.04] transition-colors shadow-xl">
+                                        <p className="text-5xl font-display italic leading-none text-zinc-400">{ligador.total_atribuidas}</p>
+                                        <div className="flex items-center gap-3 opacity-60">
+                                            <Target className="w-4 h-4 text-zinc-400" />
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-zinc-500 italic">Total</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Progress Bar + Rate */}
-                                <div className="px-6 xl:px-8 pb-6 xl:pb-8 space-y-3">
+                                <div className="space-y-6 relative z-10 border-t border-white/5 pt-10">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            {getRankIcon(ligador.taxa_sucesso)}
-                                            <span className={cn("text-xs font-black italic", getRankColor(ligador.taxa_sucesso))}>
-                                                {ligador.taxa_sucesso >= 80 ? 'Excelente' :
-                                                    ligador.taxa_sucesso >= 50 ? 'Bom' :
-                                                        ligador.taxa_sucesso >= 20 ? 'Regular' : 'Iniciante'}
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-2xl glass flex items-center justify-center border border-white/5">
+                                                {getRankIcon(ligador.taxa_sucesso)}
+                                            </div>
+                                            <span className={cn("text-[11px] font-mono font-bold uppercase tracking-[0.3em] italic", getRankColor(ligador.taxa_sucesso))}>
+                                                {ligador.taxa_sucesso >= 80 ? 'Protocolo Elite' :
+                                                    ligador.taxa_sucesso >= 50 ? 'Performance Alta' :
+                                                        ligador.taxa_sucesso >= 20 ? 'Operação Ativa' : 'Iniciação'}
                                             </span>
                                         </div>
-                                        <span className={cn("text-lg font-black italic", getRankColor(ligador.taxa_sucesso))}>
+                                        <span className={cn("text-4xl font-display italic glow-primary-sm", getRankColor(ligador.taxa_sucesso))}>
                                             {ligador.taxa_sucesso}%
                                         </span>
                                     </div>
-                                    <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                                    <div className="h-2.5 bg-[#05010a] rounded-full overflow-hidden border border-white/10 p-0.5 ring-4 ring-white/[0.02]">
                                         <div
                                             className={cn(
-                                                "h-full rounded-full transition-all duration-1000",
+                                                "h-full rounded-full transition-all duration-1000 shadow-glow-primary",
                                                 ligador.taxa_sucesso >= 80 ? "bg-gradient-to-r from-orange-500 to-orange-400" :
                                                     ligador.taxa_sucesso >= 50 ? "bg-gradient-to-r from-amber-500 to-amber-400" :
                                                         ligador.taxa_sucesso >= 20 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" :
@@ -378,17 +385,17 @@ export default function LigadoresPage() {
                                             style={{ width: `${Math.max(ligador.taxa_sucesso, 2)}%` }}
                                         />
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-medium">
-                                        <Clock className="w-3 h-3" />
-                                        <span>Cadastrado em {new Date(ligador.created_at).toLocaleDateString('pt-BR')}</span>
+                                    <div className="flex items-center gap-3 text-[10px] text-zinc-700 font-mono font-bold uppercase tracking-widest italic pt-2">
+                                        <Clock className="w-4 h-4 text-zinc-800" />
+                                        <span>Terminal Ativado em {new Date(ligador.created_at).toLocaleDateString('pt-BR')}</span>
                                     </div>
                                 </div>
 
                                 {/* Role Badge */}
                                 {ligador.role === 'admin' && (
-                                    <div className="px-6 xl:px-8 pb-6 xl:pb-8 pt-0">
-                                        <span className="px-4 py-1.5 bg-amber-500/10 border border-amber-500/15 rounded-full text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                                            Administrador
+                                    <div className="absolute bottom-6 right-10">
+                                        <span className="px-6 py-2 bg-primary/10 border border-primary/30 rounded-full text-[9px] font-mono font-bold uppercase tracking-[0.4em] text-primary shadow-glow-sm italic">
+                                            Root Admin
                                         </span>
                                     </div>
                                 )}
@@ -400,63 +407,65 @@ export default function LigadoresPage() {
 
             {/* Modal - Novo Ligador */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-background/95 backdrop-blur-3xl animate-in fade-in duration-300">
-                    <div className="glass w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border-white/10">
-                        <div className="px-8 py-8 border-b border-white/5 flex justify-between items-center bg-secondary/20">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                                    <User className="w-6 h-6 text-primary" />
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-8 bg-[#05010a]/95 backdrop-blur-3xl animate-in fade-in duration-500">
+                    <div className="glass shadow-[0_64px_150px_rgba(0,0,0,0.8)] w-full max-w-2xl rounded-[64px] overflow-hidden border border-white/10 animate-in zoom-in-95 duration-500 relative group">
+                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        
+                        <div className="px-12 py-12 border-b border-white/5 flex justify-between items-center bg-[#0d0118]/40 relative z-10">
+                            <div className="flex items-center gap-8">
+                                <div className="w-20 h-20 rounded-[32px] glass glow-primary flex items-center justify-center border border-primary/20 rotate-6 group-hover:rotate-0 transition-transform">
+                                    <User className="w-10 h-10 text-primary" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Novo Ligador</h3>
-                                    <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest mt-1">Cadastro de operador</p>
+                                    <h3 className="text-4xl font-display uppercase italic tracking-tight text-white leading-none">Novo Operador</h3>
+                                    <p className="text-[11px] font-mono font-bold text-zinc-500 uppercase tracking-[0.4em] mt-3 italic">Mapeamento de Identidade Terminal</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="w-10 h-10 rounded-xl bg-secondary hover:bg-red-500/10 hover:text-red-400 transition-all flex items-center justify-center"
+                                className="w-16 h-16 rounded-[28px] glass border border-white/10 hover:bg-rose-500/20 hover:text-rose-400 transition-all flex items-center justify-center active:scale-90"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-7 h-7" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-8 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 ml-1">Nome Completo</label>
+                        <form onSubmit={handleSave} className="p-12 space-y-10 relative z-10">
+                            <div className="space-y-4">
+                                <label className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic ml-2">Nome Completo do Ativo</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.full_name}
                                     onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))}
-                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:ring-1 focus:ring-primary/20 transition-all uppercase"
-                                    placeholder="Ex: João Silva"
+                                    className="w-full glass-deep border border-white/10 rounded-[40px] py-8 px-10 text-lg font-display uppercase italic tracking-tight outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all text-white shadow-2xl"
+                                    placeholder="EX: GABRIEL HENRIQUE"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-zinc-500 ml-1">Usuário (Login)</label>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic ml-2">Identidade (Login)</label>
                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">@</span>
+                                        <span className="absolute left-10 top-1/2 -translate-y-1/2 text-primary font-mono font-bold text-lg">@</span>
                                         <input
                                             type="text"
                                             required
                                             value={formData.username}
                                             onChange={e => setFormData(p => ({ ...p, username: e.target.value.toLowerCase() }))}
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-9 pr-4 text-sm font-bold outline-none focus:ring-1 focus:ring-primary/20 transition-all"
-                                            placeholder="joao01"
+                                            className="w-full glass-deep border border-white/10 rounded-[32px] py-7 pl-16 pr-8 text-[12px] font-mono font-bold outline-none focus:border-primary/40 transition-all text-white placeholder:text-zinc-800"
+                                            placeholder="operador.alpha"
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-zinc-500 ml-1">Senha</label>
+                                <div className="space-y-4">
+                                    <label className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic ml-2">Chave de Acesso</label>
                                     <div className="relative">
-                                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                                        <Key className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-800" />
                                         <input
                                             type="password"
                                             required
                                             value={formData.password}
                                             onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-11 pr-4 text-sm font-bold outline-none focus:ring-1 focus:ring-primary/20 transition-all"
+                                            className="w-full glass-deep border border-white/10 rounded-[32px] py-7 pl-18 pr-8 text-[12px] font-mono font-bold outline-none focus:border-primary/40 transition-all text-white placeholder:text-zinc-800"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -466,10 +475,10 @@ export default function LigadoresPage() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full bg-primary py-5 rounded-2xl font-black uppercase text-white shadow-[0_12px_40px_rgba(138,5,190,0.3)] flex items-center justify-center gap-3 active:scale-95 transition-all text-sm"
+                                className="w-full h-24 bg-primary text-white rounded-[40px] font-display text-2xl italic uppercase tracking-tighter shadow-[0_24px_60px_rgba(151,1,254,0.4)] flex items-center justify-center gap-6 active:scale-[0.96] transition-all border border-primary/20 group/btn mt-10"
                             >
-                                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5 fill-white" />}
-                                {saving ? 'Criando...' : 'Criar Ligador'}
+                                {saving ? <Loader2 className="w-10 h-10 animate-spin" /> : <Zap className="w-10 h-10 text-white fill-white group-hover:rotate-12 transition-transform" />}
+                                <span>{saving ? 'Codificando Operador...' : 'Ativar Operador'}</span>
                             </button>
                         </form>
                     </div>

@@ -49,7 +49,9 @@ export default function FichasPage() {
     const [filters, setFilters] = useState({
         income: '',
         score: '',
-        age: ''
+        age: '',
+        sortBy: 'score',
+        sortOrder: 'desc' as 'asc' | 'desc'
     })
 
     const ITEMS_PER_PAGE = 50
@@ -72,7 +74,7 @@ export default function FichasPage() {
             .from('leads')
             .select('*', { count: 'exact' })
             .eq('status', 'concluido')
-            .order('score', { ascending: false })
+            .order(filters.sortBy || 'score', { ascending: filters.sortOrder === 'asc' })
             .order('created_at', { ascending: false })
             .range(start, end)
 
@@ -159,179 +161,233 @@ export default function FichasPage() {
     }
 
     return (
-        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 selection:bg-primary/20">
+        <div className="space-y-16 animate-in fade-in duration-1000 selection:bg-primary/20 p-8 md:p-12">
             {/* Header Section */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 rounded-[28px] bg-primary/10 border border-primary/20 shadow-2xl scale-110">
-                            <Activity className="w-8 h-8 text-primary shadow-glow" />
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-12 stagger-1">
+                <div className="space-y-5">
+                    <div className="flex items-center gap-8">
+                        <div className="w-16 h-16 rounded-[28px] glass glow-primary border border-primary/30 group rotate-3 hover:rotate-0 transition-transform flex items-center justify-center">
+                            <Activity className="w-9 h-9 text-primary group-hover:text-magenta transition-colors" />
                         </div>
-                        <h2 className="text-2xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">Central de Fichas</h2>
+                        <h2 className="text-5xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Central de Fichas</h2>
                     </div>
-                    <p className="text-muted-foreground font-medium italic opacity-60 text-lg flex items-center gap-3">
-                        <Smartphone className="w-4 h-4 text-emerald-500" />
-                        Fichas validadas prontas para atribuição aos ligadores
+                    <p className="text-zinc-500 font-bold text-lg flex items-center gap-4 italic">
+                        <Smartphone className="w-5 h-5 text-emerald-400 animate-pulse" />
+                        <span className="font-mono text-[11px] tracking-[0.4em] uppercase opacity-70">Sincronização Direta de Fichas Validadas</span>
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-5 items-center">
                     <Link
                         href="/admin/unassign"
-                        className="flex items-center gap-3 px-8 py-4 rounded-[24px] bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 hover:text-white transition-all active:scale-95 shadow-2xl italic"
+                        className="flex items-center gap-4 px-10 py-5 rounded-[32px] glass glow-gold border border-gold/20 text-gold text-[10px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-gold hover:text-white transition-all active:scale-95 shadow-xl"
                     >
                         <Unlock className="w-5 h-5" />
                         Desatribuir Fichas
                     </Link>
-                    <div className="flex items-center gap-4 bg-secondary/30 border border-white/5 px-8 py-4 rounded-[24px] shadow-2xl group">
-                        <Database className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-                        <div>
-                            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] leading-none mb-1 shadow-glow-sm">Disponíveis</p>
-                            <p className="text-2xl font-black italic text-white tracking-tighter">{totalCount} FICHAS</p>
+                    <div className="flex items-center gap-8 glass-card border border-primary/20 px-10 py-6 rounded-[48px] shadow-[0_32px_100px_rgba(0,0,0,0.5)] group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] rounded-full group-hover:bg-primary/20 transition-colors" />
+                        <div className="w-14 h-14 rounded-2xl glass glow-primary flex items-center justify-center relative z-10">
+                            <Database className="w-7 h-7 text-primary" />
+                        </div>
+                        <div className="relative z-10">
+                            <p className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] leading-none mb-3 italic">Estoque Terminal</p>
+                            <p className="text-4xl font-display italic text-white tracking-tighter leading-none glow-primary-sm">{totalCount} FICHAS</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Filter & Batch Bar */}
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 glass p-6 rounded-[48px] border-white/5 backdrop-blur-3xl shadow-xl">
-                    {[
-                        { label: 'Renda', key: 'income', options: [{ v: 'greater', l: 'Acima de 5k' }, { v: 'less', l: 'Abaixo de 5k' }] },
-                        { label: 'Score', key: 'score', options: [{ v: 'greater', l: 'Acima de 700' }, { v: 'less', l: 'Abaixo de 700' }] },
-                        { label: 'Idade', key: 'age', options: [{ v: 'greater', l: '40+ anos' }, { v: 'less', l: 'Menos de 40' }] }
-                    ].map((f) => (
-                        <div key={f.key} className="relative group">
-                            <Filter className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary transition-all duration-300" />
-                            <select
-                                value={(filters as any)[f.key]}
-                                onChange={(e) => setFilters(p => ({ ...p, [f.key]: e.target.value }))}
-                                className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/40 transition-all appearance-none cursor-pointer text-zinc-400 group-hover:text-white"
-                            >
-                                <option value="">{f.label} (Filtro)</option>
-                                {f.options.map(o => <option key={o.v} value={o.v} className="bg-[#0c0c0e]">{o.l}</option>)}
-                            </select>
+            <div className="flex flex-col xl:flex-row gap-10 items-stretch stagger-2">
+                {/* Batch Actions */}
+                <div className="xl:flex-1">
+                    <div className="glass shadow-[0_32px_100px_rgba(0,0,0,0.5)] border border-primary/20 p-10 rounded-[48px] bg-[#0d0118]/40 h-full flex flex-col justify-center group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-magenta/5 blur-[80px] rounded-full group-hover:bg-magenta/10 transition-colors pointer-events-none" />
+                        <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
+                            <div className="w-16 h-16 rounded-[28px] glass glow-magenta flex items-center justify-center shrink-0 shadow-2xl group-hover:rotate-12 transition-transform">
+                                <Layers className="w-9 h-9 text-magenta" />
+                            </div>
+                            <div className="flex-1 space-y-3">
+                                <p className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.5em] italic leading-none">Distribuição de Elite</p>
+                                <p className="text-2xl font-display text-white italic tracking-tight">Atribuir Lote de <span className="text-magenta glow-magenta-sm">10 PROTOCOLOS</span></p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-5 w-full sm:w-auto">
+                                <select
+                                    value={selectedLigadorBatch}
+                                    onChange={(e) => setSelectedLigadorBatch(e.target.value)}
+                                    className="flex-1 sm:w-72 glass-deep border border-white/10 rounded-[32px] h-20 px-10 text-[11px] font-mono font-bold uppercase tracking-widest outline-none focus:border-primary/40 cursor-pointer italic shadow-2xl appearance-none"
+                                >
+                                    <option value="" className="bg-[#0d0118]">ESCOLHER OPERADOR...</option>
+                                    {ligadores.map(l => (
+                                        <option key={l.id} value={l.id} className="bg-[#0d0118] uppercase">👤 {l.full_name}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    onClick={handleBatchAssign}
+                                    disabled={batchAssigning || !selectedLigadorBatch}
+                                    className="h-20 px-12 rounded-[32px] glass-deep glow-primary border border-primary/30 text-white text-[11px] font-mono font-bold uppercase tracking-[0.2em] hover:bg-primary/20 disabled:opacity-20 transition-all active:scale-95 italic shadow-[0_16px_40px_rgba(151,1,254,0.2)] group/btn"
+                                >
+                                    {batchAssigning ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                                        <span className="flex items-center gap-4">
+                                            AUTORIZAR CARGA
+                                            <Zap className="w-5 h-5 text-primary fill-primary group-hover/btn:scale-125 transition-transform" />
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
 
-                <div className="glass bg-primary/5 border border-primary/20 p-6 rounded-[48px] flex items-center gap-4 group">
-                    <div className="relative flex-1 group/select">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary group-hover/select:scale-110 transition-transform" />
-                        <select
-                            value={selectedLigadorBatch}
-                            onChange={(e) => setSelectedLigadorBatch(e.target.value)}
-                            className="w-full bg-black/40 border border-primary/20 rounded-[20px] py-4 pl-10 pr-4 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:ring-1 focus:ring-primary/40 transition-all appearance-none cursor-pointer text-primary shadow-glow-sm"
-                        >
-                            <option value="" className="bg-[#0c0c0e] text-zinc-500">Selecionar Ligador...</option>
-                            {ligadores.map(lig => (
-                                <option key={lig.id} value={lig.id} className="bg-[#0c0c0e]">{lig.full_name}</option>
-                            ))}
-                        </select>
+                {/* Filters & Sorting */}
+                <div className="xl:w-[450px] flex flex-col gap-6">
+                    <div className="glass shadow-[0_32px_100px_rgba(0,0,0,0.5)] border border-primary/20 p-8 rounded-[40px] bg-primary/5 flex flex-col justify-center">
+                        <div className="flex items-center gap-6 mb-6">
+                            <Filter className="w-6 h-6 text-primary" />
+                            <p className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] italic leading-none">Ordenação de Carga</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <select
+                                value={filters.sortBy}
+                                onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                                className="w-full glass-deep border border-white/10 rounded-[24px] h-16 px-6 text-[10px] font-mono font-bold uppercase outline-none focus:border-primary/40 cursor-pointer italic text-white"
+                            >
+                                <option value="score" className="bg-[#0d0118]">🎯 Por Score</option>
+                                <option value="income" className="bg-[#0d0118]">💰 Por Renda</option>
+                                <option value="age" className="bg-[#0d0118]">👤 Por Idade</option>
+                            </select>
+                            <select
+                                value={filters.sortOrder}
+                                onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value as 'asc' | 'desc' }))}
+                                className="w-full glass-deep border border-primary/20 rounded-[24px] h-16 px-6 text-[10px] font-mono font-bold uppercase outline-none focus:border-primary/40 cursor-pointer italic text-primary-light glow-primary-sm"
+                            >
+                                <option value="desc" className="bg-[#0d0118]">MAIOR → MENOR</option>
+                                <option value="asc" className="bg-[#0d0118]">MENOR → MAIOR</option>
+                            </select>
+                        </div>
                     </div>
-                    <button
-                        onClick={handleBatchAssign}
-                        disabled={batchAssigning || loading || leads.length === 0}
-                        className="bg-primary text-white p-5 rounded-[20px] hover:scale-105 active:scale-95 transition-all shadow-glow flex items-center gap-3 px-6 border-b-4 border-black/20"
-                    >
-                        {batchAssigning ? <Loader2 className="w-5 h-5 animate-spin" /> : <Layers className="w-6 h-6" />}
-                        <span className="text-[10px] font-black uppercase tracking-tighter">10 SIG</span>
-                    </button>
+
+                    <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar items-center">
+                        {[
+                            { label: 'RENDA', key: 'income', options: [{ v: 'greater', l: 'ALTA (>5K)' }, { v: 'less', l: 'MÉDIA (<5K)' }] },
+                            { label: 'SCORE', key: 'score', options: [{ v: 'greater', l: 'ALTO (>700)' }, { v: 'less', l: 'BAIXO (<700)' }] }
+                        ].map((f) => (
+                            <div key={f.key} className="flex items-center gap-5 glass-deep border border-white/10 h-16 px-8 rounded-[32px] shrink-0 shadow-xl">
+                                <span className="text-[9px] font-mono font-bold uppercase text-zinc-600 tracking-widest italic">{f.label}:</span>
+                                <select
+                                    value={(filters as any)[f.key]}
+                                    onChange={(e) => setFilters(prev => ({ ...prev, [f.key]: e.target.value }))}
+                                    className="bg-transparent text-[10px] font-mono font-bold uppercase outline-none cursor-pointer text-white min-w-[120px] italic"
+                                >
+                                    <option value="" className="bg-[#0d0118]">TODOS</option>
+                                    {f.options.map(opt => (
+                                        <option key={opt.v} value={opt.v} className="bg-[#0d0118]">{opt.l}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* Main Content Grid */}
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-40 space-y-6">
+                <div className="flex flex-col items-center justify-center py-40 space-y-12 stagger-4">
                     <div className="relative">
-                        <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                        <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                        <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+                        <Loader2 className="w-20 h-20 text-primary animate-spin relative z-10" />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse italic">Carregando fichas...</p>
+                    <p className="text-[12px] font-mono font-bold uppercase tracking-[0.6em] text-primary animate-pulse italic">Sincronizando Terminal de Fichas...</p>
                 </div>
             ) : leads.length === 0 ? (
-                <div className="glass border-dashed border-white/5 rounded-[64px] p-32 flex flex-col items-center justify-center text-center space-y-8 shadow-2xl animate-in zoom-in-95 duration-700">
-                    <div className="w-28 h-28 bg-secondary/30 rounded-[40px] flex items-center justify-center text-zinc-800 border-2 border-dashed border-white/10 group">
-                        <PhoneCall className="w-14 h-14 group-hover:text-primary transition-colors" />
+                <div className="glass shadow-[0_64px_150px_rgba(0,0,0,0.5)] border-dashed border-white/10 p-32 flex flex-col items-center justify-center text-center space-y-10 stagger-4 rounded-[64px] animate-in fade-in zoom-in duration-1000">
+                    <div className="w-40 h-40 bg-zinc-900/40 rounded-[56px] flex items-center justify-center border-2 border-dashed border-white/5 group relative overflow-hidden">
+                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <PhoneCall className="w-20 h-20 group-hover:text-primary transition-all duration-500 text-zinc-800 relative z-10 group-hover:scale-110" />
                     </div>
-                    <div className="space-y-3">
-                        <h3 className="text-3xl font-black uppercase italic tracking-tighter">Fila Vazia</h3>
-                        <p className="text-zinc-500 max-w-sm mx-auto italic font-medium">Nenhuma ficha disponível para atribuição. Enriqueça ou importe novos leads.</p>
+                    <div className="space-y-4">
+                        <h3 className="text-5xl font-display uppercase italic tracking-tight text-white leading-none">Terminal em Standby</h3>
+                        <p className="text-zinc-600 font-mono text-[11px] font-bold uppercase tracking-[0.4em] max-w-sm mx-auto leading-relaxed italic">Nenhum registro validado disponível para atribuição imediata.</p>
                     </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {leads.map((lead) => (
-                        <div key={lead.id} className="glass rounded-[56px] p-10 flex flex-col space-y-8 hover:border-primary/40 transition-all group card-hover border-white/5 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 stagger-4">
+                    {leads.map((lead, idx) => (
+                        <div key={lead.id} className={cn(
+                            "glass shadow-[0_32px_80px_rgba(0,0,0,0.4)] p-12 flex flex-col space-y-12 group relative overflow-hidden rounded-[56px] border border-white/5 transition-all hover:bg-white/[0.02]",
+                            `stagger-${(idx % 5) + 1} animate-in fade-in slide-in-from-bottom-6`
+                        )}>
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 blur-[100px] rounded-full group-hover:bg-primary/20 transition-all duration-1000 pointer-events-none" />
 
                             <div className="flex items-center justify-between relative z-10">
-                                <div className="w-18 h-18 rounded-[28px] bg-primary/10 border border-primary/20 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500">
-                                    <UserCheck className="w-9 h-9 text-primary shadow-glow" />
+                                <div className="w-24 h-24 rounded-[40px] glass glow-primary flex items-center justify-center shadow-2xl group-hover:rotate-6 transition-transform border border-primary/20">
+                                    <UserCheck className="w-12 h-12 text-primary" />
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.3em] bg-emerald-500/5 px-6 py-2.5 rounded-full border border-emerald-500/10 mb-3 italic emerald-glow">Pronta</p>
-                                    <div className="flex items-center gap-2 justify-end text-zinc-600">
-                                        <MapPin className="w-3.5 h-3.5" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest italic">{lead.city || 'GLOBAL'}, {lead.state || 'UF'}</span>
+                                <div className="text-right space-y-3">
+                                    <div className="flex items-center gap-3 justify-end text-emerald-400">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse border-4 border-emerald-500/20 shadow-glow-emerald" />
+                                        <p className="text-[11px] font-mono font-bold uppercase tracking-[0.4em] px-6 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 italic">Validated</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 justify-end text-zinc-600 font-mono text-[9px] font-bold uppercase tracking-[0.3em] italic">
+                                        <MapPin className="w-4 h-4 text-zinc-700" />
+                                        <span>{lead.city || 'Brazil'}, {lead.state || 'UF'}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="relative z-10 space-y-2">
-                                <h4 className="text-3xl font-black uppercase italic tracking-tighter truncate group-hover:text-primary transition-colors leading-none decoration-primary/20 underline underline-offset-8">
-                                    {lead.full_name || 'SEM NOME'}
+                            <div className="relative z-10 space-y-4">
+                                <h4 className="text-4xl font-display tracking-tight text-white group-hover:text-primary transition-colors leading-none uppercase italic">
+                                    {lead.full_name || 'REGISTRO ATIVO'}
                                 </h4>
-                                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">CPF: <span className="text-zinc-400">{lead.cpf}</span></p>
+                                <p className="text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-[0.4em] italic">REGISTRO: <span className="text-zinc-500">{lead.cpf}</span></p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-5 relative z-10">
+                            <div className="grid grid-cols-2 gap-8 relative z-10">
                                 {[
-                                    { icon: ShieldCheck, label: 'Score', val: lead.score || '--', color: 'text-white' },
-                                    { icon: Database, label: 'Renda', val: `R$ ${Number(lead.income || 0).toLocaleString('pt-BR')}`, color: 'text-emerald-500' },
-                                    { icon: Calendar, label: 'Idade', val: `${lead.age || '--'} ANOS`, color: 'text-blue-400' },
-                                    { icon: Clock, label: 'Nº Gov', val: lead.num_gov || 'Pendente', color: 'text-white', full: true }
+                                    { icon: ShieldCheck, label: 'Score', val: lead.score || '--', color: 'text-primary glow-primary font-display text-4xl' },
+                                    { icon: CreditCard, label: 'Renda', val: `${Number(lead.income || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}`, color: 'text-white font-display text-3xl' },
                                 ].map((item, i) => (
-                                    <div key={i} className={cn("glass-deep p-6 rounded-[32px] border-white/5 hover:border-white/10 transition-all", item.full && "col-span-2")}>
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <item.icon className="w-3.5 h-3.5 text-zinc-600 group-hover:text-primary transition-colors" />
-                                            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none">{item.label}</p>
+                                    <div key={i} className="glass-deep p-8 rounded-[40px] border border-white/5 space-y-5 hover:border-primary/20 transition-all shadow-xl">
+                                        <div className="flex items-center gap-4">
+                                            <item.icon className="w-5 h-5 text-zinc-700" />
+                                            <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest italic">{item.label}</p>
                                         </div>
-                                        <p className={cn("text-2xl font-black italic leading-none tracking-tighter", item.color, item.full && "text-sm")}>{item.val}</p>
+                                        <p className={cn("italic leading-none tracking-tight", item.color)}>{item.val}</p>
                                     </div>
                                 ))}
-                                <div className="glass-deep p-6 rounded-[32px] border-white/5 col-span-1 border-primary/10">
-                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-3 italic">BIN</p>
-                                    <p className="text-2xl font-black italic text-primary text-glow leading-none">{lead.card_bin || 'N/D'}</p>
-                                </div>
-                                <div className="glass-deep p-6 rounded-[32px] border-white/5 col-span-1 border-primary/10">
-                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-3 italic">Validade</p>
-                                    <p className="text-2xl font-black italic text-primary text-glow leading-none">{lead.card_expiry || 'N/D'}</p>
+
+                                <div className="col-span-2 glass-deep p-10 rounded-[40px] border border-emerald-500/10 flex items-center justify-between group/gov shadow-xl hover:bg-emerald-500/[0.02] transition-colors">
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] font-mono font-bold text-emerald-500 uppercase tracking-[0.4em] italic">Vinculação Governamental</p>
+                                        <p className="text-2xl font-mono text-white tracking-[0.2em] font-bold glow-emerald-sm italic">
+                                            {lead.num_gov || 'SECURED'}
+                                        </p>
+                                    </div>
+                                    <Smartphone className="w-12 h-12 text-emerald-500/20 group-hover/gov:scale-125 transition-transform" />
                                 </div>
                             </div>
 
-                            <div className="space-y-4 pt-4 relative z-10">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <Zap className="w-4 h-4 text-primary animate-pulse" />
-                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] italic">Atribuir a Ligador</p>
-                                </div>
-                                <div className="flex gap-4">
-                                    <select
-                                        value={selectedLigadorForLead[lead.id] || ''}
-                                        onChange={(e) => setSelectedLigadorForLead(prev => ({ ...prev, [lead.id]: e.target.value }))}
-                                        className="flex-1 bg-black/40 border border-white/5 rounded-[24px] px-8 py-5 text-[11px] font-black uppercase italic tracking-[0.1em] outline-none focus:ring-1 focus:ring-primary/40 appearance-none cursor-pointer shadow-inner text-white group-hover:border-primary/20 transition-all"
-                                    >
-                                        <option value="" className="bg-[#0c0c0e] text-zinc-600">Selecionar Ligador...</option>
-                                        {ligadores.map(lig => (
-                                            <option key={lig.id} value={lig.id} className="bg-[#0c0c0e]">{lig.full_name}</option>
-                                        ))}
-                                    </select>
+                            <div className="space-y-8 pt-10 relative z-10 border-t border-white/5">
+                                <div className="flex gap-6">
+                                    <div className="flex-1 relative group/owner">
+                                        <select
+                                            value={selectedLigadorForLead[lead.id] || ''}
+                                            onChange={(e) => setSelectedLigadorForLead(prev => ({ ...prev, [lead.id]: e.target.value }))}
+                                            className="w-full glass border border-white/10 rounded-[32px] py-7 px-10 text-[11px] font-mono font-bold uppercase tracking-[0.3em] outline-none group-hover/owner:border-primary/40 focus:border-primary transition-all cursor-pointer text-white italic shadow-2xl"
+                                        >
+                                            <option value="" className="bg-[#0d0118]">SELECIONAR OPERADOR</option>
+                                            {ligadores.map(lig => (
+                                                <option key={lig.id} value={lig.id} className="bg-[#0d0118] uppercase">👤 {lig.full_name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <button
                                         onClick={() => handleAssign(lead.id)}
-                                        disabled={assigning === lead.id}
-                                        className="w-16 h-16 shrink-0 rounded-[28px] bg-primary text-white hover:bg-primary/90 transition-all shadow-glow flex items-center justify-center active:scale-95 disabled:opacity-50 border-b-4 border-black/20 group/btn"
+                                        disabled={assigning === lead.id || !selectedLigadorForLead[lead.id]}
+                                        className="w-24 h-24 shrink-0 rounded-[40px] bg-primary text-white hover:bg-magenta active:scale-[0.94] transition-all shadow-[0_16px_40px_rgba(151,1,254,0.3)] flex items-center justify-center disabled:opacity-10 group/btn border border-primary/20"
                                     >
-                                        {assigning === lead.id ? <Loader2 className="w-7 h-7 animate-spin" /> : <ShieldCheck className="w-8 h-8 group-hover/btn:scale-110 transition-transform" />}
+                                        {assigning === lead.id ? <Loader2 className="w-10 h-10 animate-spin" /> : <ShieldCheck className="w-12 h-12 group-hover/btn:scale-110 transition-transform" />}
                                     </button>
                                 </div>
                             </div>
@@ -342,33 +398,37 @@ export default function FichasPage() {
 
             {/* Pagination UI */}
             {leads.length > 0 && (
-                <div className="flex flex-col md:flex-row items-center justify-between p-10 glass rounded-[64px] gap-8 shadow-2xl border-white/5">
-                    <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 rounded-[32px] bg-secondary/80 border border-white/5 flex items-center justify-center shadow-inner group">
-                            <Cpu className="w-10 h-10 text-zinc-700 group-hover:text-primary transition-colors" />
+                <div className="flex flex-col md:flex-row items-center justify-between p-16 glass shadow-[0_64px_150px_rgba(0,0,0,0.8)] rounded-[64px] gap-12 border border-white/10 stagger-5 bg-[#0d0118]/40 overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-primary/10 transition-colors" />
+                    
+                    <div className="flex items-center gap-12 relative z-10">
+                        <div className="w-32 h-32 rounded-[48px] glass glow-magenta flex items-center justify-center border border-magenta/20 rotate-6 group-hover:rotate-0 transition-transform">
+                            <Cpu className="w-16 h-16 text-magenta animate-pulse" />
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 italic leading-none mb-2">Página</p>
-                            <p className="text-3xl font-black italic tracking-tighter leading-none">{page} <span className="text-zinc-800 mx-4 text-sm font-black italic">DE</span> {Math.ceil(totalCount / ITEMS_PER_PAGE) || 1}</p>
+                        <div className="space-y-4">
+                            <p className="text-[12px] font-mono font-bold uppercase tracking-[0.6em] text-zinc-600 italic leading-none">Terminal de Processamento</p>
+                            <p className="text-5xl font-display italic tracking-tight text-white leading-none">
+                                {page} <span className="text-primary mx-6 text-2xl font-mono">OF</span> {Math.ceil(totalCount / ITEMS_PER_PAGE) || 1}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
                         <button
                             onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             disabled={page === 1}
-                            className="flex items-center gap-4 px-10 py-6 rounded-[28px] bg-secondary border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-20 shadow-xl italic"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-5 px-16 py-8 rounded-[40px] glass border border-white/10 text-[11px] font-mono font-bold uppercase tracking-[0.4em] hover:bg-white/5 transition-all active:scale-95 disabled:opacity-10 text-zinc-400 italic shadow-2xl"
                         >
-                            <ChevronLeft className="w-6 h-6" />
+                            <ChevronLeft className="w-7 h-7" />
                             Anterior
                         </button>
                         <button
                             onClick={() => { setPage(p => (p * ITEMS_PER_PAGE < totalCount ? p + 1 : p)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             disabled={page * ITEMS_PER_PAGE >= totalCount}
-                            className="flex items-center gap-4 px-12 py-6 rounded-[28px] bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-glow hover:scale-[1.03] transition-all active:scale-95 disabled:opacity-20 italic border-b-4 border-black/20"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-6 px-24 py-8 rounded-[40px] bg-primary text-white text-[11px] font-mono font-bold uppercase tracking-[0.4em] shadow-[0_16px_40px_rgba(151,1,254,0.3)] hover:bg-magenta transition-all active:scale-95 disabled:opacity-10 border border-primary/20 italic"
                         >
-                            Próxima
-                            <ChevronRight className="w-6 h-6" />
+                            Próximo Terminal
+                            <ChevronRight className="w-7 h-7" />
                         </button>
                     </div>
                 </div>
