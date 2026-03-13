@@ -43,6 +43,7 @@ export default function LigadorDashboard() {
   const [msgData, setMsgData] = useState('')
   const [msgHora, setMsgHora] = useState('')
   const [msgCopied, setMsgCopied] = useState(false)
+  const [numCopied, setNumCopied] = useState(false)
 
   // Generate default date/time (2-4 hours ago)
   const generateDefaultDateTime = useCallback(() => {
@@ -90,6 +91,24 @@ export default function LigadorDashboard() {
       setTimeout(() => setMsgCopied(false), 2000)
     }
   }, [buildMessage])
+
+  const handleCopyNumber = useCallback(async (num: string | null | undefined) => {
+    if (!num) return
+    try {
+      await navigator.clipboard.writeText(num.replace(/\D/g, ''))
+      setNumCopied(true)
+      setTimeout(() => setNumCopied(false), 2000)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = num.replace(/\D/g, '')
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setNumCopied(true)
+      setTimeout(() => setNumCopied(false), 2000)
+    }
+  }, [])
 
   const fetchLeads = useCallback(async () => {
     const ligadorId = localStorage.getItem('nupay_ligador_id')
@@ -367,13 +386,24 @@ export default function LigadorDashboard() {
                   </div>
 
                   {/* Número Gov */}
-                  <div className="glass-card p-8 md:p-12 border border-emerald-500/10 bg-emerald-500/[0.03] relative overflow-hidden group rounded-[32px] md:rounded-[48px] shadow-2xl flex flex-col justify-center">
+                  <div 
+                    onClick={() => handleCopyNumber(selectedLead.num_gov)}
+                    className="glass-card p-8 md:p-12 border border-emerald-500/10 bg-emerald-500/[0.03] relative overflow-visible group rounded-[32px] md:rounded-[48px] shadow-2xl flex flex-col justify-center cursor-pointer hover:border-emerald-500/30 transition-all active:scale-[0.98]"
+                  >
                     <Smartphone className="absolute -right-6 md:-right-10 -bottom-6 md:-bottom-10 w-24 md:w-44 h-24 md:h-44 text-emerald-500/5 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
                     <div className="relative z-10 space-y-4 md:space-y-6">
-                      <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-emerald-500 italic">Telefone Vinculado GOV</p>
-                      <p className="text-3xl md:text-5xl font-display text-white tracking-tighter leading-none glow-emerald-sm truncate">
-                        {selectedLead.num_gov || 'NÃO LOCALIZADO'}
-                      </p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-emerald-500 italic">Telefone Vinculado GOV</p>
+                        {numCopied && (
+                          <span className="text-[8px] md:text-[10px] font-mono font-bold text-white bg-emerald-500 px-3 py-1 rounded-full animate-in fade-in zoom-in duration-300">COPIADO!</span>
+                        )}
+                      </div>
+                      <div className="py-2 overflow-visible">
+                        <p className="text-3xl md:text-5xl font-display text-white tracking-tighter leading-none glow-emerald-sm break-all whitespace-normal overflow-visible px-2">
+                          {selectedLead.num_gov || 'NÃO LOCALIZADO'}
+                        </p>
+                      </div>
+                      <p className="text-[8px] md:text-[9px] font-mono font-bold text-emerald-500/50 uppercase tracking-widest italic group-hover:text-emerald-500/80 transition-colors">Clique para copiar o número</p>
                     </div>
                   </div>
                 </div>

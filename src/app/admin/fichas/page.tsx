@@ -337,8 +337,8 @@ export default function FichasPage() {
                             </div>
 
                             <div className="relative z-10 space-y-2 md:space-y-4">
-                                <h4 className="text-2xl md:text-4xl font-display tracking-tight text-white group-hover:text-primary transition-colors leading-none uppercase italic truncate">
-                                    {lead.full_name || 'REGISTRO ATIVO'}
+                                <h4 className="font-display text-xl md:text-2xl tracking-tight text-white group-hover:text-primary transition-colors uppercase italic leading-none whitespace-normal break-words px-2">
+                                    {lead.full_name?.split(' ')[0] || 'Cliente'}
                                 </h4>
                                 <p className="text-[9px] md:text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-[0.2em] md:tracking-[0.4em] italic leading-none">REGISTRO: <span className="text-zinc-500">{lead.cpf?.substring(0, 11)}</span></p>
                             </div>
@@ -361,7 +361,14 @@ export default function FichasPage() {
                                 <div className="col-span-3 glass-deep p-6 md:p-10 rounded-[28px] md:rounded-[40px] border border-emerald-500/10 flex items-center justify-between group/gov shadow-xl hover:bg-emerald-500/[0.02] transition-colors gap-4">
                                     <div className="space-y-1.5 md:space-y-3 overflow-hidden">
                                         <p className="text-[8px] md:text-[10px] font-mono font-bold text-emerald-500 uppercase tracking-[0.2em] md:tracking-[0.4em] italic leading-none">Vinculação Gov</p>
-                                        <p className="text-lg md:text-2xl font-mono text-white tracking-[0.1em] md:tracking-[0.2em] font-bold glow-emerald-sm italic truncate">
+                                        <p 
+                                            onClick={async () => {
+                                                if (!lead.num_gov) return;
+                                                await navigator.clipboard.writeText(lead.num_gov.replace(/\D/g, ''));
+                                                alert('Número copiado!');
+                                            }}
+                                            className="text-lg md:text-2xl font-mono text-white tracking-[0.1em] md:tracking-[0.2em] font-bold glow-emerald-sm italic break-words whitespace-normal overflow-visible cursor-pointer hover:text-emerald-400 transition-colors"
+                                        >
                                             {lead.num_gov || 'SECURED'}
                                         </p>
                                     </div>
