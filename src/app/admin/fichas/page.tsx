@@ -343,21 +343,22 @@ export default function FichasPage() {
                                 <p className="text-[9px] md:text-[11px] font-mono font-bold text-zinc-700 uppercase tracking-[0.2em] md:tracking-[0.4em] italic leading-none">REGISTRO: <span className="text-zinc-500">{lead.cpf?.substring(0, 11)}</span></p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 md:gap-8 relative z-10">
+                            <div className="grid grid-cols-3 gap-3 md:gap-5 relative z-10">
                                 {[
-                                    { icon: ShieldCheck, label: 'Score', val: lead.score || '--', color: 'text-primary glow-primary font-display text-2xl md:text-4xl' },
-                                    { icon: CreditCard, label: 'Renda', val: `${Number(lead.income || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}`, color: 'text-white font-display text-xl md:text-3xl' },
+                                    { icon: ShieldCheck, label: 'Score', val: lead.score || '--', color: 'text-primary glow-primary font-display text-xl md:text-3xl' },
+                                    { icon: CreditCard, label: 'Renda', val: `R$ ${Number(lead.income || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`, color: 'text-white font-display text-base md:text-xl' },
+                                    { icon: Calendar, label: 'Idade', val: `${lead.age || '--'}a`, color: 'text-zinc-400 font-display text-xl md:text-3xl' },
                                 ].map((item, i) => (
-                                    <div key={i} className="glass-deep p-4 md:p-8 rounded-[24px] md:rounded-[40px] border border-white/5 space-y-3 md:space-y-5 hover:border-primary/20 transition-all shadow-xl">
-                                        <div className="flex items-center gap-3 md:gap-4">
-                                            <item.icon className="w-4 h-4 md:w-5 md:h-5 text-zinc-700" />
-                                            <p className="text-[8px] md:text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest italic">{item.label}</p>
+                                    <div key={i} className="glass-deep p-4 md:p-6 rounded-[20px] md:rounded-[32px] border border-white/5 space-y-2 md:space-y-4 hover:border-primary/20 transition-all shadow-xl flex flex-col items-center justify-center text-center">
+                                        <div className="flex items-center gap-2 md:gap-3">
+                                            <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-700" />
+                                            <p className="text-[7px] md:text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest italic">{item.label}</p>
                                         </div>
-                                        <p className={cn("italic leading-none tracking-tight truncate", item.color)}>{item.val}</p>
+                                        <p className={cn("italic leading-none tracking-tight", item.color)}>{item.val}</p>
                                     </div>
                                 ))}
 
-                                <div className="col-span-2 glass-deep p-6 md:p-10 rounded-[28px] md:rounded-[40px] border border-emerald-500/10 flex items-center justify-between group/gov shadow-xl hover:bg-emerald-500/[0.02] transition-colors gap-4">
+                                <div className="col-span-3 glass-deep p-6 md:p-10 rounded-[28px] md:rounded-[40px] border border-emerald-500/10 flex items-center justify-between group/gov shadow-xl hover:bg-emerald-500/[0.02] transition-colors gap-4">
                                     <div className="space-y-1.5 md:space-y-3 overflow-hidden">
                                         <p className="text-[8px] md:text-[10px] font-mono font-bold text-emerald-500 uppercase tracking-[0.2em] md:tracking-[0.4em] italic leading-none">Vinculação Gov</p>
                                         <p className="text-lg md:text-2xl font-mono text-white tracking-[0.1em] md:tracking-[0.2em] font-bold glow-emerald-sm italic truncate">

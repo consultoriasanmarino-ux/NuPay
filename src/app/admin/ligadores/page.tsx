@@ -252,24 +252,24 @@ export default function LigadoresPage() {
             </div>
 
             {/* Overview Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 stagger-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 stagger-2">
                 {[
-                    { label: 'Unidade de Operação', value: ligadores.filter(l => l.role === 'ligador').length, icon: Users, color: 'text-primary', glow: 'glow-primary' },
-                    { label: 'Fichas em Sinc', value: totalPendentes, icon: Target, color: 'text-amber-400', glow: 'glow-gold' },
-                    { label: 'Capital Captado', value: totalSucessos, icon: CheckCircle2, color: 'text-emerald-400', glow: 'glow-emerald' },
-                    { label: 'Protocolos Falhos', value: totalFalhas, icon: X, color: 'text-rose-400', glow: 'glow-magenta' }
+                    { label: 'Time Ativo', value: ligadores.filter(l => l.role === 'ligador').length, icon: Users, color: 'text-primary', glow: 'glow-primary' },
+                    { label: 'Sinais em Sinc', value: totalPendentes, icon: Target, color: 'text-amber-400', glow: 'glow-gold' },
+                    { label: 'Conversões', value: totalSucessos, icon: CheckCircle2, color: 'text-emerald-400', glow: 'glow-emerald' },
+                    { label: 'Falhas', value: totalFalhas, icon: X, color: 'text-rose-400', glow: 'glow-magenta' }
                 ].map((stat, i) => (
-                    <div key={i} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] p-10 rounded-[48px] border border-white/5 flex flex-col gap-6 hover:bg-white/[0.02] transition-all group overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
+                    <div key={i} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-white/5 flex flex-col gap-4 md:gap-6 hover:bg-white/[0.02] transition-all group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-24 md:w-32 h-24 md:h-32 bg-primary/5 blur-[60px] md:blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
                         <div className="flex items-center justify-between relative z-10">
-                            <div className={cn("w-14 h-14 rounded-2xl glass flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 duration-500", stat.glow)}>
-                                <stat.icon className={cn("w-7 h-7", stat.color)} />
+                            <div className={cn("w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl glass flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 duration-500", stat.glow)}>
+                                <stat.icon className={cn("w-5 h-5 md:w-7 md:h-7", stat.color)} />
                             </div>
-                            <ArrowUpRight className="w-5 h-5 text-zinc-800" />
+                            <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-zinc-800" />
                         </div>
                         <div className="relative z-10">
-                            <h4 className="text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.4em] mb-2 leading-none italic">{stat.label}</h4>
-                            <p className="text-5xl font-display italic tracking-tighter leading-none text-white">{stat.value}</p>
+                            <h4 className="text-[9px] md:text-[11px] font-mono font-bold text-zinc-600 uppercase tracking-[0.2em] md:tracking-[0.4em] mb-1 md:mb-2 leading-none italic">{stat.label}</h4>
+                            <p className="text-3xl md:text-5xl font-display italic tracking-tighter leading-none text-white">{stat.value}</p>
                         </div>
                     </div>
                 ))}
