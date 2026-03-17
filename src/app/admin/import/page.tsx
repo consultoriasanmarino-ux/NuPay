@@ -25,8 +25,11 @@ export default function ImportPage() {
     const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'rejected'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [results, setResults] = useState<{ success: number, ignored: number, updated?: number, new?: number, existing?: number, bad?: number } | null>(null)
+    const [progress, setProgress] = useState<{ phase: string, current: number, total: number } | null>(null)
+    const [results, setResults] = useState<{ totalFile: number, duplicatesInFile: number, newAdded: number, alreadyInDb: number, errors: number, updated?: number, bad?: number, invalidLines?: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const BATCH_SIZE = 300
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault()
@@ -128,151 +131,105 @@ export default function ImportPage() {
     const handleUpload = async () => {
         if (!selectedFile) return
         setUploading(true)
+        setResults(null)
+        setProgress({ phase: 'Lendo arquivo...', current: 0, total: 0 })
 
         try {
             const text = await selectedFile.text();
+            const lines = text.split('\n');
+            const totalLines = lines.filter(l => l.trim()).length;
             const { leads, govMatches } = parseFileContent(text);
+            const duplicatesInFile = totalLines - leads.length - (mode === 'gov' ? (totalLines - govMatches.length) : 0);
 
             if (mode === 'gov') {
                 if (govMatches.length === 0) {
                     alert("PACÔMETRO ZERO: CPF-XX FORM NOT DETECTED");
-                    setUploading(false);
+                    setUploading(false); setProgress(null);
                     return;
                 }
-
-                let updatedCount = 0;
-                let badCount = 0;
-                let alreadyHadCount = 0;
-
-                for (const item of govMatches) {
-                    const { data: leadData } = await supabase
-                        .from('leads')
-                        .select('id, phones, status, num_gov')
-                        .eq('cpf', item.cpf)
-                        .single();
-
+                let updatedCount = 0, badCount = 0, alreadyHadCount = 0;
+                for (let i = 0; i < govMatches.length; i++) {
+                    setProgress({ phase: 'Processando GOV...', current: i + 1, total: govMatches.length });
+                    const item = govMatches[i];
+                    const { data: leadData } = await supabase.from('leads').select('id, phones, status, num_gov').eq('cpf', item.cpf).single();
                     if (leadData) {
-                        // Se já tem num_gov, não faz nada com esse lead
-                        if (leadData.num_gov) {
-                            alreadyHadCount++;
-                            continue;
-                        }
-
+                        if (leadData.num_gov) { alreadyHadCount++; continue; }
                         const phones = leadData.phones || [];
-                        const govPhone = phones.find((p: string) => {
-                            const clean = p.replace(/\D/g, '');
-                            return clean.endsWith(item.lastTwo);
-                        });
-
+                        const govPhone = phones.find((p: string) => p.replace(/\D/g, '').endsWith(item.lastTwo));
                         if (govPhone) {
-                            // SÓ muda o status se a ficha ainda estiver pendente (não atribuída)
-                            const shouldUpdateStatus = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
-                            
+                            const shouldUpdate = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
                             const updateData: any = { num_gov: govPhone };
-                            if (shouldUpdateStatus) {
-                                updateData.status = 'concluido';
-                            }
-
-                            await supabase
-                                .from('leads')
-                                .update(updateData)
-                                .eq('id', leadData.id);
+                            if (shouldUpdate) updateData.status = 'concluido';
+                            await supabase.from('leads').update(updateData).eq('id', leadData.id);
                             updatedCount++;
                         } else {
-                            // SE não encontrou o número gov, tenta marcar como ficha ruim
-                            // Só não marca se já estiver finalizada (concluido/arquivado) para não bagunçar histórico
-                            const canMarkAsRuim = !['concluido', 'arquivado'].includes(leadData.status);
-                            if (canMarkAsRuim) {
-                                const { error: markError } = await supabase
-                                    .from('leads')
-                                    .update({ status: 'ruim' })
-                                    .eq('id', leadData.id);
-
-                                if (markError) {
-                                    console.error('Erro ao marcar como ruim:', markError.message);
-                                } else {
-                                    badCount++;
-                                }
+                            if (!['concluido', 'arquivado'].includes(leadData.status)) {
+                                await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
+                                badCount++;
                             }
                         }
                     }
                 }
-                setResults({ 
-                    success: 0, 
-                    ignored: govMatches.length - (updatedCount + badCount + alreadyHadCount), 
-                    updated: updatedCount, 
-                    bad: badCount, 
-                    existing: alreadyHadCount 
-                });
-                setSelectedFile(null);
-                setUploading(false);
+                setResults({ totalFile: govMatches.length, duplicatesInFile: 0, newAdded: 0, alreadyInDb: alreadyHadCount, errors: 0, updated: updatedCount, bad: badCount, invalidLines: totalLines - govMatches.length });
+                setSelectedFile(null); setUploading(false); setProgress(null);
                 return;
             }
 
             if (mode === 'rejected') {
-                if (leads.length === 0) {
-                    alert("SIGNAL FAILURE: NO CPFS FOUND");
-                    setUploading(false);
-                    return;
+                if (leads.length === 0) { alert("SIGNAL FAILURE: NO CPFS FOUND"); setUploading(false); setProgress(null); return; }
+                const cpfs = leads.map(l => l.cpf);
+                let updated = 0, errCount = 0;
+                for (let i = 0; i < cpfs.length; i += BATCH_SIZE) {
+                    const batch = cpfs.slice(i, i + BATCH_SIZE);
+                    setProgress({ phase: 'Marcando recusados...', current: Math.min(i + BATCH_SIZE, cpfs.length), total: cpfs.length });
+                    const { error } = await supabase.from('leads').update({ status: 'ruim' }).in('cpf', batch);
+                    if (error) errCount += batch.length; else updated += batch.length;
                 }
-
-                const cpfsToReject = leads.map(l => l.cpf);
-                
-                // Update status to 'ruim' for all these CPFs
-                const { error: updateError } = await supabase
-                    .from('leads')
-                    .update({ status: 'ruim' })
-                    .in('cpf', cpfsToReject);
-
-                if (updateError) {
-                    alert(`DB SIGNAL DROP: ${updateError.message}`);
-                } else {
-                    setResults({ success: leads.length, ignored: 0, updated: leads.length });
-                    setSelectedFile(null);
-                }
-                setUploading(false);
+                setResults({ totalFile: leads.length, duplicatesInFile: 0, newAdded: 0, alreadyInDb: 0, errors: errCount, updated });
+                setSelectedFile(null); setUploading(false); setProgress(null);
                 return;
             }
 
-            if (leads.length === 0) {
-                alert("SIGNAL FAILURE: NO VALID LEADS");
-                setUploading(false);
-                return;
+            // Modos CPF e Bot
+            if (leads.length === 0) { alert("SIGNAL FAILURE: NO VALID LEADS"); setUploading(false); setProgress(null); return; }
+
+            // Fase 1: Verificar CPFs existentes em batches
+            setProgress({ phase: 'Verificando duplicatas no banco...', current: 0, total: leads.length });
+            const existingCpfs = new Set<string>();
+            const allCpfs = leads.map(l => l.cpf);
+
+            for (let i = 0; i < allCpfs.length; i += BATCH_SIZE) {
+                const batch = allCpfs.slice(i, i + BATCH_SIZE);
+                setProgress({ phase: 'Verificando duplicatas no banco...', current: Math.min(i + BATCH_SIZE, allCpfs.length), total: allCpfs.length });
+                const { data, error } = await supabase.from('leads').select('cpf').in('cpf', batch);
+                if (error) { console.error('Erro ao verificar batch:', error.message); }
+                if (data) data.forEach(d => existingCpfs.add(d.cpf));
             }
 
-            // 1. Verificar quais CPFs já existem para NÃO atualizar nem duplicar
-            const cpfsToImport = leads.map(l => l.cpf);
-            const { data: existingLeadsData } = await supabase
-                .from('leads')
-                .select('cpf')
-                .in('cpf', cpfsToImport);
-            
-            const existingCpfsInDb = new Set(existingLeadsData?.map(l => l.cpf) || []);
-            const onlyNewLeads = leads.filter(l => !existingCpfsInDb.has(l.cpf));
+            const onlyNew = leads.filter(l => !existingCpfs.has(l.cpf));
 
-            let currentError = null;
-            if (onlyNewLeads.length > 0) {
-                const { error } = await supabase
-                    .from('leads')
-                    .insert(onlyNewLeads);
-                currentError = error;
+            // Fase 2: Inserir novos leads em batches
+            let insertedCount = 0, errorCount = 0;
+            if (onlyNew.length > 0) {
+                setProgress({ phase: 'Inserindo novos leads...', current: 0, total: onlyNew.length });
+                for (let i = 0; i < onlyNew.length; i += BATCH_SIZE) {
+                    const batch = onlyNew.slice(i, i + BATCH_SIZE);
+                    setProgress({ phase: 'Inserindo novos leads...', current: Math.min(i + BATCH_SIZE, onlyNew.length), total: onlyNew.length });
+                    const { error } = await supabase.from('leads').insert(batch);
+                    if (error) { console.error('Erro ao inserir batch:', error.message); errorCount += batch.length; }
+                    else { insertedCount += batch.length; }
+                }
             }
 
-            if (currentError) {
-                alert(`DB SIGNAL DROP: ${currentError.message}`);
-            } else {
-                setResults({ 
-                    success: leads.length, 
-                    new: onlyNewLeads.length,
-                    existing: existingCpfsInDb.size,
-                    ignored: existingCpfsInDb.size 
-                });
-                setSelectedFile(null);
-            }
-        } catch (err) {
-            alert("CORE UNKNOWN ERROR DURING UPLOAD");
+            const invalidLines = totalLines - leads.length - duplicatesInFile;
+            setResults({ totalFile: totalLines, duplicatesInFile: Math.max(0, duplicatesInFile), newAdded: insertedCount, alreadyInDb: existingCpfs.size, errors: errorCount, invalidLines: Math.max(0, invalidLines) });
+            setSelectedFile(null);
+        } catch (err: any) {
+            console.error('Upload error:', err);
+            alert(`CORE ERROR: ${err?.message || 'Erro desconhecido'}`);
         } finally {
             setUploading(false);
+            setProgress(null);
         }
     }
 
@@ -295,25 +252,35 @@ export default function ImportPage() {
 
                 {results && (
                     <div className="glass px-10 py-6 rounded-[32px] animate-in zoom-in border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] leading-none mb-2 italic">Signal Sync Complete</p>
-                        <div className="text-2xl font-black text-white italic tracking-tighter flex flex-col items-end">
+                        <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] leading-none mb-3 italic">Signal Sync Complete</p>
+                        <div className="text-sm font-black text-white italic tracking-tighter flex flex-col items-end gap-1">
                             {mode === 'gov' ? (
                                 <div className="space-y-1 flex flex-col items-end">
-                                    <span className="text-emerald-500">🚀 {results.updated} GOV VIRTUALIZED</span>
+                                    <span className="text-emerald-500 text-lg">🚀 {results.updated} GOV VIRTUALIZED</span>
                                     <span className="text-rose-500">🚫 {results.bad} MARCADOS COMO RUIM</span>
                                     <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-none mt-1">
-                                        {results.existing} JÁ POSSUÍAM NÚMERO GOV
+                                        {results.alreadyInDb} JÁ POSSUÍAM NÚMERO GOV
                                     </span>
                                 </div>
                             ) : mode === 'rejected' ? (
-                                <span>🚫 {results.updated} MARCADOS COMO RUIM</span>
+                                <span className="text-lg">🚫 {results.updated} MARCADOS COMO RUIM</span>
                             ) : (
-                                <>
-                                    <span>+{results.new} NOVO RECORDS</span>
-                                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-                                        {results.existing} JÁ EXISTIAM (IGNORADOS)
+                                <div className="space-y-1 flex flex-col items-end">
+                                    <span className="text-emerald-500 text-lg">✅ {results.newAdded} NOVOS ADICIONADOS</span>
+                                    <span className="text-amber-500">⚠️ {results.alreadyInDb} JÁ EXISTIAM NO BANCO</span>
+                                    {results.duplicatesInFile > 0 && (
+                                        <span className="text-zinc-500">📋 {results.duplicatesInFile} DUPLICATAS NO ARQUIVO</span>
+                                    )}
+                                    {(results.invalidLines || 0) > 0 && (
+                                        <span className="text-zinc-600">🚫 {results.invalidLines} LINHAS INVÁLIDAS</span>
+                                    )}
+                                    {results.errors > 0 && (
+                                        <span className="text-rose-500">❌ {results.errors} ERROS DE INSERÇÃO</span>
+                                    )}
+                                    <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest leading-none mt-2">
+                                        TOTAL NO ARQUIVO: {results.totalFile} LINHAS
                                     </span>
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -392,10 +359,25 @@ export default function ImportPage() {
                         <button
                             onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                             disabled={uploading}
-                            className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex items-center justify-center gap-4 disabled:opacity-50 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
+                            className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex flex-col items-center justify-center gap-2 disabled:opacity-70 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
                         >
-                            {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
-                            {uploading ? "SINCRONIZANDO CORE DATABASE..." : "DEPLOY SIGNALS TO CLOUD"}
+                            <div className="flex items-center gap-4">
+                                {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
+                                {uploading ? (progress?.phase || "SINCRONIZANDO...") : "DEPLOY SIGNALS TO CLOUD"}
+                            </div>
+                            {uploading && progress && progress.total > 0 && (
+                                <div className="w-full max-w-xs space-y-1">
+                                    <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-white/80 rounded-full transition-all duration-300" 
+                                            style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }} 
+                                        />
+                                    </div>
+                                    <p className="text-[10px] font-bold tracking-widest opacity-70">
+                                        {progress.current}/{progress.total} ({Math.round((progress.current / progress.total) * 100)}%)
+                                    </p>
+                                </div>
+                            )}
                         </button>
                     </div>
                 )}
