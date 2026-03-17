@@ -105,7 +105,7 @@ export default function ImportPage() {
             } else if (mode === 'gov') {
                 const match = line.match(/([\d.-]+)-(\d{2})/);
                 if (match) {
-                    cpf = match[1].replace(/\D/g, '');
+                    cpf = match[1].replace(/\D/g, '').padStart(11, '0');
                     govMatches.push({ cpf: cpf, lastTwo: match[2] });
                 }
             }
@@ -147,30 +147,49 @@ export default function ImportPage() {
                     setUploading(false); setProgress(null);
                     return;
                 }
-                let updatedCount = 0, badCount = 0, alreadyHadCount = 0;
+                let updatedCount = 0, badCount = 0, alreadyHadCount = 0, notFoundCount = 0, noPhonesCount = 0;
+                console.log(`[GOV] Iniciando processamento de ${govMatches.length} matches`);
+                console.log(`[GOV] Primeiros 5 CPFs do arquivo:`, govMatches.slice(0, 5).map(m => `${m.cpf}-${m.lastTwo}`));
+                
                 for (let i = 0; i < govMatches.length; i++) {
                     setProgress({ phase: 'Processando GOV...', current: i + 1, total: govMatches.length });
                     const item = govMatches[i];
-                    const { data: leadData } = await supabase.from('leads').select('id, phones, status, num_gov').eq('cpf', item.cpf).single();
-                    if (leadData) {
-                        if (leadData.num_gov) { alreadyHadCount++; continue; }
-                        const phones = leadData.phones || [];
-                        const govPhone = phones.find((p: string) => p.replace(/\D/g, '').endsWith(item.lastTwo));
-                        if (govPhone) {
-                            const shouldUpdate = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
-                            const updateData: any = { num_gov: govPhone };
-                            if (shouldUpdate) updateData.status = 'concluido';
-                            await supabase.from('leads').update(updateData).eq('id', leadData.id);
-                            updatedCount++;
-                        } else {
-                            if (!['concluido', 'arquivado'].includes(leadData.status)) {
-                                await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
-                                badCount++;
-                            }
+                    const { data: leadData, error: leadError } = await supabase.from('leads').select('id, cpf, phones, status, num_gov').eq('cpf', item.cpf).single();
+                    
+                    if (!leadData) {
+                        notFoundCount++;
+                        if (i < 5) console.log(`[GOV] CPF ${item.cpf} NÃO ENCONTRADO no banco. Erro:`, leadError?.message);
+                        continue;
+                    }
+                    
+                    if (leadData.num_gov) { alreadyHadCount++; continue; }
+                    
+                    const phones = leadData.phones || [];
+                    if (i < 5) console.log(`[GOV] CPF ${item.cpf} - Telefones no banco:`, phones, `- Buscando final: ${item.lastTwo}`);
+                    
+                    if (phones.length === 0) {
+                        noPhonesCount++;
+                        if (i < 5) console.log(`[GOV] CPF ${item.cpf} - SEM TELEFONES cadastrados, pulando`);
+                        continue;
+                    }
+                    
+                    const govPhone = phones.find((p: string) => p.replace(/\D/g, '').endsWith(item.lastTwo));
+                    if (govPhone) {
+                        const shouldUpdate = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
+                        const updateData: any = { num_gov: govPhone };
+                        if (shouldUpdate) updateData.status = 'concluido';
+                        await supabase.from('leads').update(updateData).eq('id', leadData.id);
+                        updatedCount++;
+                    } else {
+                        if (!['concluido', 'arquivado'].includes(leadData.status)) {
+                            await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
+                            badCount++;
                         }
                     }
                 }
-                setResults({ totalFile: govMatches.length, duplicatesInFile: 0, newAdded: 0, alreadyInDb: alreadyHadCount, errors: 0, updated: updatedCount, bad: badCount, invalidLines: totalLines - govMatches.length });
+                
+                console.log(`[GOV] RESULTADO FINAL: ${updatedCount} virtualizados, ${badCount} ruim, ${alreadyHadCount} já tinham GOV, ${notFoundCount} NÃO encontrados no banco, ${noPhonesCount} sem telefones`);
+                setResults({ totalFile: govMatches.length, duplicatesInFile: 0, newAdded: notFoundCount, alreadyInDb: alreadyHadCount, errors: noPhonesCount, updated: updatedCount, bad: badCount, invalidLines: totalLines - govMatches.length });
                 setSelectedFile(null); setUploading(false); setProgress(null);
                 return;
             }
@@ -258,6 +277,12 @@ export default function ImportPage() {
                                 <div className="space-y-1 flex flex-col items-end">
                                     <span className="text-emerald-500 text-lg">🚀 {results.updated} GOV VIRTUALIZED</span>
                                     <span className="text-rose-500">🚫 {results.bad} MARCADOS COMO RUIM</span>
+                                    {(results.newAdded || 0) > 0 && (
+                                        <span className="text-amber-500">⚠️ {results.newAdded} CPFs NÃO ENCONTRADOS NO BANCO</span>
+                                    )}
+                                    {(results.errors || 0) > 0 && (
+                                        <span className="text-orange-500">📵 {results.errors} SEM TELEFONES CADASTRADOS</span>
+                                    )}
                                     <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-none mt-1">
                                         {results.alreadyInDb} JÁ POSSUÍAM NÚMERO GOV
                                     </span>
