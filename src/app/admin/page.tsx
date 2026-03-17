@@ -40,7 +40,8 @@ export default function AdminDashboard() {
         failed: 0,
         withGov: 0,
         noGov: 0,
-        bad: 0
+        bad: 0,
+        notEnriched: 0
     })
     const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 })
     const [logs, setLogs] = useState<{ msg: string, type: 'success' | 'error' | 'info' }[]>([])
@@ -59,7 +60,8 @@ export default function AdminDashboard() {
             { count: failed },
             { count: withGov },
             { count: noGov },
-            { count: bad }
+            { count: bad },
+            { count: notEnriched }
         ] = await Promise.all([
             supabase.from('leads').select('*', { count: 'exact', head: true }),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto'),
@@ -70,7 +72,8 @@ export default function AdminDashboard() {
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'recusado'),
             supabase.from('leads').select('*', { count: 'exact', head: true }).not('num_gov', 'is', null),
             supabase.from('leads').select('*', { count: 'exact', head: true }).in('status', ['incompleto', 'consultado']).is('num_gov', null),
-            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'ruim')
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'ruim'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto')
         ])
 
         setStats({
@@ -83,7 +86,8 @@ export default function AdminDashboard() {
             failed: failed || 0,
             withGov: withGov || 0,
             noGov: noGov || 0,
-            bad: bad || 0
+            bad: bad || 0,
+            notEnriched: notEnriched || 0
         })
         setLoading(false)
     }
@@ -188,11 +192,18 @@ export default function AdminDashboard() {
                     const foundCity = deepGet(data, 'municipio') || deepGet(data, 'cidade') || deepGet(data, 'municipio_residencia') || deepGet(data, 'CIDADE')
 
                     let phones: string[] = []
-                    const rawPhones = deepGet(data, 'telefones') || deepGet(data, 'telefones_contato') || deepGet(data, 'contatos')
+                    // CRITICAL: Access telefones directly from top-level or known nested paths
+                    // deepGet can incorrectly match 'telefone' (singular) inside phone objects
+                    const rawPhones = data.telefones || data.Telefones || deepGet(data, 'telefones_contato') || deepGet(data, 'contatos')
                     if (Array.isArray(rawPhones)) {
-                        phones = rawPhones.map(p => typeof p === 'string' ? p : p.numero || p.telefone || p.celular).filter(Boolean)
-                    } else if (typeof rawPhones === 'string' && rawPhones.length > 5) {
-                        phones = [rawPhones]
+                        phones = rawPhones.map((p: any) => {
+                            if (typeof p === 'string') return p.replace(/\D/g, '')
+                            // API returns objects like { telefone: "32999462633", tipo: "...", ... }
+                            const num = p.telefone || p.numero || p.celular || p.phone
+                            return num ? String(num).replace(/[^\d]/g, '') : null
+                        }).filter((p: string | null): p is string => !!p && p.length >= 10)
+                    } else if (typeof rawPhones === 'string' && rawPhones.replace(/\D/g, '').length >= 10) {
+                        phones = [rawPhones.replace(/\D/g, '')]
                     }
 
                     const foundBin = deepGet(data, 'bin') || deepGet(data, 'bin_cartao') || deepGet(data, 'numero_cartao')?.slice(0, 6)
@@ -265,6 +276,7 @@ export default function AdminDashboard() {
 
     const statCards = [
         { label: 'Total de Leads', value: stats.total, icon: Database, color: 'text-zinc-500' },
+        { label: 'Sem Consulta', value: stats.notEnriched, icon: Search, color: 'text-amber-500' },
         { label: 'Faltam Nº Gov', value: stats.noGov, icon: AlertCircle, color: 'text-rose-500' },
         { label: 'Prontas (GOV OK)', value: stats.ready, icon: CheckCircle2, color: 'text-emerald-500' },
         { label: 'Fichas Ruins', value: stats.bad, icon: XCircle, color: 'text-destructive' },
@@ -304,7 +316,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bento Grid Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 stagger-2">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 md:gap-6 stagger-2">
                 {statCards.map((stat, idx) => (
                     <div key={stat.label} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] rounded-[40px] p-8 relative overflow-hidden group card-hover border border-white/5 flex flex-col justify-between hover:bg-white/[0.02] transition-all">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 blur-[50px] rounded-full group-hover:bg-primary/20 transition-colors pointer-events-none" />
