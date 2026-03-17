@@ -21,7 +21,8 @@ import {
     Activity,
     Search,
     Globe,
-    Award
+    Award,
+    Smartphone
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -41,7 +42,8 @@ export default function AdminDashboard() {
         withGov: 0,
         noGov: 0,
         bad: 0,
-        notEnriched: 0
+        notEnriched: 0,
+        consultedNoPhones: 0
     })
     const [progress, setProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 })
     const [logs, setLogs] = useState<{ msg: string, type: 'success' | 'error' | 'info' }[]>([])
@@ -61,7 +63,8 @@ export default function AdminDashboard() {
             { count: withGov },
             { count: noGov },
             { count: bad },
-            { count: notEnriched }
+            { count: notEnriched },
+            { count: consultedNoPhones }
         ] = await Promise.all([
             supabase.from('leads').select('*', { count: 'exact', head: true }),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto'),
@@ -73,7 +76,8 @@ export default function AdminDashboard() {
             supabase.from('leads').select('*', { count: 'exact', head: true }).not('num_gov', 'is', null),
             supabase.from('leads').select('*', { count: 'exact', head: true }).in('status', ['incompleto', 'consultado']).is('num_gov', null),
             supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'ruim'),
-            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto')
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'incompleto'),
+            supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'consultado').eq('phones', '[]')
         ])
 
         setStats({
@@ -87,7 +91,8 @@ export default function AdminDashboard() {
             withGov: withGov || 0,
             noGov: noGov || 0,
             bad: bad || 0,
-            notEnriched: notEnriched || 0
+            notEnriched: notEnriched || 0,
+            consultedNoPhones: consultedNoPhones || 0
         })
         setLoading(false)
     }
@@ -121,7 +126,8 @@ export default function AdminDashboard() {
             .limit(1000)
 
         if (!consultAll) {
-            query = query.eq('status', 'incompleto')
+            // Priorizar: Incompleto OU (Consultado E sem telefones)
+            query = query.or('status.eq.incompleto,and(status.eq.consultado,phones.eq.[])')
         }
 
         const { data: leads, error: fetchError } = await query
@@ -278,11 +284,11 @@ export default function AdminDashboard() {
         { label: 'Total de Leads', value: stats.total, icon: Database, color: 'text-zinc-500' },
         { label: 'Sem Consulta', value: stats.notEnriched, icon: Search, color: 'text-amber-500' },
         { label: 'Faltam Nº Gov', value: stats.noGov, icon: AlertCircle, color: 'text-rose-500' },
+        { label: 'Falha Contato', value: stats.consultedNoPhones, icon: Smartphone, color: 'text-orange-500' },
         { label: 'Prontas (GOV OK)', value: stats.ready, icon: CheckCircle2, color: 'text-emerald-500' },
         { label: 'Fichas Ruins', value: stats.bad, icon: XCircle, color: 'text-destructive' },
         { label: 'Com Ligadores', value: stats.assigned, icon: Zap, color: 'text-violet-500' },
         { label: 'Sucesso $', value: stats.success, icon: Award, color: 'text-emerald-500' },
-        { label: 'Falha/Recusa', value: stats.failed, icon: XCircle, color: 'text-rose-400' },
     ]
 
     return (
@@ -316,7 +322,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bento Grid Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 md:gap-6 stagger-2">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4 md:gap-6 stagger-2">
                 {statCards.map((stat, idx) => (
                     <div key={stat.label} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] rounded-[40px] p-8 relative overflow-hidden group card-hover border border-white/5 flex flex-col justify-between hover:bg-white/[0.02] transition-all">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 blur-[50px] rounded-full group-hover:bg-primary/20 transition-colors pointer-events-none" />
@@ -399,6 +405,28 @@ export default function AdminDashboard() {
                                     <RefreshCcw className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-180 transition-transform duration-1000" />
                                     <span>Reset Global</span>
                                 </button>
+                                
+                                {stats.consultedNoPhones > 0 && (
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm(`Deseja resetar ${stats.consultedNoPhones} leads que falharam no contato?`)) {
+                                                setLoading(true)
+                                                await supabase
+                                                    .from('leads')
+                                                    .update({ status: 'incompleto' })
+                                                    .eq('status', 'consultado')
+                                                    .eq('phones', '[]')
+                                                await fetchStats()
+                                                addLog(`✅ ${stats.consultedNoPhones} LEADS RESETADOS PARA RE-CONSULTA`, 'success')
+                                            }
+                                        }}
+                                        disabled={loading}
+                                        className="flex-1 group relative glass-deep hover:bg-rose-500/10 py-6 md:py-8 px-6 md:px-16 rounded-[24px] md:rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.1em] md:tracking-[0.2em] flex items-center justify-center gap-3 md:gap-5 text-lg md:text-xl font-display text-rose-500 border border-rose-500/20"
+                                    >
+                                        <AlertCircle className="w-6 h-6 md:w-8 md:h-8" />
+                                        <span>Reparar Falhas</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ) : (
