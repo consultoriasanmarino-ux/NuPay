@@ -103,10 +103,10 @@ export default function ImportPage() {
                 const cpfMatch = line.match(/[\d.-]{11,14}/);
                 if (cpfMatch) cpf = cpfMatch[0];
             } else if (mode === 'gov') {
-                const match = line.match(/([\d.-]+)-(\d{2})/);
+                const match = line.match(/([\d.-]+)-(\d+)/);
                 if (match) {
                     cpf = match[1].replace(/\D/g, '').padStart(11, '0');
-                    govMatches.push({ cpf: cpf, lastTwo: match[2] });
+                    govMatches.push({ cpf: cpf, lastTwo: match[2].replace(/\D/g, '') });
                 }
             }
 
@@ -148,47 +148,60 @@ export default function ImportPage() {
                     return;
                 }
                 let updatedCount = 0, badCount = 0, alreadyHadCount = 0, notFoundCount = 0, noPhonesCount = 0;
-                console.log(`[GOV] Iniciando processamento de ${govMatches.length} matches`);
-                console.log(`[GOV] Primeiros 5 CPFs do arquivo:`, govMatches.slice(0, 5).map(m => `${m.cpf}-${m.lastTwo}`));
                 
                 for (let i = 0; i < govMatches.length; i++) {
                     setProgress({ phase: 'Processando GOV...', current: i + 1, total: govMatches.length });
                     const item = govMatches[i];
-                    const { data: leadData, error: leadError } = await supabase.from('leads').select('id, cpf, phones, status, num_gov').eq('cpf', item.cpf).single();
                     
-                    if (!leadData) {
-                        notFoundCount++;
-                        if (i < 5) console.log(`[GOV] CPF ${item.cpf} NÃO ENCONTRADO no banco. Erro:`, leadError?.message);
-                        continue;
-                    }
+                    const { data: leadData } = await supabase.from('leads').select('id, cpf, phones, status, num_gov').eq('cpf', item.cpf).maybeSingle();
                     
+                    if (!leadData) { notFoundCount++; continue; }
                     if (leadData.num_gov) { alreadyHadCount++; continue; }
                     
-                    const phones = leadData.phones || [];
-                    if (i < 5) console.log(`[GOV] CPF ${item.cpf} - Telefones no banco:`, phones, `- Buscando final: ${item.lastTwo}`);
+                    const phones = Array.isArray(leadData.phones) ? leadData.phones : [];
+                    const isFullPhone = item.lastTwo.length >= 10;
                     
-                    if (phones.length === 0) {
-                        noPhonesCount++;
-                        if (i < 5) console.log(`[GOV] CPF ${item.cpf} - SEM TELEFONES cadastrados, pulando`);
-                        continue;
-                    }
-                    
-                    const govPhone = phones.find((p: string) => p.replace(/\D/g, '').endsWith(item.lastTwo));
-                    if (govPhone) {
-                        const shouldUpdate = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
-                        const updateData: any = { num_gov: govPhone };
-                        if (shouldUpdate) updateData.status = 'concluido';
+                    if (isFullPhone) {
+                        const fullPhone = item.lastTwo;
+                        // Evitar duplicatas na array de telefones
+                        const cleanPhones = phones.map((p: string) => p.replace(/\D/g, ''));
+                        const newPhones = cleanPhones.includes(fullPhone) ? phones : [...phones, fullPhone];
+                        
+                        const updateData: any = { 
+                            num_gov: fullPhone,
+                            phones: newPhones
+                        };
+                        const shouldUpdateStatus = ['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status);
+                        if (shouldUpdateStatus) updateData.status = 'concluido';
+                        
                         await supabase.from('leads').update(updateData).eq('id', leadData.id);
                         updatedCount++;
                     } else {
-                        if (!['concluido', 'arquivado'].includes(leadData.status)) {
-                            await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
-                            badCount++;
+                        // Busca pelo final (2 dígitos)
+                        if (phones.length === 0) {
+                            noPhonesCount++;
+                            continue;
+                        }
+                        
+                        const govPhone = phones.find((p: string) => {
+                            const cleanP = p.replace(/\D/g, '');
+                            return cleanP.endsWith(item.lastTwo);
+                        });
+
+                        if (govPhone) {
+                            const updateData: any = { num_gov: govPhone };
+                            if (['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status)) updateData.status = 'concluido';
+                            await supabase.from('leads').update(updateData).eq('id', leadData.id);
+                            updatedCount++;
+                        } else {
+                            // Se não achou o final, marca como ruim se não estiver concluído
+                            if (!['concluido', 'arquivado', 'pago'].includes(leadData.status)) {
+                                await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
+                                badCount++;
+                            }
                         }
                     }
                 }
-                
-                console.log(`[GOV] RESULTADO FINAL: ${updatedCount} virtualizados, ${badCount} ruim, ${alreadyHadCount} já tinham GOV, ${notFoundCount} NÃO encontrados no banco, ${noPhonesCount} sem telefones`);
                 setResults({ totalFile: govMatches.length, duplicatesInFile: 0, newAdded: notFoundCount, alreadyInDb: alreadyHadCount, errors: noPhonesCount, updated: updatedCount, bad: badCount, invalidLines: totalLines - govMatches.length });
                 setSelectedFile(null); setUploading(false); setProgress(null);
                 return;
