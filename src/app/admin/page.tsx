@@ -165,7 +165,11 @@ export default function AdminDashboard() {
                     })
                 })
 
-                if (!response.ok) throw new Error(`HTTP ${response.status}`)
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => null);
+                    const detail = errData?.details || errData?.error || '';
+                    throw new Error(`HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+                }
                 const data = await response.json()
 
                 if (data) {

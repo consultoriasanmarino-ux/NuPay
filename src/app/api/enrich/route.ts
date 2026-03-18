@@ -23,7 +23,12 @@ export async function POST(request: Request) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            return NextResponse.json({ error: 'Erro na API Externa', details: errorText }, { status: response.status });
+            console.error(`[PROXY API ERROR] Status ${response.status}: ${errorText}`);
+            return NextResponse.json({ 
+                error: 'Erro na API Externa', 
+                status: response.status,
+                details: errorText 
+            }, { status: response.status });
         }
 
         const data = await response.json();
