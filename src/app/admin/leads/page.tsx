@@ -171,6 +171,76 @@ export default function LeadsPage() {
         }
     }
 
+    const handleFixRuim = async () => {
+        if (!confirm('🔧 CORRIGIR FICHAS RUINS: Vai buscar TODOS os leads marcados como "ruim" que nunca foram consultados (sem score, sem renda) e devolver para "incompleto" (sem consulta). Continuar?')) return
+        setLoading(true)
+
+        try {
+            // Buscar TODOS os leads com status 'ruim'
+            const { data: ruimLeads, error: fetchErr } = await supabase
+                .from('leads')
+                .select('id, cpf, score, income, phones, full_name, status')
+                .eq('status', 'ruim')
+                .limit(5000)
+
+            if (fetchErr) {
+                alert('Erro ao buscar leads ruins: ' + fetchErr.message)
+                setLoading(false)
+                return
+            }
+
+            if (!ruimLeads || ruimLeads.length === 0) {
+                alert('✅ Nenhum lead com status "ruim" encontrado!')
+                setLoading(false)
+                return
+            }
+
+            // Filtrar: leads que NÃO foram consultados (sem score E sem renda = nunca passou pela API)
+            // Ou leads que têm phones vazio/null (nunca enriquecidos de verdade)
+            const leadsToFix = ruimLeads.filter(lead => {
+                const hasNoScore = !lead.score || lead.score === 0
+                const hasNoIncome = !lead.income || lead.income === 0
+                const hasNoPhones = !lead.phones || (Array.isArray(lead.phones) && lead.phones.length === 0)
+                
+                // Se não tem score NEM renda → nunca foi consultado, definitivamente errado
+                if (hasNoScore && hasNoIncome) return true
+                
+                // Se não tem telefones → nunca foi enriquecido corretamente
+                if (hasNoPhones && hasNoScore) return true
+                
+                return false
+            })
+
+            if (leadsToFix.length === 0) {
+                alert(`✅ Todos os ${ruimLeads.length} leads "ruim" parecem estar corretos (já foram consultados e têm dados).`)
+                setLoading(false)
+                return
+            }
+
+            // Atualizar em batches
+            const ids = leadsToFix.map(l => l.id)
+            const BATCH = 300
+            let fixed = 0
+
+            for (let i = 0; i < ids.length; i += BATCH) {
+                const batch = ids.slice(i, i + BATCH)
+                const { error } = await supabase
+                    .from('leads')
+                    .update({ status: 'incompleto' })
+                    .in('id', batch)
+                
+                if (!error) fixed += batch.length
+            }
+
+            alert(`✅ CORREÇÃO COMPLETA!\n\n📊 Total de leads "ruim": ${ruimLeads.length}\n🔧 Corrigidos (sem consulta → incompleto): ${fixed}\n✅ Legitimamente ruins (consultados): ${ruimLeads.length - leadsToFix.length}`)
+            fetchLeads()
+        } catch (err) {
+            alert('Erro na correção: ' + String(err))
+        } finally {
+            setLoading(false)
+        }
+    }
+
     useEffect(() => {
         fetchLeads()
     }, [page, searchTerm, filters])
@@ -184,7 +254,7 @@ export default function LeadsPage() {
                         <div className="w-12 h-12 md:w-16 md:h-16 rounded-[20px] md:rounded-[28px] glass glow-primary border border-primary/30 group rotate-3 hover:rotate-0 transition-transform flex items-center justify-center shrink-0">
                             <LayoutGrid className="w-7 h-7 md:w-9 md:h-9 text-primary group-hover:text-magenta transition-colors" />
                         </div>
-                        <h2 className="text-3xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Base de Leads</h2>
+                        <h2 className="text-3xl md:text-7xl font-display uppercase tracking-tight leading-none text-white italic">Painel de Leads - V3</h2>
                     </div>
                     <p className="text-zinc-500 font-bold text-sm md:text-lg flex items-center gap-3 md:gap-4 italic">
                         <Activity className="w-4 h-4 md:w-5 md:h-5 text-primary animate-pulse" />
@@ -199,6 +269,13 @@ export default function LeadsPage() {
                     >
                         <Zap className="w-3 md:w-4 h-3 md:h-4 fill-current" />
                         Reparar
+                    </button>
+                    <button
+                        onClick={handleFixRuim}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-4 md:px-10 py-3 md:py-5 rounded-[20px] md:rounded-[32px] glass border border-rose-500/20 text-rose-400 text-[9px] md:text-[10px] font-mono font-bold uppercase hover:bg-rose-500 hover:text-white transition-all active:scale-95 shadow-xl"
+                    >
+                        <AlertCircle className="w-3 md:w-4 h-3 md:h-4" />
+                        Fix Ruins
                     </button>
                     <button
                         onClick={handleFixStatus}

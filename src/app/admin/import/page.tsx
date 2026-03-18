@@ -179,6 +179,11 @@ export default function ImportPage() {
                     } else {
                         // Busca pelo final (2 dígitos)
                         if (phones.length === 0) {
+                            // Se o lead ainda nem foi consultado, não marcar como ruim - ele precisa ser enriquecido primeiro
+                            if (leadData.status === 'incompleto') {
+                                noPhonesCount++;
+                                continue;
+                            }
                             noPhonesCount++;
                             continue;
                         }
@@ -194,8 +199,15 @@ export default function ImportPage() {
                             await supabase.from('leads').update(updateData).eq('id', leadData.id);
                             updatedCount++;
                         } else {
-                            // Se não achou o final, marca como ruim se não estiver concluído
-                            if (!['concluido', 'arquivado', 'pago'].includes(leadData.status)) {
+                            // NUNCA marcar como 'ruim' leads que ainda não foram consultados
+                            // Leads 'incompleto' precisam ser enriquecidos primeiro antes de julgar
+                            if (leadData.status === 'incompleto') {
+                                // Sem consulta ainda, pular - não é ficha ruim, apenas pendente
+                                noPhonesCount++;
+                                continue;
+                            }
+                            // Só marca como ruim leads que JÁ foram consultados e não batem
+                            if (!['concluido', 'arquivado', 'pago', 'atribuido'].includes(leadData.status)) {
                                 await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
                                 badCount++;
                             }

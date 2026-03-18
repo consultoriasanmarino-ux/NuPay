@@ -122,12 +122,14 @@ export default function AdminDashboard() {
         let query = supabase
             .from('leads')
             .select('id, cpf, full_name, status')
-            .neq('status', 'ruim')
             .limit(1000)
 
         if (!consultAll) {
-            // Priorizar: Incompleto OU (Consultado E sem telefones)
-            query = query.or('status.eq.incompleto,and(status.eq.consultado,phones.eq.[])')
+            // Priorizar: Incompleto OU Ruim (podem ter sido marcados erroneamente) OU (Consultado E sem telefones)
+            query = query.or('status.eq.incompleto,status.eq.ruim,and(status.eq.consultado,phones.eq.[])')
+        } else {
+            // Consultar todos exceto os que já estão em estados finais/atribuídos
+            query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado")')
         }
 
         const { data: leads, error: fetchError } = await query
@@ -231,9 +233,9 @@ export default function AdminDashboard() {
                         phones: phones.length > 0 ? phones : [],
                     }
 
-                    // Only change status to 'consultado' for leads that are 'incompleto'
+                    // Change status to 'consultado' for leads that are 'incompleto' or 'ruim' (incorrectly marked)
                     // Preserve status for 'atribuido', 'arquivado', 'concluido', etc.
-                    if (lead.status === 'incompleto') {
+                    if (lead.status === 'incompleto' || lead.status === 'ruim') {
                         updateData.status = 'consultado'
                     }
 
