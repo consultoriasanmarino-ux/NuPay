@@ -125,11 +125,12 @@ export default function AdminDashboard() {
             .limit(1000)
 
         if (!consultAll) {
-            // Priorizar: Incompleto OU Ruim (podem ter sido marcados erroneamente) OU (Consultado E sem telefones)
-            query = query.or('status.eq.incompleto,status.eq.ruim,and(status.eq.consultado,phones.eq.[])')
+            // Priorizar: Apenas Incompleto (Sem Consulta) OU (Consultado E sem telefones / Falha Contato)
+            // IMPORTANTE: Removemos 'ruim' daqui para não sobrecarregar a API com leads já descartados
+            query = query.or('status.eq.incompleto,and(status.eq.consultado,phones.eq.[])')
         } else {
-            // Consultar todos exceto os que já estão em estados finais/atribuídos
-            query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado")')
+            // Reset Global: Consultar todos exceto os que já estão em estados finais ou marcados como ruins
+            query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado","ruim")')
         }
 
         const { data: leads, error: fetchError } = await query
