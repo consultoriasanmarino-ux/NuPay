@@ -270,7 +270,20 @@ export default function AdminDashboard() {
                     } else throw new Error(updateError.message)
                 } else throw new Error('API Empty Response')
             } catch (err: any) {
-                addLog(`❌ SIGNAL FAILED [${lead.cpf}]: ${err.message}`, 'error')
+                const errorMessage = err.message || 'Erro Desconhecido';
+                addLog(`❌ SIGNAL FAILED [${lead.cpf}]: ${errorMessage}`, 'error')
+                
+                // Se a API retornar erro (500, 404, etc), marcamos como 'ruim' 
+                // para liberar a fila e não ficar tentando CPFs inválidos infinitamente
+                if (errorMessage.includes('HTTP')) {
+                    try {
+                        await supabase.from('leads').update({ status: 'ruim' }).eq('id', lead.id);
+                        addLog(`🩹 Lead [${lead.cpf}] descartado por Erro de Protocolo`, 'info');
+                    } catch (dbErr) {
+                        console.error('Erro ao descartar lead:', dbErr);
+                    }
+                }
+
                 setProgress(prev => ({ ...prev, failed: prev.failed + 1 }))
             }
             await new Promise(r => setTimeout(r, 600))
