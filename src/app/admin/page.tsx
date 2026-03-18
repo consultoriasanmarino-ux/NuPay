@@ -125,18 +125,18 @@ export default function AdminDashboard() {
             .limit(1000)
 
         if (!consultAll) {
-            // Priorizar: Apenas Incompleto (Sem Consulta) OU (Consultado E sem telefones / Falha Contato)
-            // IMPORTANTE: Removemos 'ruim' daqui para não sobrecarregar a API com leads já descartados
-            query = query.or('status.eq.incompleto,and(status.eq.consultado,phones.eq.[])')
+            // Priorizar: Incompleto (Sem Consulta) OU (Consultado E sem telefones) OU Ruim (para resgate)
+            query = query.or('status.eq.incompleto,status.eq.ruim,and(status.eq.consultado,phones.eq.[])')
         } else {
-            // Reset Global: Consultar todos exceto os que já estão em estados finais ou marcados como ruins
-            query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado","ruim")')
+            // Reset Global: Consultar todos exceto os que já estão em estados finais
+            query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado")')
         }
 
         const { data: leads, error: fetchError } = await query
 
         if (fetchError || !leads || leads.length === 0) {
             addLog('❌ NENHUM LEAD ENCONTRADO.', 'error')
+            setProcessing(false)
             return
         }
 
@@ -273,9 +273,11 @@ export default function AdminDashboard() {
                 const errorMessage = err.message || 'Erro Desconhecido';
                 addLog(`❌ SIGNAL FAILED [${lead.cpf}]: ${errorMessage}`, 'error')
                 
-                // Se a API retornar erro (500, 404, etc), marcamos como 'ruim' 
-                // para liberar a fila e não ficar tentando CPFs inválidos infinitamente
-                if (errorMessage.includes('HTTP')) {
+                // Se for erro de sistema deles ("executar comando"), apenas PULA (não descarta)
+                // Se for outro erro HTTP (ex: 404), aí sim marcamos como ruim para limpar a fila
+                if (errorMessage.includes('executar comando')) {
+                    addLog(`⏳ Lead [${lead.cpf}] ignorado: Erro no Servidor OwnData (Tente novamente mais tarde)`, 'info');
+                } else if (errorMessage.includes('HTTP')) {
                     try {
                         await supabase.from('leads').update({ status: 'ruim' }).eq('id', lead.id);
                         addLog(`🩹 Lead [${lead.cpf}] descartado por Erro de Protocolo`, 'info');
