@@ -46,6 +46,7 @@ export default function FichasPage() {
     const [selectedLigadorForLead, setSelectedLigadorForLead] = useState<{ [key: string]: string }>({})
     const [selectedLigadorBatch, setSelectedLigadorBatch] = useState('')
 
+    const [selectedBank, setSelectedBank] = useState<string>('ALL')
     const [filters, setFilters] = useState({
         income: '',
         score: '',
@@ -85,6 +86,15 @@ export default function FichasPage() {
         if (filters.age === 'greater') query = query.gte('age', 40)
         if (filters.age === 'less') query = query.lte('age', 39)
 
+        if (selectedBank !== 'ALL') {
+            if (selectedBank === 'NUBANK') {
+                // Filtra tudo que NÃO seja um dos bancos específicos
+                query = query.or('card_expiry.is.null,card_expiry.not.in.(BB,BRADESCO,ITAU,SANTANDER)')
+            } else {
+                query = query.eq('card_expiry', selectedBank)
+            }
+        }
+
         const { data, count, error } = await query
 
         if (!error && data) {
@@ -97,7 +107,7 @@ export default function FichasPage() {
 
     useEffect(() => {
         fetchData()
-    }, [page, filters])
+    }, [page, filters, selectedBank])
 
     const handleAssign = async (leadId: string) => {
         const ownerId = selectedLigadorForLead[leadId]
@@ -196,6 +206,34 @@ export default function FichasPage() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Bank Navigation Tabs */}
+            <div className="flex flex-wrap gap-3 md:gap-5 stagger-2">
+                {[
+                    { id: 'ALL', label: 'TODAS', color: 'from-zinc-500/20 to-zinc-500/5' },
+                    { id: 'NUBANK', label: 'NUBANK', color: 'from-primary/20 to-primary/5' },
+                    { id: 'BB', label: 'BANCO DO BRASIL', color: 'from-yellow-400/20 to-yellow-400/5' },
+                    { id: 'BRADESCO', label: 'BRADESCO', color: 'from-red-500/20 to-red-500/5' },
+                    { id: 'ITAU', label: 'ITAÚ', color: 'from-orange-500/20 to-orange-500/5' },
+                    { id: 'SANTANDER', label: 'SANTANDER', color: 'from-red-600/20 to-red-600/5' }
+                ].map((bank) => (
+                    <button
+                        key={bank.id}
+                        onClick={() => { setSelectedBank(bank.id); setPage(1); }}
+                        className={cn(
+                            "px-8 py-5 rounded-[28px] text-[10px] font-mono font-bold uppercase tracking-[0.2em] transition-all active:scale-95 border italic relative overflow-hidden group",
+                            selectedBank === bank.id 
+                                ? "bg-gradient-to-br border-white/20 text-white shadow-2xl " + bank.color
+                                : "glass border-white/5 text-zinc-600 hover:text-zinc-400"
+                        )}
+                    >
+                        {selectedBank === bank.id && (
+                            <div className="absolute inset-0 bg-white/5 animate-pulse pointer-events-none" />
+                        )}
+                        <span className="relative z-10">{bank.label}</span>
+                    </button>
+                ))}
             </div>
 
             {/* Filter & Batch Bar */}
@@ -356,7 +394,9 @@ export default function FichasPage() {
                                     )}>
                                         <div className="flex items-center gap-2 md:gap-3">
                                             <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-700" />
-                                            <p className="text-[7px] md:text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest italic">{item.label}</p>
+                                            <p className="text-[7px] md:text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest italic">
+                                                {item.label === 'BIN' && ['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(lead.card_expiry || '') ? 'AGÊNCIA' : item.label}
+                                            </p>
                                         </div>
                                         <p className={cn("italic leading-none tracking-tight", item.color)}>{item.val}</p>
                                     </div>
