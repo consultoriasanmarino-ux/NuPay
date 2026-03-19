@@ -22,12 +22,15 @@ import { supabase } from '@/lib/supabase'
 
 export default function ImportPage() {
     const [dragActive, setDragActive] = useState(false)
+    const [dragActive2, setDragActive2] = useState(false)
     const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'checker_gov' | 'rejected'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [selectedFile2, setSelectedFile2] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
     const [progress, setProgress] = useState<{ phase: string, current: number, total: number } | null>(null)
     const [results, setResults] = useState<{ totalFile: number, duplicatesInFile: number, newAdded: number, alreadyInDb: number, errors: number, updated?: number, bad?: number, invalidLines?: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const fileInput2Ref = useRef<HTMLInputElement>(null)
 
     const BATCH_SIZE = 300
 
@@ -63,12 +66,46 @@ export default function ImportPage() {
         }
     }
 
-    const parseFileContent = (content: string) => {
+    const handleDrag2 = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive2(true)
+        } else if (e.type === "dragleave") {
+            setDragActive2(false)
+        }
+    }
+
+    const handleDrop2 = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDragActive2(false)
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0]
+            if (file.name.endsWith('.txt')) {
+                setSelectedFile2(file)
+                setResults(null)
+            } else {
+                alert("PROTOCOL ERROR: .TXT FILES ONLY")
+            }
+        }
+    }
+
+    const handleFileChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedFile2(e.target.files[0])
+            setResults(null)
+        }
+    }
+
+    const parseFileContent = (content: string, overrideMode?: string) => {
         const lines = content.split('\n');
         const leads: any[] = [];
         const govMatches: { cpf: string, lastTwo: string }[] = [];
         const checkerMatches: { cpf: string, phone: string }[] = [];
         const seenCpfs = new Set();
+
+        const currentMode = overrideMode || mode;
 
         lines.forEach(line => {
             let cpf = '';
@@ -76,7 +113,7 @@ export default function ImportPage() {
             let card_bin = null;
             let card_expiry = null;
 
-            if (mode === 'bot') {
+            if (currentMode === 'bot') {
                 // Format 1: NOME: Fulano | 🆔 12345678900 | BIN: 516292 | VAL: 01/2030
                 const nameMatch = line.match(/NOME:\s*([^|]+)/);
                 const cpfMatch1 = line.match(/🆔\s*([\d.-]+)/);
@@ -100,16 +137,16 @@ export default function ImportPage() {
                     fullName = nameMatch2 ? nameMatch2[1].trim().toUpperCase() : 'NOME_AUSENTE';
                     if (binMatch2) card_bin = binMatch2[1].trim().slice(0, 6);
                 }
-            } else if (mode === 'cpf' || mode === 'rejected') {
+            } else if (currentMode === 'cpf' || currentMode === 'rejected') {
                 const cpfMatch = line.match(/[\d.-]{11,14}/);
                 if (cpfMatch) cpf = cpfMatch[0];
-            } else if (mode === 'gov') {
+            } else if (currentMode === 'gov') {
                 const match = line.match(/([\d.-]+)-(\d+)/);
                 if (match) {
                     cpf = match[1].replace(/\D/g, '').padStart(11, '0');
                     govMatches.push({ cpf: cpf, lastTwo: match[2].replace(/\D/g, '') });
                 }
-            } else if (mode === 'checker_gov') {
+            } else if (currentMode === 'checker_gov') {
                 const match = line.match(/([\d.-]+).*TELEFONE:\s*(\d+)/i);
                 if (match) {
                     cpf = match[1].replace(/\D/g, '').padStart(11, '0');
@@ -142,23 +179,51 @@ export default function ImportPage() {
         setProgress({ phase: 'Lendo arquivo...', current: 0, total: 0 })
 
         try {
-            const text = await selectedFile.text();
-            const lines = text.split('\n');
-            const totalLines = lines.filter(l => l.trim()).length;
-            const { leads, govMatches, checkerMatches } = parseFileContent(text);
-            const duplicatesInFile = totalLines - leads.length - (mode === 'gov' ? (totalLines - govMatches.length) : mode === 'checker_gov' ? (totalLines - checkerMatches.length) : 0);
-
             if (mode === 'checker_gov') {
-                if (checkerMatches.length === 0) {
-                    alert("PACÔMETRO ZERO: CHECKER FORMAT NOT DETECTED");
+                if (!selectedFile || !selectedFile2) {
+                    alert("PACÔMETRO: É OBRIGATÓRIO ENVIAR OS DOIS ARQUIVOS (BASE E CHECKER GOV).");
                     setUploading(false); setProgress(null);
                     return;
                 }
-                let updatedCount = 0, badCount = 0, alreadyHadCount = 0, notFoundCount = 0, noPhonesCount = 0;
+                const text1 = await selectedFile.text();
+                const text2 = await selectedFile2.text();
                 
-                for (let i = 0; i < checkerMatches.length; i++) {
-                    setProgress({ phase: 'Processando Checker GOV...', current: i + 1, total: checkerMatches.length });
-                    const item = checkerMatches[i];
+                const baseParsed = parseFileContent(text1, 'cpf');
+                const checkerParsed = parseFileContent(text2, 'checker_gov');
+                
+                const baseCpfs = baseParsed.leads.map(l => l.cpf);
+                const approvedMatches = checkerParsed.checkerMatches;
+                const approvedCpfs = new Set(approvedMatches.map(m => m.cpf));
+
+                if (baseCpfs.length === 0) {
+                    alert("SINAL VAZIO: A LISTA BASE NÃO POSSUI CPFs VÁLIDOS.");
+                    setUploading(false); setProgress(null);
+                    return;
+                }
+
+                if (approvedMatches.length === 0) {
+                    alert("PACÔMETRO ZERO: CHECKER FORMAT NOT DETECTED NO ARQUIVO 2.");
+                    setUploading(false); setProgress(null);
+                    return;
+                }
+
+                const badCpfs = baseCpfs.filter(c => !approvedCpfs.has(c));
+                let badCount = 0;
+                
+                if (badCpfs.length > 0) {
+                    setProgress({ phase: 'Marcando CPFs faltantes como ruim...', current: 0, total: badCpfs.length });
+                    for (let i = 0; i < badCpfs.length; i += BATCH_SIZE) {
+                        const batch = badCpfs.slice(i, i + BATCH_SIZE);
+                        const { error } = await supabase.from('leads').update({ status: 'ruim' }).in('cpf', batch);
+                        if (!error) badCount += batch.length;
+                    }
+                }
+
+                let updatedCount = 0, alreadyHadCount = 0, notFoundCount = 0, noPhonesCount = 0;
+                
+                for (let i = 0; i < approvedMatches.length; i++) {
+                    setProgress({ phase: 'Processando Checker GOV Aprovados...', current: i + 1, total: approvedMatches.length });
+                    const item = approvedMatches[i];
                     
                     const { data: leadData } = await supabase.from('leads').select('id, cpf, phones, status, num_gov').eq('cpf', item.cpf).maybeSingle();
                     
@@ -198,10 +263,16 @@ export default function ImportPage() {
                         }
                     }
                 }
-                setResults({ totalFile: checkerMatches.length, duplicatesInFile: 0, newAdded: notFoundCount, alreadyInDb: alreadyHadCount, errors: noPhonesCount, updated: updatedCount, bad: badCount, invalidLines: totalLines - checkerMatches.length });
-                setSelectedFile(null); setUploading(false); setProgress(null);
+                setResults({ totalFile: baseCpfs.length, duplicatesInFile: 0, newAdded: notFoundCount, alreadyInDb: alreadyHadCount, errors: noPhonesCount, updated: updatedCount, bad: badCount, invalidLines: 0 });
+                setSelectedFile(null); setSelectedFile2(null); setUploading(false); setProgress(null);
                 return;
             }
+
+            const text = await selectedFile.text();
+            const lines = text.split('\n');
+            const totalLines = lines.filter(l => l.trim()).length;
+            const { leads, govMatches } = parseFileContent(text);
+            const duplicatesInFile = totalLines - leads.length - (mode === 'gov' ? (totalLines - govMatches.length) : 0);
 
             if (mode === 'gov') {
                 if (govMatches.length === 0) {
