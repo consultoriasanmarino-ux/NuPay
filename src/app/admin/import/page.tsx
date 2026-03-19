@@ -22,7 +22,7 @@ import { supabase } from '@/lib/supabase'
 
 export default function ImportPage() {
     const [dragActive, setDragActive] = useState(false)
-    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'rejected'>('bot')
+    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'checker_gov' | 'rejected'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
     const [progress, setProgress] = useState<{ phase: string, current: number, total: number } | null>(null)
@@ -67,6 +67,7 @@ export default function ImportPage() {
         const lines = content.split('\n');
         const leads: any[] = [];
         const govMatches: { cpf: string, lastTwo: string }[] = [];
+        const checkerMatches: { cpf: string, phone: string }[] = [];
         const seenCpfs = new Set();
 
         lines.forEach(line => {
@@ -108,6 +109,12 @@ export default function ImportPage() {
                     cpf = match[1].replace(/\D/g, '').padStart(11, '0');
                     govMatches.push({ cpf: cpf, lastTwo: match[2].replace(/\D/g, '') });
                 }
+            } else if (mode === 'checker_gov') {
+                const match = line.match(/([\d.-]+).*TELEFONE:\s*(\d+)/i);
+                if (match) {
+                    cpf = match[1].replace(/\D/g, '').padStart(11, '0');
+                    checkerMatches.push({ cpf: cpf, phone: match[2].replace(/\D/g, '') });
+                }
             }
 
             if (cpf) {
@@ -125,7 +132,7 @@ export default function ImportPage() {
             }
         });
 
-        return { leads, govMatches };
+        return { leads, govMatches, checkerMatches };
     }
 
     const handleUpload = async () => {
@@ -138,8 +145,63 @@ export default function ImportPage() {
             const text = await selectedFile.text();
             const lines = text.split('\n');
             const totalLines = lines.filter(l => l.trim()).length;
-            const { leads, govMatches } = parseFileContent(text);
-            const duplicatesInFile = totalLines - leads.length - (mode === 'gov' ? (totalLines - govMatches.length) : 0);
+            const { leads, govMatches, checkerMatches } = parseFileContent(text);
+            const duplicatesInFile = totalLines - leads.length - (mode === 'gov' ? (totalLines - govMatches.length) : mode === 'checker_gov' ? (totalLines - checkerMatches.length) : 0);
+
+            if (mode === 'checker_gov') {
+                if (checkerMatches.length === 0) {
+                    alert("PACÔMETRO ZERO: CHECKER FORMAT NOT DETECTED");
+                    setUploading(false); setProgress(null);
+                    return;
+                }
+                let updatedCount = 0, badCount = 0, alreadyHadCount = 0, notFoundCount = 0, noPhonesCount = 0;
+                
+                for (let i = 0; i < checkerMatches.length; i++) {
+                    setProgress({ phase: 'Processando Checker GOV...', current: i + 1, total: checkerMatches.length });
+                    const item = checkerMatches[i];
+                    
+                    const { data: leadData } = await supabase.from('leads').select('id, cpf, phones, status, num_gov').eq('cpf', item.cpf).maybeSingle();
+                    
+                    if (!leadData) { notFoundCount++; continue; }
+                    if (leadData.num_gov) { alreadyHadCount++; continue; }
+                    
+                    const phones = Array.isArray(leadData.phones) ? leadData.phones : [];
+                    
+                    if (phones.length === 0) {
+                        if (leadData.status === 'incompleto') {
+                            noPhonesCount++;
+                            continue;
+                        }
+                        noPhonesCount++;
+                        continue;
+                    }
+                    
+                    const cleanPhoneInput = item.phone.replace(/\D/g, '');
+                    const govPhone = phones.find((p: string) => {
+                        const cleanP = p.replace(/\D/g, '');
+                        return cleanP === cleanPhoneInput || cleanP.endsWith(cleanPhoneInput.slice(-8));
+                    });
+
+                    if (govPhone) {
+                        const updateData: any = { num_gov: govPhone };
+                        if (['incompleto', 'consultado', 'processando', 'ruim'].includes(leadData.status)) updateData.status = 'concluido';
+                        await supabase.from('leads').update(updateData).eq('id', leadData.id);
+                        updatedCount++;
+                    } else {
+                        if (leadData.status === 'incompleto') {
+                            noPhonesCount++;
+                            continue;
+                        }
+                        if (!['concluido', 'arquivado', 'pago', 'atribuido'].includes(leadData.status)) {
+                            await supabase.from('leads').update({ status: 'ruim' }).eq('id', leadData.id);
+                            badCount++;
+                        }
+                    }
+                }
+                setResults({ totalFile: checkerMatches.length, duplicatesInFile: 0, newAdded: notFoundCount, alreadyInDb: alreadyHadCount, errors: noPhonesCount, updated: updatedCount, bad: badCount, invalidLines: totalLines - checkerMatches.length });
+                setSelectedFile(null); setUploading(false); setProgress(null);
+                return;
+            }
 
             if (mode === 'gov') {
                 if (govMatches.length === 0) {
@@ -298,7 +360,7 @@ export default function ImportPage() {
                     <div className="glass px-10 py-6 rounded-[32px] animate-in zoom-in border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
                         <p className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.4em] leading-none mb-3 italic">Signal Sync Complete</p>
                         <div className="text-sm font-black text-white italic tracking-tighter flex flex-col items-end gap-1">
-                            {mode === 'gov' ? (
+                            {mode === 'gov' || mode === 'checker_gov' ? (
                                 <div className="space-y-1 flex flex-col items-end">
                                     <span className="text-emerald-500 text-lg">🚀 {results.updated} GOV VIRTUALIZED</span>
                                     <span className="text-rose-500">🚫 {results.bad} MARCADOS COMO RUIM</span>
@@ -338,27 +400,28 @@ export default function ImportPage() {
             </div>
 
             {/* Mode Selectors - Bento Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
-                    { id: 'cpf', icon: FileType, title: 'Modo 1: Lista CPF', desc: 'Injeção de Base Bruta', color: 'text-amber-500' },
-                    { id: 'bot', icon: Upload, title: 'Modo 2: Extrator Bot', desc: 'Parsers de Log Bin/Val', color: 'text-primary' },
-                    { id: 'gov', icon: UserCheck, title: 'Modo 3: Núms GOV', desc: 'CPF-XX Validation', color: 'text-emerald-500' },
-                    { id: 'rejected', icon: AlertCircle, title: 'Modo 4: Recusados', desc: 'Marcar como Ficha Ruim', color: 'text-destructive' }
+                    { id: 'cpf', icon: FileType, title: 'Modo 1', desc: 'Lista CPF', color: 'text-amber-500' },
+                    { id: 'bot', icon: Upload, title: 'Modo 2', desc: 'Extrator Bot', color: 'text-primary' },
+                    { id: 'gov', icon: UserCheck, title: 'Modo 3', desc: 'Núms GOV', color: 'text-emerald-500' },
+                    { id: 'rejected', icon: AlertCircle, title: 'Modo 4', desc: 'Marcar Ruins', color: 'text-destructive' },
+                    { id: 'checker_gov', icon: CheckCircle2, title: 'Modo 5', desc: 'Checker GOV TXT', color: 'text-cyan-400' }
                 ].map((item) => (
                     <button
                         key={item.id}
                         onClick={() => setMode(item.id as any)}
                         className={cn(
-                            "glass p-10 rounded-[48px] border-2 transition-all text-left relative overflow-hidden group/card card-hover",
+                            "glass p-6 md:p-8 rounded-[36px] border-2 transition-all text-left relative overflow-hidden group/card card-hover",
                             mode === item.id ? "bg-primary/5 border-primary shadow-[0_0_40px_rgba(138,5,190,0.1)]" : "bg-card border-white/5 opacity-40 hover:opacity-100"
                         )}
                     >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full" />
-                        <div className={cn("p-5 rounded-[24px] bg-black/40 border border-white/5 w-fit mb-8 transition-transform group-hover/card:scale-110 duration-500 shadow-2xl", item.color)}>
-                            <item.icon className="w-8 h-8" />
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-2xl rounded-full" />
+                        <div className={cn("p-4 rounded-[20px] bg-black/40 border border-white/5 w-fit mb-6 transition-transform group-hover/card:scale-110 duration-500 shadow-2xl", item.color)}>
+                            <item.icon className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-black uppercase italic tracking-tighter leading-none mb-1">{item.title}</h3>
-                        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest leading-none mt-2">{item.desc}</p>
+                        <h3 className="text-lg md:text-xl font-black uppercase italic tracking-tighter leading-none mb-1">{item.title}</h3>
+                        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest leading-none mt-2">{item.desc}</p>
                     </button>
                 ))}
             </div>
