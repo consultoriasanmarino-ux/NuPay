@@ -498,74 +498,160 @@ export default function ImportPage() {
             </div>
 
             {/* Upload Zone */}
-            <div
-                onClick={() => !selectedFile && fileInputRef.current?.click()}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                className={cn(
-                    "w-full aspect-[2/0.7] border-2 border-dashed rounded-[64px] flex flex-col items-center justify-center space-y-8 transition-all relative overflow-hidden group shadow-2xl",
-                    dragActive ? "border-primary bg-primary/10" : "border-white/5 bg-secondary/20",
-                    selectedFile ? "border-emerald-500/40 bg-emerald-500/5 cursor-default" : "cursor-pointer hover:border-primary/50"
-                )}
-            >
-                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-                <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileChange} className="hidden" />
+            <div className={cn("grid gap-6", mode === 'checker_gov' ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
+                <div
+                    onClick={() => !selectedFile && fileInputRef.current?.click()}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    className={cn(
+                        "w-full aspect-[2/0.7] border-2 border-dashed rounded-[64px] flex flex-col items-center justify-center space-y-8 transition-all relative overflow-hidden group shadow-2xl",
+                        dragActive ? "border-primary bg-primary/10" : "border-white/5 bg-secondary/20",
+                        selectedFile ? "border-emerald-500/40 bg-emerald-500/5 cursor-default" : "cursor-pointer hover:border-primary/50",
+                        mode === 'checker_gov' ? "aspect-auto py-12" : ""
+                    )}
+                >
+                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                    <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileChange} className="hidden" />
 
-                {!selectedFile ? (
-                    <div className="text-center space-y-6 relative z-10">
-                        <div className="w-24 h-24 bg-black/40 rounded-[32px] border border-white/5 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-700 shadow-2xl relative">
-                            <Upload className="w-10 h-10 text-zinc-600 group-hover:text-primary transition-colors" />
-                            <div className="absolute inset-0 bg-primary/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <div className="space-y-2">
-                            <p className="text-3xl font-black uppercase italic tracking-tighter leading-none">Deploy Central Signal Log</p>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.4em] italic opacity-60">CLIQUE OU ARRASTE O ARQUIVO .TXT PARA O RADAR</p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center gap-10 w-full max-w-xl animate-in zoom-in-95 duration-500 px-10 relative z-10">
-                        <div className="glass p-8 rounded-[36px] border border-emerald-500/20 w-full flex items-center gap-6 relative group/file shadow-2xl">
-                            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-inner">
-                                <FileText className="w-8 h-8 text-emerald-500" />
+                    {!selectedFile ? (
+                        <div className="text-center space-y-6 relative z-10">
+                            <div className="w-24 h-24 bg-black/40 rounded-[32px] border border-white/5 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-700 shadow-2xl relative">
+                                <Upload className="w-10 h-10 text-zinc-600 group-hover:text-primary transition-colors" />
+                                <div className="absolute inset-0 bg-primary/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Arquivo Preparado</p>
-                                <p className="text-lg font-black italic tracking-tighter truncate leading-none">{selectedFile.name}</p>
+                            <div className="space-y-2">
+                                <p className="text-3xl font-black uppercase italic tracking-tighter leading-none">
+                                    {mode === 'checker_gov' ? "Lista Base" : "Deploy Central Signal Log"}
+                                </p>
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.4em] italic opacity-60">
+                                    {mode === 'checker_gov' ? "ARQUIVO 1: .TXT COM TODOS OS CPFS" : "CLIQUE OU ARRASTE O ARQUIVO .TXT PARA O RADAR"}
+                                </p>
                             </div>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
-                                className="w-12 h-12 rounded-2xl bg-secondary hover:bg-destructive/10 hover:text-destructive transition-all flex items-center justify-center"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
                         </div>
-
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleUpload(); }}
-                            disabled={uploading}
-                            className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex flex-col items-center justify-center gap-2 disabled:opacity-70 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
-                        >
-                            <div className="flex items-center gap-4">
-                                {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
-                                {uploading ? (progress?.phase || "SINCRONIZANDO...") : "DEPLOY SIGNALS TO CLOUD"}
-                            </div>
-                            {uploading && progress && progress.total > 0 && (
-                                <div className="w-full max-w-xs space-y-1">
-                                    <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-white/80 rounded-full transition-all duration-300" 
-                                            style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }} 
-                                        />
-                                    </div>
-                                    <p className="text-[10px] font-bold tracking-widest opacity-70">
-                                        {progress.current}/{progress.total} ({Math.round((progress.current / progress.total) * 100)}%)
-                                    </p>
+                    ) : (
+                        <div className="flex flex-col items-center gap-10 w-full max-w-xl animate-in zoom-in-95 duration-500 px-10 relative z-10">
+                            <div className="glass p-8 rounded-[36px] border border-emerald-500/20 w-full flex items-center gap-6 relative group/file shadow-2xl">
+                                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                                    <FileText className="w-8 h-8 text-emerald-500" />
                                 </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">
+                                        {mode === 'checker_gov' ? "Base (Arquivo 1)" : "Arquivo Preparado"}
+                                    </p>
+                                    <p className="text-lg font-black italic tracking-tighter truncate leading-none">{selectedFile.name}</p>
+                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                                    className="w-12 h-12 rounded-2xl bg-secondary hover:bg-destructive/10 hover:text-destructive transition-all flex items-center justify-center"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            {mode !== 'checker_gov' && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleUpload(); }}
+                                    disabled={uploading}
+                                    className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex flex-col items-center justify-center gap-2 disabled:opacity-70 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
+                                        {uploading ? (progress?.phase || "SINCRONIZANDO...") : "DEPLOY SIGNALS TO CLOUD"}
+                                    </div>
+                                    {uploading && progress && progress.total > 0 && (
+                                        <div className="w-full max-w-xs space-y-1">
+                                            <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-white/80 rounded-full transition-all duration-300" 
+                                                    style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }} 
+                                                />
+                                            </div>
+                                            <p className="text-[10px] font-bold tracking-widest opacity-70">
+                                                {progress.current}/{progress.total} ({Math.round((progress.current / progress.total) * 100)}%)
+                                            </p>
+                                        </div>
+                                    )}
+                                </button>
                             )}
-                        </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* AREA 2 (Apenas Modo Checker Gov) */}
+                {mode === 'checker_gov' && (
+                    <div
+                        onClick={() => !selectedFile2 && fileInput2Ref.current?.click()}
+                        onDragOver={handleDrag2}
+                        onDrop={handleDrop2}
+                        className={cn(
+                            "w-full border-2 border-dashed rounded-[64px] flex flex-col items-center justify-center space-y-8 transition-all relative overflow-hidden group shadow-2xl py-12",
+                            dragActive2 ? "border-cyan-400 bg-cyan-400/10" : "border-white/5 bg-secondary/20",
+                            selectedFile2 ? "border-emerald-500/40 bg-emerald-500/5 cursor-default" : "cursor-pointer hover:border-cyan-400/50"
+                        )}
+                    >
+                        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+                        <input ref={fileInput2Ref} type="file" accept=".txt" onChange={handleFileChange2} className="hidden" />
+
+                        {!selectedFile2 ? (
+                            <div className="text-center space-y-6 relative z-10">
+                                <div className="w-24 h-24 bg-black/40 rounded-[32px] border border-white/5 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-700 shadow-2xl relative">
+                                    <CloudIcon className="w-10 h-10 text-cyan-400/60 group-hover:text-cyan-400 transition-colors" />
+                                    <div className="absolute inset-0 bg-cyan-400/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-3xl font-black uppercase italic tracking-tighter leading-none">Checker (Aprovados)</p>
+                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.4em] italic opacity-60">ARQUIVO 2: O CHECKER.TXT COM APROVADOS</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-10 w-full max-w-xl animate-in zoom-in-95 duration-500 px-10 relative z-10">
+                                <div className="glass p-8 rounded-[36px] border border-emerald-500/20 w-full flex items-center gap-6 relative group/file shadow-2xl">
+                                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                                        <FileText className="w-8 h-8 text-emerald-500" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1 italic">Checker (Arquivo 2)</p>
+                                        <p className="text-lg font-black italic tracking-tighter truncate leading-none">{selectedFile2.name}</p>
+                                    </div>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setSelectedFile2(null); }}
+                                        className="w-12 h-12 rounded-2xl bg-secondary hover:bg-destructive/10 hover:text-destructive transition-all flex items-center justify-center"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
+
+            {mode === 'checker_gov' && selectedFile && selectedFile2 && (
+                <div className="flex justify-center animate-in slide-in-from-bottom-5 duration-700">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleUpload(); }}
+                        disabled={uploading}
+                        className="w-full max-w-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(34,211,238,0.3)] flex flex-col items-center justify-center gap-2 disabled:opacity-70 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload mx-auto"
+                    >
+                        <div className="flex items-center gap-4">
+                            {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-black group-hover/upload:rotate-12 transition-transform" />}
+                            {uploading ? (progress?.phase || "SINCRONIZANDO CHECKER...") : "EXECUTAR CRUZAMENTO E LIMPEZA"}
+                        </div>
+                        {uploading && progress && progress.total > 0 && (
+                            <div className="w-full max-w-xs space-y-1 mt-2">
+                                <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-white/80 rounded-full transition-all duration-300" 
+                                        style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }} 
+                                    />
+                                </div>
+                                <p className="text-[10px] font-bold tracking-widest opacity-80 text-black/70">
+                                    {progress.current}/{progress.total} ({Math.round((progress.current / progress.total) * 100)}%)
+                                </p>
+                            </div>
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* Footer Intel */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
