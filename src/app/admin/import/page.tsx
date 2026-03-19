@@ -23,7 +23,7 @@ import { supabase } from '@/lib/supabase'
 export default function ImportPage() {
     const [dragActive, setDragActive] = useState(false)
     const [dragActive2, setDragActive2] = useState(false)
-    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'checker_gov' | 'rejected'>('bot')
+    const [mode, setMode] = useState<'cpf' | 'bot' | 'gov' | 'checker_gov' | 'rejected' | 'bb' | 'bradesco' | 'itau' | 'santander'>('bot')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [selectedFile2, setSelectedFile2] = useState<File | null>(null)
     const [uploading, setUploading] = useState(false)
@@ -112,6 +112,9 @@ export default function ImportPage() {
             let fullName = '';
             let card_bin = null;
             let card_expiry = null;
+            let phones: string[] | null = null;
+            let num_gov: string | null = null;
+            let status: string | null = null;
 
             if (currentMode === 'bot') {
                 // Format 1: NOME: Fulano | 🆔 12345678900 | BIN: 516292 | VAL: 01/2030
@@ -136,6 +139,21 @@ export default function ImportPage() {
                     cpf = cpfMatch2[1].trim();
                     fullName = nameMatch2 ? nameMatch2[1].trim().toUpperCase() : 'NOME_AUSENTE';
                     if (binMatch2) card_bin = binMatch2[1].trim().slice(0, 6);
+                }
+            } else if (['bb', 'bradesco', 'itau', 'santander'].includes(currentMode)) {
+                const match = line.match(/\[.*?\]\s*([\d.-]+)\s*-\s*AG:\s*(\d+).*?TEL:\s*(.+)/i);
+                if (match) {
+                    cpf = match[1];
+                    card_bin = match[2];
+                    card_expiry = currentMode.toUpperCase();
+                    const phone = match[3].replace(/\D/g, '');
+                    if (phone.length >= 10) {
+                        phones = [phone];
+                        num_gov = phone;
+                        status = 'incompleto';
+                    } else {
+                        cpf = '';
+                    }
                 }
             } else if (currentMode === 'cpf' || currentMode === 'rejected') {
                 const cpfMatch = line.match(/[\d.-]{11,14}/);
@@ -164,6 +182,9 @@ export default function ImportPage() {
                     if (fullName) leadObj.full_name = fullName;
                     if (card_bin) leadObj.card_bin = card_bin;
                     if (card_expiry) leadObj.card_expiry = card_expiry;
+                    if (phones) leadObj.phones = phones;
+                    if (num_gov) leadObj.num_gov = num_gov;
+                    if (status) leadObj.status = status;
                     leads.push(leadObj);
                 }
             }
@@ -477,7 +498,11 @@ export default function ImportPage() {
                     { id: 'bot', icon: Upload, title: 'Modo 2', desc: 'Extrator Bot', color: 'text-primary' },
                     { id: 'gov', icon: UserCheck, title: 'Modo 3', desc: 'Núms GOV', color: 'text-emerald-500' },
                     { id: 'rejected', icon: AlertCircle, title: 'Modo 4', desc: 'Marcar Ruins', color: 'text-destructive' },
-                    { id: 'checker_gov', icon: CheckCircle2, title: 'Modo 5', desc: 'Checker GOV TXT', color: 'text-cyan-400' }
+                    { id: 'checker_gov', icon: CheckCircle2, title: 'Modo 5', desc: 'Checker GOV TXT', color: 'text-cyan-400' },
+                    { id: 'bb', icon: Database, title: 'Modo BB', desc: 'Extrator Banco do Brasil', color: 'text-yellow-400' },
+                    { id: 'bradesco', icon: Database, title: 'Modo Bradesco', desc: 'Extrator Bradesco', color: 'text-red-500' },
+                    { id: 'itau', icon: Database, title: 'Modo Itau', desc: 'Extrator Itau Personalité', color: 'text-orange-500' },
+                    { id: 'santander', icon: Database, title: 'Modo Santander', desc: 'Extrator Santander Select', color: 'text-red-600' }
                 ].map((item) => (
                     <button
                         key={item.id}

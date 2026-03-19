@@ -691,9 +691,13 @@ export default function LeadsPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
                                         <div className="glass-card p-6 md:p-10 border border-secondary/30 bg-secondary/10 rounded-[20px] md:rounded-[40px] shadow-2xl group transition-all hover:bg-secondary/20">
                                             <CreditCard className="w-6 md:w-8 h-6 md:h-8 text-secondary mb-4 md:mb-8 group-hover:scale-110 transition-transform" />
-                                            <p className="text-[8px] md:text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-3 italic leading-none">BIN CARTÃO</p>
+                                            <p className="text-[8px] md:text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-3 italic leading-none">
+                                                {['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(selectedLead.card_expiry || '') ? 'AGÊNCIA' : 'BIN CARTÃO'}
+                                            </p>
                                             <p className="text-xl md:text-3xl font-mono text-white tracking-[0.1em] md:tracking-[0.2em] mb-4 md:mb-6 leading-none">{selectedLead.card_bin || '------'}</p>
-                                            <p className="text-[8px] md:text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-3 italic leading-none">EXPIRA</p>
+                                            <p className="text-[8px] md:text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-3 italic leading-none">
+                                                {['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(selectedLead.card_expiry || '') ? 'BANCO / SEGMENTO' : 'EXPIRA'}
+                                            </p>
                                             <p className="text-lg md:text-2xl font-mono text-white font-bold italic leading-none">{selectedLead.card_expiry || '--/--'}</p>
                                         </div>
                                         <div className="glass-card p-6 md:p-10 border border-emerald-500/20 bg-emerald-500/5 rounded-[20px] md:rounded-[40px] shadow-2xl group transition-all hover:bg-emerald-500/10 overflow-hidden">
