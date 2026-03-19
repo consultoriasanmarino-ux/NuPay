@@ -342,7 +342,7 @@ export default function AdminDashboard() {
                     <div className="flex p-1.5 glass-deep rounded-[40px] border border-white/5 backdrop-blur-3xl shadow-2xl">
                         <button
                             onClick={fetchStats}
-                            className="flex items-center gap-4 px-10 py-5 rounded-[32px] glass hover:bg-white/5 border border-white/10 transition-all active:scale-95 text-[11px] font-mono font-bold uppercase tracking-[0.2em] shadow-xl group italic"
+                            className="btn-cinema btn-cinema-glass px-10 h-20"
                         >
                             <RefreshCcw className={cn("w-5 h-5 transition-transform group-hover:rotate-180 duration-1000 text-primary", loading && "animate-spin")} />
                             Sincronizar Protocolos
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
             {/* Bento Grid Stats */}
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4 md:gap-6 stagger-2">
                 {statCards.map((stat, idx) => (
-                    <div key={stat.label} className="glass shadow-[0_32px_100px_rgba(0,0,0,0.4)] rounded-[40px] p-8 relative overflow-hidden group card-hover border border-white/5 flex flex-col justify-between hover:bg-white/[0.02] transition-all">
+                    <div key={stat.label} className="glass-card p-8 group">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 blur-[50px] rounded-full group-hover:bg-primary/20 transition-colors pointer-events-none" />
                         <div className="flex items-center justify-between mb-6 relative z-10">
                             <div className={cn("w-12 h-12 rounded-[22px] glass shadow-2xl flex items-center justify-center transition-all group-hover:scale-110 duration-500 border border-white/10", stat.color)}>
@@ -417,9 +417,8 @@ export default function AdminDashboard() {
                                 <button
                                     onClick={() => handleConsult(false)}
                                     disabled={loading}
-                                    className="flex-1 group relative glass glow-primary-sm py-6 md:py-8 px-6 md:px-16 rounded-[24px] md:rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.1em] md:tracking-[0.2em] flex items-center justify-center gap-3 md:gap-5 text-lg md:text-xl font-display text-white border border-primary/20 overflow-hidden"
+                                    className="btn-cinema btn-cinema-primary flex-1 h-20 md:h-24 md:text-xl"
                                 >
-                                     <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <Zap className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-12 transition-transform duration-500 text-primary" />
                                     <span>Priorizar</span>
                                 </button>
@@ -430,7 +429,7 @@ export default function AdminDashboard() {
                                         }
                                     }}
                                     disabled={loading}
-                                    className="flex-1 group relative glass-deep hover:bg-amber-500/10 py-6 md:py-8 px-6 md:px-16 rounded-[24px] md:rounded-[40px] transition-all shadow-2xl active:scale-[0.94] uppercase italic tracking-[0.1em] md:tracking-[0.2em] flex items-center justify-center gap-3 md:gap-5 text-lg md:text-xl font-display text-amber-500 border border-amber-500/20"
+                                    className="btn-cinema btn-cinema-glass text-amber-500 border-amber-500/20 flex-1 h-20 md:h-24 md:text-xl"
                                 >
                                     <RefreshCcw className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-180 transition-transform duration-1000" />
                                     <span>Reset Global</span>

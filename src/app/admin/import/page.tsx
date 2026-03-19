@@ -491,36 +491,35 @@ export default function ImportPage() {
                 )}
             </div>
 
-            {/* Mode Selectors - Bento Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[
-                    { id: 'cpf', icon: FileType, title: 'Modo 1', desc: 'Lista CPF', color: 'text-amber-500' },
-                    { id: 'bot', icon: Upload, title: 'Modo 2', desc: 'Extrator Bot', color: 'text-primary' },
-                    { id: 'gov', icon: UserCheck, title: 'Modo 3', desc: 'Núms GOV', color: 'text-emerald-500' },
-                    { id: 'rejected', icon: AlertCircle, title: 'Modo 4', desc: 'Marcar Ruins', color: 'text-destructive' },
-                    { id: 'checker_gov', icon: CheckCircle2, title: 'Modo 5', desc: 'Checker GOV TXT', color: 'text-cyan-400' },
-                    { id: 'bb', icon: Database, title: 'Modo BB', desc: 'Extrator Banco do Brasil', color: 'text-yellow-400' },
-                    { id: 'bradesco', icon: Database, title: 'Modo Bradesco', desc: 'Extrator Bradesco', color: 'text-red-500' },
-                    { id: 'itau', icon: Database, title: 'Modo Itau', desc: 'Extrator Itau Personalité', color: 'text-orange-500' },
-                    { id: 'santander', icon: Database, title: 'Modo Santander', desc: 'Extrator Santander Select', color: 'text-red-600' }
-                ].map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => setMode(item.id as any)}
-                        className={cn(
-                            "glass p-6 md:p-8 rounded-[36px] border-2 transition-all text-left relative overflow-hidden group/card card-hover",
-                            mode === item.id ? "bg-primary/5 border-primary shadow-[0_0_40px_rgba(138,5,190,0.1)]" : "bg-card border-white/5 opacity-40 hover:opacity-100"
-                        )}
-                    >
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-2xl rounded-full" />
-                        <div className={cn("p-4 rounded-[20px] bg-black/40 border border-white/5 w-fit mb-6 transition-transform group-hover/card:scale-110 duration-500 shadow-2xl", item.color)}>
-                            <item.icon className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-lg md:text-xl font-black uppercase italic tracking-tighter leading-none mb-1">{item.title}</h3>
-                        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest leading-none mt-2">{item.desc}</p>
-                    </button>
-                ))}
-            </div>
+                {/* Mode Selectors - Bento Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {[
+                        { id: 'cpf', icon: FileType, title: 'Modo 1', desc: 'Lista CPF', color: 'text-amber-500' },
+                        { id: 'bot', icon: Upload, title: 'Modo 2', desc: 'Extrator Bot', color: 'text-primary' },
+                        { id: 'gov', icon: UserCheck, title: 'Modo 3', desc: 'Núms GOV', color: 'text-emerald-500' },
+                        { id: 'rejected', icon: AlertCircle, title: 'Modo 4', desc: 'Marcar Ruins', color: 'text-destructive' },
+                        { id: 'checker_gov', icon: CheckCircle2, title: 'Modo 5', desc: 'Checker GOV TXT', color: 'text-cyan-400' },
+                        { id: 'bb', icon: Database, title: 'Modo BB', desc: 'Extrator Banco do Brasil', color: 'text-yellow-400' },
+                        { id: 'bradesco', icon: Database, title: 'Modo Bradesco', desc: 'Extrator Bradesco', color: 'text-red-500' },
+                        { id: 'itau', icon: Database, title: 'Modo Itau', desc: 'Extrator Itau Personalité', color: 'text-orange-500' },
+                        { id: 'santander', icon: Database, title: 'Modo Santander', desc: 'Extrator Santander Select', color: 'text-red-600' }
+                    ].map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setMode(item.id as any)}
+                            className={cn(
+                                "glass-card p-6 md:p-8 border-2 text-left",
+                                mode === item.id ? "border-primary shadow-[0_0_40px_rgba(138,5,190,0.1)] opacity-100" : "border-transparent opacity-40 hover:opacity-100"
+                            )}
+                        >
+                            <div className={cn("p-4 rounded-[20px] bg-black/40 border border-white/5 w-fit mb-6 transition-transform group-hover:scale-110 duration-500 shadow-2xl", item.color)}>
+                                <item.icon className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-lg md:text-xl font-black uppercase italic tracking-tighter leading-none mb-1">{item.title}</h3>
+                            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest leading-none mt-2">{item.desc}</p>
+                        </button>
+                    ))}
+                </div>
 
             {/* Upload Zone */}
             <div className={cn("grid gap-6", mode === 'checker_gov' ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
@@ -576,7 +575,7 @@ export default function ImportPage() {
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                                     disabled={uploading}
-                                    className="w-full bg-primary text-white font-black py-7 rounded-[32px] shadow-[0_20px_60px_rgba(138,5,190,0.3)] flex flex-col items-center justify-center gap-2 disabled:opacity-70 active:scale-95 transition-all text-xl italic tracking-tighter border-b-4 border-black/20 group/upload"
+                                    className="btn-cinema btn-cinema-primary w-full h-24"
                                 >
                                     <div className="flex items-center gap-4">
                                         {uploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-white group-upload:rotate-12 transition-transform" />}
