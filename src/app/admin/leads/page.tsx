@@ -86,27 +86,53 @@ export default function LeadsPage() {
 
     const handleExportMissingGov = async () => {
         setLoading(true)
-        const { data, error } = await supabase
-            .from('leads')
-            .select('cpf')
-            .is('num_gov', null)
-            .neq('status', 'ruim')
+        const BATCH_SIZE = 1000
+        let allData: { cpf: string }[] = []
+        let from = 0
+        let hasMore = true
 
-        if (error) {
+        try {
+            while (hasMore) {
+                const { data, error } = await supabase
+                    .from('leads')
+                    .select('cpf')
+                    .is('num_gov', null)
+                    .neq('status', 'ruim')
+                    .order('id')
+                    .range(from, from + BATCH_SIZE - 1)
+
+                if (error) throw error
+
+                if (data && data.length > 0) {
+                    allData = [...allData, ...data]
+                    if (data.length < BATCH_SIZE) {
+                        hasMore = false
+                    } else {
+                        from += BATCH_SIZE
+                    }
+                } else {
+                    hasMore = false
+                }
+            }
+
+            if (allData.length > 0) {
+                const uniqueCpfs = Array.from(new Set(allData.map(l => l.cpf)))
+                const cpfs = uniqueCpfs.join('\n')
+                const blob = new Blob([cpfs], { type: 'text/plain' })
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `cpfs_sem_gov_${uniqueCpfs.length}_leads_${new Date().toISOString().split('T')[0]}.txt`
+                a.click()
+                window.URL.revokeObjectURL(url)
+            } else {
+                alert('Nenhum CPF sem número do governo encontrado.')
+            }
+        } catch (error: any) {
             alert('Erro ao exportar: ' + error.message)
-        } else if (data && data.length > 0) {
-            const cpfs = data.map(l => l.cpf).join('\n')
-            const blob = new Blob([cpfs], { type: 'text/plain' })
-            const url = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `cpfs_sem_gov_${new Date().toISOString().split('T')[0]}.txt`
-            a.click()
-            window.URL.revokeObjectURL(url)
-        } else {
-            alert('Nenhum CPF sem número do governo encontrado.')
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     const handleClearBase = async () => {
@@ -176,20 +202,36 @@ export default function LeadsPage() {
         setLoading(true)
 
         try {
-            // Buscar TODOS os leads com status 'ruim'
-            const { data: ruimLeads, error: fetchErr } = await supabase
-                .from('leads')
-                .select('id, cpf, score, income, phones, full_name, status')
-                .eq('status', 'ruim')
-                .limit(5000)
+            // Buscar TODOS os leads com status 'ruim' usando paginação para garantir que pegamos tudo
+            let ruimLeads: any[] = []
+            let from = 0
+            const BATCH_FETCH = 1000
+            let hasMoreRuim = true
 
-            if (fetchErr) {
-                alert('Erro ao buscar leads ruins: ' + fetchErr.message)
-                setLoading(false)
-                return
+            while (hasMoreRuim) {
+                const { data, error: fetchErr } = await supabase
+                    .from('leads')
+                    .select('id, cpf, score, income, phones, full_name, status')
+                    .eq('status', 'ruim')
+                    .order('id')
+                    .range(from, from + BATCH_FETCH - 1)
+
+                if (fetchErr) {
+                    alert('Erro ao buscar leads ruins: ' + fetchErr.message)
+                    setLoading(false)
+                    return
+                }
+
+                if (data && data.length > 0) {
+                    ruimLeads = [...ruimLeads, ...data]
+                    if (data.length < BATCH_FETCH) hasMoreRuim = false
+                    else from += BATCH_FETCH
+                } else {
+                    hasMoreRuim = false
+                }
             }
 
-            if (!ruimLeads || ruimLeads.length === 0) {
+            if (ruimLeads.length === 0) {
                 alert('✅ Nenhum lead com status "ruim" encontrado!')
                 setLoading(false)
                 return

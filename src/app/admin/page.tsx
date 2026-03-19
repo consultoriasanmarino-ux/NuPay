@@ -125,8 +125,8 @@ export default function AdminDashboard() {
             .limit(1000)
 
         if (!consultAll) {
-            // Priorizar: Incompleto (Sem Consulta) OU (Consultado E sem telefones) OU Ruim (para resgate)
-            query = query.or('status.eq.incompleto,status.eq.ruim,and(status.eq.consultado,phones.eq.[])')
+            // Priorizar: Apenas 'Incompleto' (Sem Consulta) que ainda NÃO possuem número GOV vinculado
+            query = query.eq('status', 'incompleto').is('num_gov', null)
         } else {
             // Reset Global: Consultar todos exceto os que já estão em estados finais
             query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado")')

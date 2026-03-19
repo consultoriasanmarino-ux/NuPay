@@ -34,15 +34,34 @@ export default function UnassignPage() {
     const fetchLigadores = async () => {
         setLoading(true)
 
-        // Fetch ALL leads that have an owner (not archived)
-        const { data: attributedLeads } = await supabase
-            .from('leads')
-            .select('owner_id')
-            .not('owner_id', 'is', null)
-            .neq('status', 'arquivado')
+        // Fetch ALL leads that have an owner (not archived) in batches
+        let attributedLeads: any[] = []
+        let from = 0
+        const BATCH = 1000
+        let hasMore = true
+
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('leads')
+                .select('owner_id')
+                .not('owner_id', 'is', null)
+                .neq('status', 'arquivado')
+                .range(from, from + BATCH - 1)
+
+            if (error) {
+                console.error('Error fetching leads:', error.message)
+                hasMore = false
+            } else if (data && data.length > 0) {
+                attributedLeads = [...attributedLeads, ...data]
+                if (data.length < BATCH) hasMore = false
+                else from += BATCH
+            } else {
+                hasMore = false
+            }
+        }
 
         const counts: { [key: string]: number } = {}
-        attributedLeads?.forEach(l => {
+        attributedLeads.forEach(l => {
             if (l.owner_id) {
                 counts[l.owner_id] = (counts[l.owner_id] || 0) + 1
             }
