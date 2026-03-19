@@ -295,10 +295,7 @@ export default function LigadorDashboard() {
                 <div
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}
-                  className={cn(
-                    "glass-card p-8 md:p-10 flex flex-col items-center text-center gap-6 md:gap-8 cursor-pointer group relative overflow-hidden rounded-[40px] md:rounded-[56px] border-white/5 hover:border-primary/30 transition-all hover:translate-y-[-8px] shadow-2xl",
-                    `stagger-${(idx % 5) + 1} animate-in fade-in slide-in-from-bottom-8`
-                  )}
+                  className="glass-card p-6 md:p-10 cursor-pointer group"
                 >
                   <div className="absolute -top-10 -right-10 w-32 md:w-40 h-32 md:h-40 bg-primary/10 blur-[80px] rounded-full group-hover:bg-primary/20 transition-colors" />
                   
@@ -325,9 +322,23 @@ export default function LigadorDashboard() {
 
                     {lead.num_gov && (
                       <div className="mt-4 md:mt-6 flex flex-wrap justify-center gap-2">
-                        <span className="text-[8px] md:text-[9px] bg-emerald-500/10 text-emerald-400 px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border border-emerald-500/20 uppercase tracking-[0.1em] md:tracking-[0.2em] italic glow-emerald shadow-lg">GOV VINCULADO</span>
+                        {['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(lead.card_expiry || '') ? (
+                          <span className={cn(
+                            "text-[8px] md:text-[9px] px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border uppercase tracking-[0.1em] md:tracking-[0.2em] italic shadow-lg",
+                            lead.card_expiry === 'BB' ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20 glow-gold" :
+                            lead.card_expiry === 'BRADESCO' ? "bg-red-500/10 text-red-500 border-red-500/20 glow-red" :
+                            lead.card_expiry === 'ITAU' ? "bg-orange-500/10 text-orange-500 border-orange-500/20 glow-orange" :
+                            "bg-red-600/10 text-red-600 border-red-600/20 glow-red"
+                          )}>
+                            MODO {lead.card_expiry}
+                          </span>
+                        ) : (
+                          <span className="text-[8px] md:text-[9px] bg-emerald-500/10 text-emerald-400 px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border border-emerald-500/20 uppercase tracking-[0.1em] md:tracking-[0.2em] italic glow-emerald shadow-lg">GOV VINCULADO</span>
+                        )}
                         {lead.card_bin && (
-                          <span className="text-[8px] md:text-[9px] bg-primary/10 text-primary-light px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border border-primary/20 uppercase tracking-[0.1em] md:tracking-[0.2em] italic glow-primary shadow-lg">BIN: {lead.card_bin}</span>
+                          <span className="text-[8px] md:text-[9px] bg-primary/10 text-primary-light px-4 md:px-6 py-2 md:py-2.5 rounded-full font-mono font-bold border border-primary/20 uppercase tracking-[0.1em] md:tracking-[0.2em] italic glow-primary shadow-lg">
+                            {['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(lead.card_expiry || '') ? `AG: ${lead.card_bin}` : `BIN: ${lead.card_bin}`}
+                          </span>
                         )}
                       </div>
                     )}
@@ -388,8 +399,13 @@ export default function LigadorDashboard() {
                     </div>
                     {selectedLead.card_bin && (
                       <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                        <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase text-zinc-500 tracking-widest italic">Cartão BIN</p>
-                        <p className="text-xl md:text-2xl font-display text-white italic glow-primary-sm">{selectedLead.card_bin}</p>
+                        <p className="text-[9px] md:text-[11px] font-mono font-bold uppercase text-zinc-500 tracking-widest italic">
+                          {['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(selectedLead.card_expiry || '') ? 'AGÊNCIA BANCÁRIA' : 'Cartão BIN'}
+                        </p>
+                        <p className="text-xl md:text-2xl font-display text-white italic glow-primary-sm">
+                          {['BB', 'BRADESCO', 'ITAU', 'SANTANDER'].includes(selectedLead.card_expiry || '') ? selectedLead.card_expiry + ' - ' : ''}
+                          {selectedLead.card_bin}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -454,7 +470,7 @@ export default function LigadorDashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 pt-4 md:pt-6">
                     <button
                       onClick={handleCopyMessage}
-                      className="py-5 md:py-7 rounded-[20px] md:rounded-[32px] glass glow-primary border border-primary/30 text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] active:scale-95 transition-all flex items-center justify-center gap-3 md:gap-4 text-primary-light hover:bg-primary hover:text-white shadow-2xl hover:translate-y-[-4px]"
+                      className="btn-cinema btn-cinema-glass h-16 md:h-24 w-full"
                     >
                       {msgCopied ? 'SINC. ÁREA DE TRANSFERÊNCIA!' : 'Copiar Protocolo'}
                     </button>
@@ -486,7 +502,7 @@ export default function LigadorDashboard() {
                       <button
                         onClick={() => handleFinalize(selectedLead.id as string, 'arquivado')}
                         disabled={saving}
-                        className="w-full py-5 md:py-7 rounded-[20px] md:rounded-[32px] bg-primary text-white text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(130,10,209,0.4)] hover:translate-y-[-4px] border-b-4 border-black/20 italic"
+                        className="btn-cinema btn-cinema-primary h-16 md:h-24 w-full"
                       >
                         {saving ? <Loader2 className="w-5 md:w-6 h-5 md:w-6 animate-spin" /> : 'Finalizar Ficha'}
                       </button>

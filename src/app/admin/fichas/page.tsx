@@ -352,10 +352,8 @@ export default function FichasPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-10 stagger-4">
                     {leads.map((lead, idx) => (
-                        <div key={lead.id} className={cn(
-                            "glass shadow-[0_32px_80px_rgba(0,0,0,0.4)] p-6 md:p-12 flex flex-col space-y-8 md:space-y-12 group relative overflow-hidden rounded-[32px] md:rounded-[56px] border border-white/5 transition-all hover:bg-white/[0.02]",
-                            `stagger-${(idx % 5) + 1} animate-in fade-in slide-in-from-bottom-6`
-                        )}>
+                        <div key={lead.id} className="glass-card p-6 md:p-12 cursor-default group"
+                        >
                             <div className="absolute top-0 right-0 w-32 md:w-48 h-32 md:h-48 bg-primary/10 blur-[80px] md:blur-[100px] rounded-full group-hover:bg-primary/20 transition-all duration-1000 pointer-events-none" />
 
                             <div className="flex items-center justify-between relative z-10">
@@ -437,7 +435,7 @@ export default function FichasPage() {
                                     <button
                                         onClick={() => handleAssign(lead.id)}
                                         disabled={assigning === lead.id || !selectedLigadorForLead[lead.id]}
-                                        className="w-16 h-16 md:w-24 md:h-24 shrink-0 rounded-[24px] md:rounded-[40px] bg-primary text-white hover:bg-magenta active:scale-[0.94] transition-all shadow-[0_16px_40px_rgba(151,1,254,0.3)] flex items-center justify-center disabled:opacity-10 group/btn border border-primary/20"
+                                        className="btn-cinema btn-cinema-primary w-16 h-16 md:w-24 md:h-24 shrink-0"
                                     >
                                         {assigning === lead.id ? <Loader2 className="w-6 h-6 md:w-10 md:h-10 animate-spin" /> : <ShieldCheck className="w-8 h-8 md:w-12 md:h-12 group-hover/btn:scale-110 transition-transform" />}
                                     </button>
