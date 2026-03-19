@@ -127,7 +127,8 @@ export default function AdminDashboard() {
         if (!consultAll) {
             // Priorizar: Apenas 'Incompleto' (Sem Consulta)
             // Agora incluímos os que possuem num_gov (fichas BB/Bradesco/etc)
-            query = query.eq('status', 'incompleto')
+            // Ordenamos pelos mais novos para priorizar os recém-incluídos
+            query = query.eq('status', 'incompleto').order('created_at', { ascending: false })
         } else {
             // Reset Global: Consultar todos exceto os que já estão em estados finais
             query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado")')
