@@ -121,12 +121,13 @@ export default function AdminDashboard() {
 
         let query = supabase
             .from('leads')
-            .select('id, cpf, full_name, status')
+            .select('id, cpf, full_name, status, num_gov')
             .limit(1000)
 
         if (!consultAll) {
-            // Priorizar: Apenas 'Incompleto' (Sem Consulta) que ainda NÃO possuem número GOV vinculado
-            query = query.eq('status', 'incompleto').is('num_gov', null)
+            // Priorizar: Apenas 'Incompleto' (Sem Consulta)
+            // Agora incluímos os que possuem num_gov (fichas BB/Bradesco/etc)
+            query = query.eq('status', 'incompleto')
         } else {
             // Reset Global: Consultar todos exceto os que já estão em estados finais
             query = query.not('status', 'in', '("atribuido","arquivado","pago","recusado")')
@@ -240,8 +241,14 @@ export default function AdminDashboard() {
 
                     // Change status to 'consultado' for leads that are 'incompleto' or 'ruim' (incorrectly marked)
                     // Preserve status for 'atribuido', 'arquivado', 'concluido', etc.
+                    // Se o lead for 'incompleto' ou 'ruim', move para 'consultado' ou 'concluido'
                     if (lead.status === 'incompleto' || lead.status === 'ruim') {
-                        updateData.status = 'consultado'
+                        // Se já tem NUM_GOV (vindo do import bancário/BB), vai direto para 'concluido'
+                        if (lead.num_gov) {
+                            updateData.status = 'concluido'
+                        } else {
+                            updateData.status = 'consultado'
+                        }
                     }
 
                     // Always overwrite name from API (complete name)
