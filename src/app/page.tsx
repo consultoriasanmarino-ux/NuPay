@@ -141,7 +141,7 @@ export default function LigadorDashboard() {
     }
   }, [router, fetchLeads])
 
-  const handleFinalize = async (leadId: string, status: 'pago' | 'recusado') => {
+  const handleFinalize = async (leadId: string, status: 'pago' | 'recusado' | 'arquivado') => {
     setSaving(true)
     const { error } = await supabase
       .from('leads')
@@ -484,18 +484,11 @@ export default function LigadorDashboard() {
                   {activeTab === 'pendentes' && (
                     <div className="w-full sm:flex-[2] flex flex-col sm:flex-row gap-4 md:gap-6 order-1 sm:order-2">
                       <button
-                        onClick={() => handleFinalize(selectedLead.id as string, 'recusado')}
+                        onClick={() => handleFinalize(selectedLead.id as string, 'arquivado')}
                         disabled={saving}
-                        className="w-full sm:flex-1 py-5 md:py-7 rounded-[20px] md:rounded-[32px] glass-deep border border-destructive/20 text-destructive text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] hover:bg-destructive hover:text-white transition-all flex items-center justify-center gap-3 italic"
+                        className="w-full py-5 md:py-7 rounded-[20px] md:rounded-[32px] bg-primary text-white text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(130,10,209,0.4)] hover:translate-y-[-4px] border-b-4 border-black/20 italic"
                       >
-                        {saving ? <Loader2 className="w-5 md:w-6 h-5 md:w-6 animate-spin" /> : 'Sinalizar Falha'}
-                      </button>
-                      <button
-                        onClick={() => handleFinalize(selectedLead.id as string, 'pago')}
-                        disabled={saving}
-                        className="w-full sm:flex-[2] py-5 md:py-7 rounded-[20px] md:rounded-[32px] bg-primary text-white text-[9px] md:text-[11px] font-mono font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(130,10,209,0.4)] hover:translate-y-[-4px] border-b-4 border-black/20 italic"
-                      >
-                        {saving ? <Loader2 className="w-5 md:w-6 h-5 md:w-6 animate-spin" /> : 'Confirmar Conversão'}
+                        {saving ? <Loader2 className="w-5 md:w-6 h-5 md:w-6 animate-spin" /> : 'Finalizar Ficha'}
                       </button>
                     </div>
                   )}
